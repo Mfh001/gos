@@ -28,37 +28,37 @@ type GenServer struct {
 var SIGN_STOP int = 1
 
 type GenServerBehavior interface {
-	// Init(args []reflect.Value) (err error)
-	// HandleCall(method string, args []reflect.Value) []reflect.Value
-	// HandleCast(method string, args []reflect.Value)
+	// Init(args ...interface{}) (err error)
 	Terminate(reason string) (err error)
 }
 
-var NamingMap = make(map[string]GenServer)
-
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server GenServer) {
-	if _, exists := NamingMap[server_name]; !exists {
+    gen_server, exists := GetGenServer(server_name)
+	if !exists {
 		cast_channel := make(chan []reflect.Value, 1024)
 		call_channel := make(chan []reflect.Value)
 		sign_channel := make(chan SignPacket)
+
 		gen_server = GenServer{
 			name:         server_name,
 			callback:     module,
 			cast_channel: cast_channel,
 			call_channel: call_channel,
 			sign_channel: sign_channel}
-		// gen_server.callback.Init(to_reflect_values(args)) // Init callback struct
+
 		utils.Call(gen_server.callback, "Init", to_reflect_values(args))
+
 		go loop(gen_server) // Enter infinity loop
-		NamingMap[server_name] = gen_server
+
+		SetGenServer(server_name, gen_server)
 	} else {
 		fmt.Println(server_name, " is already exists!")
 	}
-	return NamingMap[server_name]
+    return gen_server
 }
 
 func Stop(server_name, reason string) {
-	if gen_server, exists := NamingMap[server_name]; exists {
+	if gen_server, exists := GetGenServer(server_name); exists {
 		gen_server.sign_channel <- SignPacket{SIGN_STOP, reason}
 	} else {
 		fmt.Println(server_name, " not found!")
@@ -66,7 +66,7 @@ func Stop(server_name, reason string) {
 }
 
 func Call(server_name string, args ...interface{}) (result []reflect.Value, err error) {
-	if gen_server, exists := NamingMap[server_name]; exists {
+	if gen_server, exists := GetGenServer(server_name); exists {
 		gen_server.call_channel <- to_reflect_values(args)
 		result = <-gen_server.call_channel
 	} else {
@@ -77,7 +77,7 @@ func Call(server_name string, args ...interface{}) (result []reflect.Value, err 
 }
 
 func Cast(server_name string, args ...interface{}) {
-	if gen_server, exists := NamingMap[server_name]; exists {
+	if gen_server, exists := GetGenServer(server_name); exists {
 		gen_server.cast_channel <- to_reflect_values(args)
 	} else {
 		fmt.Println(server_name, " not found!")
@@ -111,7 +111,7 @@ func loop(gen_server GenServer) {
 					close(gen_server.cast_channel)
 					close(gen_server.call_channel)
 					close(gen_server.sign_channel)
-					delete(NamingMap, gen_server.name)
+                    DelGenServer(gen_server.name)
 					break
 				}
 			}
