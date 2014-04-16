@@ -94,6 +94,10 @@ func Cast(server_name string, args ...interface{}) {
 }
 
 func loop(gen_server GenServer) {
+	defer func() {
+		terminate(gen_server, "GenServer Loop Terminate!")
+	}()
+
 	for {
 		select {
 		case args, ok := <-gen_server.cast_channel:
@@ -116,15 +120,19 @@ func loop(gen_server GenServer) {
 				// fmt.Println("handle_sign: ", sign_packet)
 				switch sign_packet.signal {
 				case SIGN_STOP:
-					gen_server.callback.Terminate(sign_packet.reason)
-					close(gen_server.cast_channel)
-					close(gen_server.call_channel_in)
-					close(gen_server.call_channel_out)
-					close(gen_server.sign_channel)
-					DelGenServer(gen_server.name)
-					break
+					terminate(gen_server, sign_packet.reason)
+					return
 				}
 			}
 		}
 	}
+}
+
+func terminate(gen_server GenServer, reason string) {
+	gen_server.callback.Terminate(reason)
+	close(gen_server.cast_channel)
+	close(gen_server.call_channel_in)
+	close(gen_server.call_channel_out)
+	close(gen_server.sign_channel)
+	DelGenServer(gen_server.name)
 }

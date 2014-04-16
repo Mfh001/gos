@@ -1,16 +1,16 @@
 package gen_server
 
 type NamingPacket struct {
-    action string
-    name string
-    server GenServer
-    exists bool
+	action string
+	name   string
+	server GenServer
+	exists bool
 }
 
 type NamingServer struct {
-	name_map map[string]GenServer
-    channel_in chan NamingPacket
-    channel_out chan NamingPacket
+	name_map    map[string]GenServer
+	channel_in  chan NamingPacket
+	channel_out chan NamingPacket
 }
 
 var SharedInstance *NamingServer
@@ -22,37 +22,43 @@ func SharedNameServer() *NamingServer {
 func StartNamingServer() {
 	SharedInstance = new(NamingServer)
 	SharedInstance.name_map = make(map[string]GenServer)
-    SharedInstance.channel_in  = make(chan NamingPacket)
-    SharedInstance.channel_out  = make(chan NamingPacket)
 	go SharedInstance.loop()
 }
 
 func GetGenServer(name string) (GenServer, bool) {
-    SharedInstance.channel_in <- NamingPacket{action: "get", name: name}
-    packet := <-SharedInstance.channel_out
-    return packet.server, packet.exists
+	SharedInstance.channel_in <- NamingPacket{action: "get", name: name}
+	packet := <-SharedInstance.channel_out
+	return packet.server, packet.exists
 }
 
 func SetGenServer(name string, server GenServer) {
-    SharedInstance.channel_in <- NamingPacket{action: "set", name: name, server: server}
+	SharedInstance.channel_in <- NamingPacket{action: "set", name: name, server: server}
 }
 
 func DelGenServer(name string) {
-    SharedInstance.channel_in <- NamingPacket{action: "del", name: name}
+	SharedInstance.channel_in <- NamingPacket{action: "del", name: name}
 }
 
 func (self *NamingServer) loop() error {
+	SharedInstance.channel_in = make(chan NamingPacket)
+	SharedInstance.channel_out = make(chan NamingPacket)
+
+	defer func() {
+		close(SharedInstance.channel_in)
+		close(SharedInstance.channel_out)
+	}()
+
 	for {
-      packet := <-self.channel_in
-      switch packet.action {
-      case "set":
-        self.set(packet.name, packet.server)
-      case "get":
-        server, exists := self.get(packet.name)
-        self.channel_out <- NamingPacket{server: server, exists: exists}
-      case "del":
-        self.del(packet.name)
-      }
+		packet := <-self.channel_in
+		switch packet.action {
+		case "set":
+			self.set(packet.name, packet.server)
+		case "get":
+			server, exists := self.get(packet.name)
+			self.channel_out <- NamingPacket{server: server, exists: exists}
+		case "del":
+			self.del(packet.name)
+		}
 	}
 }
 
@@ -65,6 +71,6 @@ func (self *NamingServer) del(name string) {
 }
 
 func (self *NamingServer) get(name string) (GenServer, bool) {
-    gen_server, exists := self.name_map[name]
-    return gen_server, exists
+	gen_server, exists := self.name_map[name]
+	return gen_server, exists
 }

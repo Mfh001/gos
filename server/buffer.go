@@ -40,8 +40,7 @@ func (buf *Buffer) Start() {
 		select {
 		case data := <-buf.pending:
 			buf.raw_send(data)
-		case <-buf.ctrl: // session end, send final data
-			INFO("FLUSH DATA AND TERMINATE OUT BUFFER!")
+		case <-buf.ctrl:
 			close(buf.pending)
 			for data := range buf.pending {
 				buf.raw_send(data)
