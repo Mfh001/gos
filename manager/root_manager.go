@@ -36,5 +36,10 @@ func (self *RootManager) SystemInfo(from string, time int) int {
 }
 
 func (self *RootManager) Echo(words string) string {
+	// a,b:=0,1;
+	// for i := 1; i < 100000; i++ {
+	//   a++
+	//   b++
+	// }
 	return words
 }

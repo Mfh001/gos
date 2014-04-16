@@ -1,14 +1,18 @@
 package main
 
 import (
-	"bytes"
+	"encoding/binary"
 	"fmt"
+	"game_data"
 	"gen_server"
+	"io"
 	"log"
 	"manager"
 	"net"
+	"routes"
 	"runtime"
 	"time"
+	. "utils"
 )
 
 func main() {
@@ -17,6 +21,11 @@ func main() {
 			fmt.Println("caught panic in main()", x)
 		}
 	}()
+
+	go SysRoutine()
+	routes.InitRoutes()
+	game_data.Load()
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// runtime.GOMAXPROCS(1)
 
@@ -52,30 +61,47 @@ func start_tcp_server() {
 	}
 }
 
-// Handles incoming requests.
 func handleRequest(conn net.Conn) {
+	defer func() {
+		if x := recover(); x != nil {
+			ERR("caught panic in handleClient", x)
+		}
+	}()
+
 	server_name := conn.RemoteAddr().String()
-	gen_server.Start(server_name, new(manager.RootManager), server_name)
+	gen_server.Start(server_name, new(Player), server_name)
+	// response_channel := make(chan []byte)
+
+	header := make([]byte, 2)
+	bufctrl := make(chan bool)
+
+	defer func() {
+		close(bufctrl)
+	}()
+
+	// create write buffer
+	out := NewBuffer(conn, bufctrl)
+	go out.Start()
+
 	for {
-		// Make a buffer to hold incoming data.
-		buf := make([]byte, 1024)
-		// Read the incoming connection into the buffer.
-		_, err := conn.Read(buf)
+		// header
+		conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT * time.Second))
+		n, err := io.ReadFull(conn, header)
 		if err != nil {
-			fmt.Println("Error reading:", err.Error())
-			conn.Close()
-			// go gen_server.Stop(server_name, "Connection closed!")
+			NOTICE("Connection Closed: ", err)
 			break
 		}
 
-		// Send a response back to person contacting us.
-		n := bytes.Index(buf, []byte{0})
-		s := string(buf[:n])
-		// result, _ := gen_server.Call(server_name, "Echo", s)
-		// fmt.Println("result: ", result[0].String())
-		// conn.Write([]byte(result[0].String()))
+		// data
+		size := binary.BigEndian.Uint16(header)
+		data := make([]byte, size)
+		n, err = io.ReadFull(conn, data)
+		if err != nil {
+			WARN("error receiving msg, bytes:", n, "reason:", err)
+			break
+		}
 
-		gen_server.Call(server_name, "Echo", s)
-		conn.Write([]byte(s))
+		gen_server.Cast(server_name, "HandleRequest", data, out)
 	}
+
 }

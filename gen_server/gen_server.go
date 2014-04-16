@@ -18,11 +18,12 @@ type SignPacket struct {
 }
 
 type GenServer struct {
-	name         string
-	callback     GenServerBehavior
-	cast_channel chan []reflect.Value
-	call_channel chan []reflect.Value
-	sign_channel chan SignPacket
+	name             string
+	callback         GenServerBehavior
+	cast_channel     chan []reflect.Value
+	call_channel_in  chan []reflect.Value
+	call_channel_out chan []reflect.Value
+	sign_channel     chan SignPacket
 }
 
 var SIGN_STOP int = 1
@@ -33,20 +34,22 @@ type GenServerBehavior interface {
 }
 
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server GenServer) {
-    gen_server, exists := GetGenServer(server_name)
+	gen_server, exists := GetGenServer(server_name)
 	if !exists {
 		cast_channel := make(chan []reflect.Value, 1024)
-		call_channel := make(chan []reflect.Value)
+		call_channel_in := make(chan []reflect.Value)
+		call_channel_out := make(chan []reflect.Value)
 		sign_channel := make(chan SignPacket)
 
 		gen_server = GenServer{
-			name:         server_name,
-			callback:     module,
-			cast_channel: cast_channel,
-			call_channel: call_channel,
-			sign_channel: sign_channel}
+			name:             server_name,
+			callback:         module,
+			cast_channel:     cast_channel,
+			call_channel_in:  call_channel_in,
+			call_channel_out: call_channel_out,
+			sign_channel:     sign_channel}
 
-		utils.Call(gen_server.callback, "Init", to_reflect_values(args))
+		utils.Call(gen_server.callback, "Init", utils.ToReflectValues(args))
 
 		go loop(gen_server) // Enter infinity loop
 
@@ -54,7 +57,7 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 	} else {
 		fmt.Println(server_name, " is already exists!")
 	}
-    return gen_server
+	return gen_server
 }
 
 func Stop(server_name, reason string) {
@@ -67,8 +70,8 @@ func Stop(server_name, reason string) {
 
 func Call(server_name string, args ...interface{}) (result []reflect.Value, err error) {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		gen_server.call_channel <- to_reflect_values(args)
-		result = <-gen_server.call_channel
+		gen_server.call_channel_in <- utils.ToReflectValues(args)
+		result = <-gen_server.call_channel_out
 	} else {
 		fmt.Println(server_name, " not found!")
 		err = errors.New("Server not found!")
@@ -76,9 +79,15 @@ func Call(server_name string, args ...interface{}) (result []reflect.Value, err 
 	return
 }
 
+func (self *GenServer) Call(args ...interface{}) (result []reflect.Value, err error) {
+	self.call_channel_in <- utils.ToReflectValues(args)
+	result = <-self.call_channel_out
+	return
+}
+
 func Cast(server_name string, args ...interface{}) {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		gen_server.cast_channel <- to_reflect_values(args)
+		gen_server.cast_channel <- utils.ToReflectValues(args)
 	} else {
 		fmt.Println(server_name, " not found!")
 	}
@@ -94,13 +103,13 @@ func loop(gen_server GenServer) {
 				utils.Call(gen_server.callback, method, args[1:])
 				// gen_server.callback.HandleCast(method, args[1:])
 			}
-		case args, ok := <-gen_server.call_channel:
+		case args, ok := <-gen_server.call_channel_in:
 			if ok {
 				// fmt.Println("handle_call: ", args)
 				method := args[0].String()
 				// result := gen_server.callback.HandleCall(method, args[1:])
 				result := utils.Call(gen_server.callback, method, args[1:])
-				gen_server.call_channel <- result
+				gen_server.call_channel_out <- result
 			}
 		case sign_packet, ok := <-gen_server.sign_channel:
 			if ok {
@@ -109,35 +118,13 @@ func loop(gen_server GenServer) {
 				case SIGN_STOP:
 					gen_server.callback.Terminate(sign_packet.reason)
 					close(gen_server.cast_channel)
-					close(gen_server.call_channel)
+					close(gen_server.call_channel_in)
+					close(gen_server.call_channel_out)
 					close(gen_server.sign_channel)
-                    DelGenServer(gen_server.name)
+					DelGenServer(gen_server.name)
 					break
 				}
 			}
 		}
 	}
 }
-
-func to_reflect_values(args []interface{}) []reflect.Value {
-	in := make([]reflect.Value, len(args))
-	for k, arg := range args {
-		in[k] = reflect.ValueOf(arg)
-	}
-	return in
-}
-
-/*
-   callback module usage:
-   type Player struct {
-       id string
-   }
-
-   func (p *Player) HandleCall(args interface{}, from chan int) (reply interface{}) {
-   }
-
-   var player = Player{id: "uuid-001"}
-   var gen_server GenServerBehavior = player
-   gen_server.HandleCall(...)
-   gen_server.HandleCast(...)
-*/
