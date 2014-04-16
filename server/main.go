@@ -12,16 +12,16 @@ import (
 )
 
 func main() {
-	// defer func() {
-	// 	if x := recover(); x != nil {
-	// 		fmt.Println("caught panic in main()", x)
-	// 	}
-	// }()
+	defer func() {
+		if x := recover(); x != nil {
+			fmt.Println("caught panic in main()", x)
+		}
+	}()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// runtime.GOMAXPROCS(1)
 
+	gen_server.StartNamingServer()
 	gen_server.Start("root_manager", new(manager.RootManager), "root_manager")
-	gen_server.Start("naming_server", new(gen_server.NamingServer))
 
 	start := time.Now()
 	count := 1
@@ -32,21 +32,18 @@ func main() {
 	fmt.Println("duration: ", time.Now().Sub(start).Seconds())
 	fmt.Println("Per Second: ", int(float64(count)/time.Now().Sub(start).Seconds()))
 
-	// gen_server.Cast("root_manager", "wrap", params, nil)
 	// gen_server.Stop("root_manager", "Say goodbye!")
 	fmt.Println("Server Started!")
 	start_tcp_server()
 }
 
 func start_tcp_server() {
-	// Listen on TCP port 4100 on all interfaces.
 	l, err := net.Listen("tcp", ":4100")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer l.Close()
 	for {
-		// Wait for a connection.
 		conn, err := l.Accept()
 		if err != nil {
 			log.Fatal(err)
@@ -74,11 +71,11 @@ func handleRequest(conn net.Conn) {
 		// Send a response back to person contacting us.
 		n := bytes.Index(buf, []byte{0})
 		s := string(buf[:n])
-		result, _ := gen_server.Call(server_name, "Echo", s)
-		fmt.Println("result: ", result[0].String())
+		// result, _ := gen_server.Call(server_name, "Echo", s)
+		// fmt.Println("result: ", result[0].String())
 		// conn.Write([]byte(result[0].String()))
 
-		// gen_server.Call(server_name, "Echo", s)
+		gen_server.Call(server_name, "Echo", s)
 		conn.Write([]byte(s))
 	}
 }
