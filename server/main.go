@@ -12,15 +12,16 @@ import (
 )
 
 func main() {
-	defer func() {
-		if x := recover(); x != nil {
-			fmt.Println("caught panic in main()", x)
-		}
-	}()
-	// runtime.GOMAXPROCS(runtime.NumCPU())
-	runtime.GOMAXPROCS(1)
+	// defer func() {
+	// 	if x := recover(); x != nil {
+	// 		fmt.Println("caught panic in main()", x)
+	// 	}
+	// }()
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	// runtime.GOMAXPROCS(1)
 
 	gen_server.Start("root_manager", new(manager.RootManager), "root_manager")
+	gen_server.Start("naming_server", new(gen_server.NamingServer))
 
 	start := time.Now()
 	count := 1
@@ -74,8 +75,10 @@ func handleRequest(conn net.Conn) {
 		n := bytes.Index(buf, []byte{0})
 		s := string(buf[:n])
 		result, _ := gen_server.Call(server_name, "Echo", s)
-		conn.Write([]byte(result[0].String()))
-		// Close the connection when you're done with it.
-		// conn.Close()
+		fmt.Println("result: ", result[0].String())
+		// conn.Write([]byte(result[0].String()))
+
+		// gen_server.Call(server_name, "Echo", s)
+		conn.Write([]byte(s))
 	}
 }
