@@ -11,7 +11,7 @@ type Router struct {
 }
 
 var routes = map[uint16]Router{
-	1: Router{new(controllers.EquipsController, "Load")},
+	1: Router{new(controllers.EquipsController), "Load"},
 }
 
 func Route(protocol uint16) (interface{}, string, error) {

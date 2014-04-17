@@ -13,6 +13,7 @@ func FindEquip(uuid string) *Equip {
 	if ok {
 		return equip
 	} else {
+		return equip
 	}
 }
 

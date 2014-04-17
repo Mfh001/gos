@@ -35,8 +35,9 @@ func (self *Player) SystemInfo(from string, time int) int {
 }
 
 func (self *Player) SendData(struct_name string, struct_instance interface{}) {
-	protocol := 1
-	data := packet.Pack(protocol, struct_instance)
+	var protocol int16 = 1
+	writer := packet.Writer()
+	data := packet.Pack(protocol, struct_instance, writer)
 	self.OutBuffer.Send(data)
 }
 
