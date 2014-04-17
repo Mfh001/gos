@@ -1,9 +1,9 @@
 ####介绍
-Gos是一个基于Golang的简易游戏服务器框架
+[Code For Fun] Gos是一个基于Golang的简易游戏服务器框架
 
-####SETUP
+####启动
 	git checkout https://github.com/mafei198/gos.git
-	
+	go install server && bin/server
 
 
 ######已实现功能
