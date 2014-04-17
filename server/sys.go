@@ -9,9 +9,7 @@ import (
 	. "utils"
 )
 
-//---------------------------------------------------------- system routine
 func SysRoutine() {
-	// timer
 	gc_timer := make(chan int32, 10)
 	gc_timer <- 1
 

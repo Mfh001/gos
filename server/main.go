@@ -3,13 +3,11 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
-	"game_data"
 	"gen_server"
 	"io"
 	"log"
 	"manager"
 	"net"
-	"routes"
 	"runtime"
 	"time"
 	. "utils"
@@ -22,14 +20,13 @@ func main() {
 		}
 	}()
 
-	go SysRoutine()
-	routes.InitRoutes()
-	game_data.Load()
+	// runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(1)
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	// runtime.GOMAXPROCS(1)
+	go SysRoutine()
 
 	gen_server.StartNamingServer()
+	time.Sleep(1 * time.Second)
 	gen_server.Start("root_manager", new(manager.RootManager), "root_manager")
 
 	start := time.Now()

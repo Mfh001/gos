@@ -16,8 +16,6 @@ type Buffer struct {
 	conn    net.Conn    // connection
 }
 
-//------------------------------------------------ send packet
-// !IMPORTANT! once closed, never Send!!!
 func (buf *Buffer) Send(data []byte) (err error) {
 	defer func() {
 		if x := recover(); x != nil {

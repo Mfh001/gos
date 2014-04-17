@@ -18,12 +18,11 @@ type SignPacket struct {
 }
 
 type GenServer struct {
-	name             string
-	callback         GenServerBehavior
-	cast_channel     chan []reflect.Value
-	call_channel_in  chan []reflect.Value
-	call_channel_out chan []reflect.Value
-	sign_channel     chan SignPacket
+	name         string
+	callback     GenServerBehavior
+	cast_channel chan []reflect.Value
+	call_channel chan []reflect.Value
+	sign_channel chan SignPacket
 }
 
 var SIGN_STOP int = 1
@@ -37,17 +36,15 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 	gen_server, exists := GetGenServer(server_name)
 	if !exists {
 		cast_channel := make(chan []reflect.Value, 1024)
-		call_channel_in := make(chan []reflect.Value)
-		call_channel_out := make(chan []reflect.Value)
+		call_channel := make(chan []reflect.Value)
 		sign_channel := make(chan SignPacket)
 
 		gen_server = GenServer{
-			name:             server_name,
-			callback:         module,
-			cast_channel:     cast_channel,
-			call_channel_in:  call_channel_in,
-			call_channel_out: call_channel_out,
-			sign_channel:     sign_channel}
+			name:         server_name,
+			callback:     module,
+			cast_channel: cast_channel,
+			call_channel: call_channel,
+			sign_channel: sign_channel}
 
 		utils.Call(gen_server.callback, "Init", utils.ToReflectValues(args))
 
@@ -70,8 +67,13 @@ func Stop(server_name, reason string) {
 
 func Call(server_name string, args ...interface{}) (result []reflect.Value, err error) {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		gen_server.call_channel_in <- utils.ToReflectValues(args)
-		result = <-gen_server.call_channel_out
+		response_channel := make(chan []reflect.Value)
+		defer func() {
+			close(response_channel)
+		}()
+		args = append(args, response_channel)
+		gen_server.call_channel <- utils.ToReflectValues(args)
+		result = <-response_channel
 	} else {
 		fmt.Println(server_name, " not found!")
 		err = errors.New("Server not found!")
@@ -80,8 +82,13 @@ func Call(server_name string, args ...interface{}) (result []reflect.Value, err 
 }
 
 func (self *GenServer) Call(args ...interface{}) (result []reflect.Value, err error) {
-	self.call_channel_in <- utils.ToReflectValues(args)
-	result = <-self.call_channel_out
+	response_channel := make(chan []reflect.Value)
+	defer func() {
+		close(response_channel)
+	}()
+	args = append(args, response_channel)
+	self.call_channel <- utils.ToReflectValues(args)
+	result = <-response_channel
 	return
 }
 
@@ -95,32 +102,33 @@ func Cast(server_name string, args ...interface{}) {
 
 func loop(gen_server GenServer) {
 	defer func() {
-		terminate(gen_server, "GenServer Loop Terminate!")
+		terminate(gen_server)
 	}()
 
 	for {
 		select {
 		case args, ok := <-gen_server.cast_channel:
 			if ok {
-				// fmt.Println("handle_cast: ", args)
+				// utils.INFO("handle_cast: ", args)
 				method := args[0].String()
 				utils.Call(gen_server.callback, method, args[1:])
 				// gen_server.callback.HandleCast(method, args[1:])
 			}
-		case args, ok := <-gen_server.call_channel_in:
+		case args, ok := <-gen_server.call_channel:
 			if ok {
-				// fmt.Println("handle_call: ", args)
+				// utils.INFO("handle_call: ", args)
 				method := args[0].String()
-				// result := gen_server.callback.HandleCall(method, args[1:])
-				result := utils.Call(gen_server.callback, method, args[1:])
-				gen_server.call_channel_out <- result
+				size := len(args)
+				response_channel := args[size-1]
+				result := utils.Call(gen_server.callback, method, args[1:size-1])
+				response_channel.Send(reflect.ValueOf(result))
 			}
 		case sign_packet, ok := <-gen_server.sign_channel:
 			if ok {
-				// fmt.Println("handle_sign: ", sign_packet)
+				// utils.INFO("handle_sign: ", sign_packet)
 				switch sign_packet.signal {
 				case SIGN_STOP:
-					terminate(gen_server, sign_packet.reason)
+					gen_server.callback.Terminate(sign_packet.reason)
 					return
 				}
 			}
@@ -128,11 +136,9 @@ func loop(gen_server GenServer) {
 	}
 }
 
-func terminate(gen_server GenServer, reason string) {
-	gen_server.callback.Terminate(reason)
+func terminate(gen_server GenServer) {
 	close(gen_server.cast_channel)
-	close(gen_server.call_channel_in)
-	close(gen_server.call_channel_out)
+	close(gen_server.call_channel)
 	close(gen_server.sign_channel)
 	DelGenServer(gen_server.name)
 }

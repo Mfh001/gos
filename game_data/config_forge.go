@@ -7,11 +7,9 @@ type ConfigForge struct {
 	Attack  int
 }
 
-var ConfigForges = make(map[int]ConfigForge)
-
-func InitForges() {
-	ConfigForges[1] = ConfigForge{1, 2, 3}
-	ConfigForges[2] = ConfigForge{2, 3, 4}
+var ConfigForges = map[int]ConfigForge{
+	1: ConfigForge{1, 2, 3},
+	2: ConfigForge{2, 3, 4},
 }
 
 func FindForge(key int) ConfigForge {
