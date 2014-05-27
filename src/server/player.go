@@ -50,6 +50,8 @@ func (self *Player) SendData(struct_name string, struct_instance interface{}) {
 }
 
 func (self *Player) HandleRequest(data []byte, out *Buffer) {
+    out.Send(data)
+    return
 	self.OutBuffer = out
 	reader := packet.Reader(data)
 	protocol, _ := reader.ReadU16()
