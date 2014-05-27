@@ -100,6 +100,10 @@ func Cast(server_name string, args ...interface{}) {
 	}
 }
 
+func (self *GenServer) Cast(args ...interface{}) {
+    self.cast_channel <- utils.ToReflectValues(args)
+}
+
 func loop(gen_server GenServer) {
 	defer func() {
 		terminate(gen_server)

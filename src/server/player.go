@@ -42,6 +42,9 @@ func (self *Player) SendData(struct_name string, struct_instance interface{}) {
 }
 
 func (self *Player) HandleRequest(data []byte, out *Buffer) {
+    out.Send(data)
+    return
+
 	self.OutBuffer = out
 	reader := packet.Reader(data)
 	protocol, _ := reader.ReadU16()
@@ -54,7 +57,7 @@ func (self *Player) HandleRequest(data []byte, out *Buffer) {
 		response := Call(new(api.Encoder), encode_method, response_args[1:])
 		self.processed++
 		response_data := response[0].Elem().FieldByName("data").Bytes()
-		INFO("Processed: ", self.processed, " Response Data: ", response_data)
+		// INFO("Processed: ", self.processed, " Response Data: ", response_data)
 		if err = out.Send(response_data); err != nil {
 			ERR("cannot send to client", err)
 		}
