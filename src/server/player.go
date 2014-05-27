@@ -20,6 +20,14 @@ func (self *Player) Init(name string) (err error) {
 	return nil
 }
 
+//gen_server callbacks
+func(self *Player) HandleCast(args []interface{}) {
+  method_name := args[0].(string)
+  if method_name == "HandleRequest" {
+    self.HandleRequest(args[1].([]byte), args[2].(*Buffer))
+  }
+}
+
 // gen_server callbacks
 func (self *Player) Terminate(reason string) (err error) {
 	fmt.Println("callback Termiante!")
@@ -54,7 +62,7 @@ func (self *Player) HandleRequest(data []byte, out *Buffer) {
 		response := Call(new(api.Encoder), encode_method, response_args[1:])
 		self.processed++
 		response_data := response[0].Elem().FieldByName("data").Bytes()
-		INFO("Processed: ", self.processed, " Response Data: ", response_data)
+		// INFO("Processed: ", self.processed, " Response Data: ", response_data)
 		if err = out.Send(response_data); err != nil {
 			ERR("cannot send to client", err)
 		}

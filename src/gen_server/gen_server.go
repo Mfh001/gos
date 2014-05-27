@@ -20,7 +20,8 @@ type SignPacket struct {
 type GenServer struct {
 	name         string
 	callback     GenServerBehavior
-	cast_channel chan []reflect.Value
+	// cast_channel chan []reflect.Value
+	cast_channel chan []interface{}
 	call_channel chan []reflect.Value
 	sign_channel chan SignPacket
 }
@@ -29,13 +30,15 @@ var SIGN_STOP int = 1
 
 type GenServerBehavior interface {
 	// Init(args ...interface{}) (err error)
+    HandleCast(args []interface{})
 	Terminate(reason string) (err error)
 }
 
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server GenServer) {
 	gen_server, exists := GetGenServer(server_name)
 	if !exists {
-		cast_channel := make(chan []reflect.Value, 1024)
+		// cast_channel := make(chan []reflect.Value, 1024)
+		cast_channel := make(chan []interface{}, 1024)
 		call_channel := make(chan []reflect.Value)
 		sign_channel := make(chan SignPacket)
 
@@ -94,10 +97,15 @@ func (self *GenServer) Call(args ...interface{}) (result []reflect.Value, err er
 
 func Cast(server_name string, args ...interface{}) {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		gen_server.cast_channel <- utils.ToReflectValues(args)
+		// gen_server.cast_channel <- utils.ToReflectValues(args)
+		gen_server.cast_channel <- args
 	} else {
 		fmt.Println(server_name, " not found!")
 	}
+}
+
+func (self *GenServer) Cast(args ...interface{}) {
+    self.cast_channel <- args
 }
 
 func loop(gen_server GenServer) {
@@ -110,9 +118,10 @@ func loop(gen_server GenServer) {
 		case args, ok := <-gen_server.cast_channel:
 			if ok {
 				// utils.INFO("handle_cast: ", args)
-				method := args[0].String()
-				utils.Call(gen_server.callback, method, args[1:])
+				// method := args[0].String()
+				// utils.Call(gen_server.callback, method, args[1:])
 				// gen_server.callback.HandleCast(method, args[1:])
+				gen_server.callback.HandleCast(args)
 			}
 		case args, ok := <-gen_server.call_channel:
 			if ok {

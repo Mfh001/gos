@@ -23,7 +23,7 @@ func main() {
 	// runtime.GOMAXPROCS(runtime.NumCPU())
 	runtime.GOMAXPROCS(1)
 
-	go SysRoutine()
+	// go SysRoutine()
 
 	gen_server.StartNamingServer()
 	time.Sleep(1 * time.Second)
@@ -66,8 +66,7 @@ func handleRequest(conn net.Conn) {
 	}()
 
 	server_name := conn.RemoteAddr().String()
-	gen_server.Start(server_name, new(Player), server_name)
-	// response_channel := make(chan []byte)
+    player_server := gen_server.Start(server_name, new(Player), server_name)
 
 	header := make([]byte, 2)
 	bufctrl := make(chan bool)
@@ -98,7 +97,8 @@ func handleRequest(conn net.Conn) {
 			break
 		}
 
-		gen_server.Cast(server_name, "HandleRequest", data, out)
+		// gen_server.Cast(server_name, "HandleRequest", data, out)
+        player_server.Cast("HandleRequest", data, out)
 	}
 
 }

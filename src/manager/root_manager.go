@@ -20,6 +20,11 @@ func (self *RootManager) Init(name string) (err error) {
 	return nil
 }
 
+//gen_server callbacks
+func(self *RootManager) HandleCast(args []interface{}) {
+  fmt.Println("HandleCast callback")
+}
+
 // gen_server callbacks
 func (self *RootManager) Terminate(reason string) (err error) {
 	fmt.Println("callback Termiante!")
