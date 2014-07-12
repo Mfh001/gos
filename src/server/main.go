@@ -66,7 +66,7 @@ func handleRequest(conn net.Conn) {
 	}()
 
 	server_name := conn.RemoteAddr().String()
-    player_server := gen_server.Start(server_name, new(Player), server_name)
+	player_server := gen_server.Start(server_name, new(Player), server_name)
 
 	header := make([]byte, 2)
 	bufctrl := make(chan bool)
@@ -98,7 +98,7 @@ func handleRequest(conn net.Conn) {
 		}
 
 		// gen_server.Cast(server_name, "HandleRequest", data, out)
-        player_server.Cast("HandleRequest", data, out)
+		player_server.Cast("HandleRequest", data, out)
 	}
 
 }
