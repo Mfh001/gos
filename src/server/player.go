@@ -14,21 +14,27 @@ type Player struct {
 	OutBuffer *Buffer
 }
 
-// gen_server callbacks
+/*
+   GenServer Callbacks
+*/
 func (self *Player) Init(name string) (err error) {
 	fmt.Println("server ", name, " started!")
 	return nil
 }
 
-//gen_server callbacks
-func(self *Player) HandleCast(args []interface{}) {
-  method_name := args[0].(string)
-  if method_name == "HandleRequest" {
-    self.HandleRequest(args[1].([]byte), args[2].(*Buffer))
-  }
+func (self *Player) HandleCast(args []interface{}) {
+	method_name := args[0].(string)
+	if method_name == "HandleRequest" {
+		self.HandleRequest(args[1].([]byte), args[2].(*Buffer))
+	}
 }
 
-// gen_server callbacks
+func (self *Player) HandleCall(args []interface{}) {
+	method_name := args[0].(string)
+	if method_name == "HandleRPC" {
+	}
+}
+
 func (self *Player) Terminate(reason string) (err error) {
 	fmt.Println("callback Termiante!")
 	return nil
@@ -50,8 +56,8 @@ func (self *Player) SendData(struct_name string, struct_instance interface{}) {
 }
 
 func (self *Player) HandleRequest(data []byte, out *Buffer) {
-    out.Send(data)
-    return
+	out.Send(data)
+	return
 	self.OutBuffer = out
 	reader := packet.Reader(data)
 	protocol, _ := reader.ReadU16()
