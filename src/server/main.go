@@ -1,12 +1,13 @@
 package main
 
 import (
+	"api"
 	"encoding/binary"
 	"fmt"
 	"gen_server"
 	"io"
 	"log"
-	"manager"
+	// "manager"
 	"net"
 	"runtime"
 	"time"
@@ -25,22 +26,45 @@ func main() {
 
 	// go SysRoutine()
 
-	gen_server.StartNamingServer()
-	time.Sleep(1 * time.Second)
-	gen_server.Start("root_manager", new(manager.RootManager), "root_manager")
-
-	start := time.Now()
-	count := 1
-	for i := 0; i < count; i++ {
-		gen_server.Call("root_manager", "SystemInfo", "root_manager", 2014)
-		gen_server.Cast("root_manager", "SystemInfo", "root_manager", 2014)
+	duckAge := 1
+	duck := func(words string) {
+		fmt.Println("words is: ", words)
+		fmt.Println("duckAge is: ", duckAge)
 	}
-	fmt.Println("duration: ", time.Now().Sub(start).Seconds())
-	fmt.Println("Per Second: ", int(float64(count)/time.Now().Sub(start).Seconds()))
+
+	duck("hello")
+
+	gen_server.StartNamingServer()
+	// time.Sleep(1 * time.Second)
+	// gen_server.Start("root_manager", new(manager.RootManager), "root_manager")
+
+	// start := time.Now()
+	// count := 1
+	// for i := 0; i < count; i++ {
+	// 	gen_server.Call("root_manager", "SystemInfo", "root_manager", 2014)
+	// 	gen_server.Cast("root_manager", "SystemInfo", "root_manager", 2014)
+	// }
+	// fmt.Println("duration: ", time.Now().Sub(start).Seconds())
+	// fmt.Println("Per Second: ", int(float64(count)/time.Now().Sub(start).Seconds()))
 
 	// gen_server.Stop("root_manager", "Say goodbye!")
 	fmt.Println("Server Started!")
+	// masureDynamic(1000000)
 	start_tcp_server()
+}
+
+func masureDynamic(count int) {
+	start := time.Now()
+	for i := 0; i < count; i++ {
+		CallWithArgs(new(api.Encoder), "EncodeEquip", "", "", "")
+		CallWithArgs(new(api.Encoder), "EncodeEquip", "", "", "")
+		CallWithArgs(new(api.Encoder), "EncodeEquip", "", "", "")
+		// encoder := new(api.Encoder)
+		// encoder.EncodeEquip("", "", "")
+	}
+	seconds := time.Now().Sub(start).Seconds()
+	fmt.Println("duration: ", seconds)
+	fmt.Println("Per Second: ", int(float64(count)/seconds))
 }
 
 func start_tcp_server() {
@@ -66,7 +90,7 @@ func handleRequest(conn net.Conn) {
 	}()
 
 	server_name := conn.RemoteAddr().String()
-    player_server := gen_server.Start(server_name, new(Player), server_name)
+	player_server := gen_server.Start(server_name, new(Player), server_name)
 	// response_channel := make(chan []byte)
 
 	header := make([]byte, 2)
