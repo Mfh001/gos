@@ -33,7 +33,7 @@ type GenServerBehavior interface {
 }
 
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server GenServer) {
-    gen_server, exists := GetGenServer(server_name)
+    gen_server, exists := ServerRegisterMap.Get(server_name)
 	if !exists {
 		cast_channel := make(chan []reflect.Value, 1024)
 		call_channel := make(chan []reflect.Value)
@@ -58,7 +58,7 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 }
 
 func Stop(server_name, reason string) {
-	if gen_server, exists := GetGenServer(server_name); exists {
+	if gen_server, exists := ServerRegisterMap.Get(server_name); exists {
 		gen_server.sign_channel <- SignPacket{SIGN_STOP, reason}
 	} else {
 		fmt.Println(server_name, " not found!")
@@ -66,7 +66,7 @@ func Stop(server_name, reason string) {
 }
 
 func Call(server_name string, args ...interface{}) (result []reflect.Value, err error) {
-	if gen_server, exists := GetGenServer(server_name); exists {
+	if gen_server, exists := ServerRegisterMap.Get(server_name); exists {
 		gen_server.call_channel <- to_reflect_values(args)
 		result = <-gen_server.call_channel
 	} else {
@@ -77,7 +77,7 @@ func Call(server_name string, args ...interface{}) (result []reflect.Value, err 
 }
 
 func Cast(server_name string, args ...interface{}) {
-	if gen_server, exists := GetGenServer(server_name); exists {
+	if gen_server, exists := ServerRegisterMap.Get(server_name); exists {
 		gen_server.cast_channel <- to_reflect_values(args)
 	} else {
 		fmt.Println(server_name, " not found!")

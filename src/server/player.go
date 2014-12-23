@@ -62,3 +62,19 @@ func (self *Player) HandleRequest(data []byte, out *Buffer) {
 		ERR(err)
 	}
 }
+
+func (self *Player) Wrap(fun func()) {
+	fun()
+}
+
+/*
+   Class Methods
+*/
+
+func Wrap(playerId string, fun func()) {
+	gen_server.Call(playerId, "Wrap", fun)
+}
+
+func AsyncWrap(playerId string, fun func()) {
+	gen_server.Cast(playerId, "Wrap", fun)
+}

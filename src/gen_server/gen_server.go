@@ -32,9 +32,11 @@ type GenServerBehavior interface {
 	Terminate(reason string) (err error)
 }
 
+var ServerRegisterMap = new(utils.CMap)
+
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server GenServer) {
-	gen_server, exists := GetGenServer(server_name)
-	if !exists {
+	gen_server = ServerRegisterMap.Get(server_name)
+	if !gen_server {
 		cast_channel := make(chan []reflect.Value, 1024)
 		call_channel := make(chan []reflect.Value)
 		sign_channel := make(chan SignPacket)
@@ -50,7 +52,7 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 
 		go loop(gen_server) // Enter infinity loop
 
-		SetGenServer(server_name, gen_server)
+		ServerRegisterMap.Set(server_name, gen_server)
 	} else {
 		fmt.Println(server_name, " is already exists!")
 	}
@@ -58,7 +60,7 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 }
 
 func Stop(server_name, reason string) {
-	if gen_server, exists := GetGenServer(server_name); exists {
+	if gen_server, exists := ServerRegisterMap.Get(server_name); exists {
 		gen_server.sign_channel <- SignPacket{SIGN_STOP, reason}
 	} else {
 		fmt.Println(server_name, " not found!")
@@ -66,7 +68,7 @@ func Stop(server_name, reason string) {
 }
 
 func Call(server_name string, args ...interface{}) (result []reflect.Value, err error) {
-	if gen_server, exists := GetGenServer(server_name); exists {
+	if gen_server, exists := ServerRegisterMap.Get(server_name); exists {
 		response_channel := make(chan []reflect.Value)
 		defer func() {
 			close(response_channel)
@@ -93,7 +95,7 @@ func (self *GenServer) Call(args ...interface{}) (result []reflect.Value, err er
 }
 
 func Cast(server_name string, args ...interface{}) {
-	if gen_server, exists := GetGenServer(server_name); exists {
+	if gen_server, exists := ServerRegisterMap.Get(server_name); exists {
 		gen_server.cast_channel <- utils.ToReflectValues(args)
 	} else {
 		fmt.Println(server_name, " not found!")
@@ -101,7 +103,7 @@ func Cast(server_name string, args ...interface{}) {
 }
 
 func (self *GenServer) Cast(args ...interface{}) {
-    self.cast_channel <- utils.ToReflectValues(args)
+	self.cast_channel <- utils.ToReflectValues(args)
 }
 
 func loop(gen_server GenServer) {

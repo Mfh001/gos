@@ -35,20 +35,18 @@ func main() {
 	duck("hello")
 
 	gen_server.StartNamingServer()
-	// time.Sleep(1 * time.Second)
-	// gen_server.Start("root_manager", new(manager.RootManager), "root_manager")
-
-	// start := time.Now()
-	// count := 1
-	// for i := 0; i < count; i++ {
-	// 	gen_server.Call("root_manager", "SystemInfo", "root_manager", 2014)
-	// 	gen_server.Cast("root_manager", "SystemInfo", "root_manager", 2014)
-	// }
-	// fmt.Println("duration: ", time.Now().Sub(start).Seconds())
-	// fmt.Println("Per Second: ", int(float64(count)/time.Now().Sub(start).Seconds()))
-
-	// gen_server.Stop("root_manager", "Say goodbye!")
+	time.Sleep(1 * time.Second)
 	fmt.Println("Server Started!")
+
+	server_name := "test_server"
+	gen_server.Start(server_name, new(Player), server_name)
+	ret := ""
+	gen_server.Call(server_name, "Wrap", func() {
+		ret = "hello"
+	})
+
+	fmt.Println("ret: ", ret)
+
 	// masureDynamic(1000000)
 	start_tcp_server()
 }
