@@ -7,7 +7,6 @@ import (
 	"gen_server"
 	"io"
 	"log"
-	// "manager"
 	"net"
 	"runtime"
 	"time"
@@ -41,7 +40,7 @@ func main() {
 	server_name := "test_server"
 	gen_server.Start(server_name, new(Player), server_name)
 	ret := ""
-	gen_server.Call(server_name, "Wrap", func() {
+	gen_server.Call(server_name, "HandleWrap", func() {
 		ret = "hello"
 	})
 

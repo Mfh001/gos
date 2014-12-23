@@ -3,6 +3,7 @@ package main
 import (
 	"api"
 	"fmt"
+	"gen_server"
 	"routes"
 	"runtime"
 	. "utils"
@@ -10,6 +11,7 @@ import (
 )
 
 type Player struct {
+	playerId  string
 	processed int
 	OutBuffer *Buffer
 }
@@ -17,6 +19,7 @@ type Player struct {
 // gen_server callbacks
 func (self *Player) Init(name string) (err error) {
 	fmt.Println("server ", name, " started!")
+	self.playerId = name
 	return nil
 }
 
@@ -63,18 +66,22 @@ func (self *Player) HandleRequest(data []byte, out *Buffer) {
 	}
 }
 
-func (self *Player) Wrap(fun func()) {
+func (self *Player) HandleWrap(fun func()) {
 	fun()
 }
 
-/*
-   Class Methods
-*/
-
-func Wrap(playerId string, fun func()) {
-	gen_server.Call(playerId, "Wrap", fun)
+func (self *Player) Wrap(targetPlayerId string, fun func()) {
+	if self.playerId == targetPlayerId {
+		self.HandleWrap(fun)
+	} else {
+		gen_server.Call(targetPlayerId, "HandleWrap", fun)
+	}
 }
 
-func AsyncWrap(playerId string, fun func()) {
-	gen_server.Cast(playerId, "Wrap", fun)
+func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
+	if self.playerId == targetPlayerId {
+		self.HandleWrap(fun)
+	} else {
+		gen_server.Cast(targetPlayerId, "HandleWrap", fun)
+	}
 }
