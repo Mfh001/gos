@@ -6,6 +6,7 @@ import (
 )
 
 type EquipsController struct {
+	Context interface{}
 }
 
 type Material struct {

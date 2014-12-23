@@ -49,6 +49,7 @@ func (self *Player) HandleRequest(data []byte, out *Buffer) {
 	reader := packet.Reader(data)
 	protocol, _ := reader.ReadU16()
 	controller, action, err := routes.Route(protocol)
+	controller.Context = self
 	if err == nil {
 		decode_method := "DecodeEquipsUnloadParams"
 		args := CallWithArgs(new(api.Decoder), decode_method, reader)
