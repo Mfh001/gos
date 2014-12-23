@@ -10,8 +10,10 @@ type Router struct {
 	method     string
 }
 
-var routes = map[uint16]Router{
-	1: Router{new(controllers.EquipsController), "Load"},
+type Handler interface{}
+
+var routes = map[uint16]Handler{
+	1: func(params ...interface{}) { controllers.EquipsController.Load(params) },
 }
 
 func Route(protocol uint16) (interface{}, string, error) {
