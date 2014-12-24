@@ -16,14 +16,28 @@ type Player struct {
 	OutBuffer *Buffer
 }
 
-// gen_server callbacks
+/*
+   GenServer Callbacks
+*/
 func (self *Player) Init(name string) (err error) {
 	fmt.Println("server ", name, " started!")
 	self.playerId = name
 	return nil
 }
 
-// gen_server callbacks
+func (self *Player) HandleCast(args []interface{}) {
+	method_name := args[0].(string)
+	if method_name == "HandleRequest" {
+		self.HandleRequest(args[1].([]byte), args[2].(*Buffer))
+	}
+}
+
+func (self *Player) HandleCall(args []interface{}) {
+	method_name := args[0].(string)
+	if method_name == "HandleRPC" {
+	}
+}
+
 func (self *Player) Terminate(reason string) (err error) {
 	fmt.Println("callback Termiante!")
 	return nil
