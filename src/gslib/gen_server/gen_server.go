@@ -3,7 +3,7 @@ package gen_server
 import (
 	"errors"
 	"fmt"
-	"utils"
+	"gslib/utils"
 )
 
 type Packet struct {

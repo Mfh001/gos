@@ -3,11 +3,11 @@ package gslib
 import (
 	"api"
 	"fmt"
-	"gen_server"
-	"routes"
+	"gslib/gen_server"
+	"gslib/routes"
+	. "gslib/utils"
+	"gslib/utils/packet"
 	"runtime"
-	. "utils"
-	"utils/packet"
 )
 
 type Player struct {

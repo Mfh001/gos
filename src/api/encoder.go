@@ -1,6 +1,6 @@
 package api
 
-import "utils/packet"
+import "gslib/utils/packet"
 
 type Encoder struct {
 }

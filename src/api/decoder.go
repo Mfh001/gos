@@ -2,7 +2,7 @@ package api
 
 import (
 	. "app/consts"
-	"utils/packet"
+	"gslib/utils/packet"
 )
 
 func Decode(decode_method string, data *packet.Packet) interface{} {

@@ -3,13 +3,13 @@ package gslib
 import (
 	"encoding/binary"
 	"fmt"
-	"gen_server"
+	"gslib/gen_server"
+	. "gslib/utils"
 	"io"
 	"log"
 	"net"
 	"runtime"
 	"time"
-	. "utils"
 )
 
 func Run() {

@@ -5,8 +5,8 @@ import (
 )
 
 import (
-	. "utils"
-	"utils/packet"
+	. "gslib/utils"
+	"gslib/utils/packet"
 )
 
 type Buffer struct {

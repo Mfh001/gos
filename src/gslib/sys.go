@@ -6,7 +6,7 @@ import (
 )
 
 import (
-	. "utils"
+	. "gslib/utils"
 )
 
 func SysRoutine() {

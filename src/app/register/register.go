@@ -4,7 +4,7 @@ import (
 	. "app/consts"
 	"app/controllers"
 	"gslib"
-	"routes"
+	"gslib/routes"
 )
 
 func Load() {
