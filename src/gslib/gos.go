@@ -1,7 +1,6 @@
 package gslib
 
 import (
-	"api"
 	"encoding/binary"
 	"fmt"
 	"gen_server"
@@ -25,43 +24,11 @@ func Run() {
 
 	// go SysRoutine()
 
-	duckAge := 1
-	duck := func(words string) {
-		fmt.Println("words is: ", words)
-		fmt.Println("duckAge is: ", duckAge)
-	}
+	// time.Sleep(1 * time.Second)
 
-	duck("hello")
-
-	gen_server.StartNamingServer()
-	time.Sleep(1 * time.Second)
 	fmt.Println("Server Started!")
 
-	server_name := "test_server"
-	gen_server.Start(server_name, new(Player), server_name)
-	ret := ""
-	gen_server.Call(server_name, "HandleWrap", func() {
-		ret = "hello"
-	})
-
-	fmt.Println("ret: ", ret)
-
-	// masureDynamic(1000000)
 	start_tcp_server()
-}
-
-func masureDynamic(count int) {
-	start := time.Now()
-	for i := 0; i < count; i++ {
-		CallWithArgs(new(api.Encoder), "EncodeEquip", "", "", "")
-		CallWithArgs(new(api.Encoder), "EncodeEquip", "", "", "")
-		CallWithArgs(new(api.Encoder), "EncodeEquip", "", "", "")
-		// encoder := new(api.Encoder)
-		// encoder.EncodeEquip("", "", "")
-	}
-	seconds := time.Now().Sub(start).Seconds()
-	fmt.Println("duration: ", seconds)
-	fmt.Println("Per Second: ", int(float64(count)/seconds))
 }
 
 func start_tcp_server() {
@@ -87,8 +54,7 @@ func handleRequest(conn net.Conn) {
 	}()
 
 	server_name := conn.RemoteAddr().String()
-	player_server := gen_server.Start(server_name, new(Player), server_name)
-	// response_channel := make(chan []byte)
+	gen_server.Start(server_name, new(Player), server_name)
 
 	header := make([]byte, 2)
 	bufctrl := make(chan bool)
@@ -119,8 +85,7 @@ func handleRequest(conn net.Conn) {
 			break
 		}
 
-		// gen_server.Cast(server_name, "HandleRequest", data, out)
-		player_server.Cast("HandleRequest", data, out)
+		gen_server.Cast(server_name, "HandleRequest", data, out)
 	}
 
 }

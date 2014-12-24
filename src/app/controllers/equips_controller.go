@@ -37,5 +37,5 @@ type EquipsController struct {
 func (self *EquipsController) Load(params *EquipLoadParams) interface{} {
 	fmt.Println("Context: ", self.Context)
 	fmt.Println("SystemInfo: ", self.Context.SystemInfo())
-	return &EquipLoadResponse{"player_id", "equip_id", 10}
+	return &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }

@@ -100,17 +100,6 @@ func Call(server_name string, args ...interface{}) (result []reflect.Value, err 
 	return
 }
 
-func (self *GenServer) Call(args ...interface{}) (result []reflect.Value, err error) {
-	response_channel := make(chan []reflect.Value)
-	defer func() {
-		close(response_channel)
-	}()
-	args = append(args, response_channel)
-	self.call_channel <- utils.ToReflectValues(args)
-	result = <-response_channel
-	return
-}
-
 func Cast(server_name string, args ...interface{}) {
 	if gen_server, exists := getGenServer(server_name); exists {
 		gen_server.cast_channel <- utils.ToReflectValues(args)

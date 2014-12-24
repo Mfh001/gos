@@ -44,8 +44,6 @@ func (self *Player) SendData(struct_name string, struct_instance interface{}) {
 	self.OutBuffer.Send(data)
 }
 
-// type Handler func(args ...interface{})
-
 func (self *Player) HandleRequest(data []byte, out *Buffer) {
 	self.OutBuffer = out
 	reader := packet.Reader(data)
