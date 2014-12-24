@@ -3,7 +3,6 @@ package gen_server
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"utils"
 )
 
@@ -20,15 +19,17 @@ type SignPacket struct {
 type GenServer struct {
 	name         string
 	callback     GenServerBehavior
-	cast_channel chan []reflect.Value
-	call_channel chan []reflect.Value
+	cast_channel chan []interface{}
+	call_channel chan []interface{}
 	sign_channel chan SignPacket
 }
 
 var SIGN_STOP int = 1
 
 type GenServerBehavior interface {
-	// Init(args ...interface{}) (err error)
+	Init(args []interface{}) (err error)
+	HandleCast(args []interface{})
+	HandleCall(args []interface{}) interface{}
 	Terminate(reason string) (err error)
 }
 
@@ -54,8 +55,8 @@ func delGenServer(name string) {
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server *GenServer) {
 	gen_server, exists := getGenServer(server_name)
 	if !exists {
-		cast_channel := make(chan []reflect.Value, 1024)
-		call_channel := make(chan []reflect.Value)
+		cast_channel := make(chan []interface{}, 1024)
+		call_channel := make(chan []interface{})
 		sign_channel := make(chan SignPacket)
 
 		gen_server = &GenServer{
@@ -65,7 +66,7 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 			call_channel: call_channel,
 			sign_channel: sign_channel}
 
-		utils.Call(gen_server.callback, "Init", utils.ToReflectValues(args))
+		gen_server.callback.Init(args)
 
 		go loop(gen_server) // Enter infinity loop
 
@@ -84,32 +85,28 @@ func Stop(server_name, reason string) {
 	}
 }
 
-func Call(server_name string, args ...interface{}) (result []reflect.Value, err error) {
+func Call(server_name string, args ...interface{}) (result interface{}, err error) {
 	if gen_server, exists := getGenServer(server_name); exists {
-		response_channel := make(chan []reflect.Value)
+		response_channel := make(chan interface{})
 		defer func() {
 			close(response_channel)
 		}()
 		args = append(args, response_channel)
-		gen_server.call_channel <- utils.ToReflectValues(args)
+		gen_server.call_channel <- args
 		result = <-response_channel
 	} else {
 		fmt.Println(server_name, " not found!")
 		err = errors.New("Server not found!")
 	}
-	return
+	return result, err
 }
 
 func Cast(server_name string, args ...interface{}) {
 	if gen_server, exists := getGenServer(server_name); exists {
-		gen_server.cast_channel <- utils.ToReflectValues(args)
+		gen_server.cast_channel <- args
 	} else {
 		fmt.Println(server_name, " not found!")
 	}
-}
-
-func (self *GenServer) Cast(args ...interface{}) {
-	self.cast_channel <- utils.ToReflectValues(args)
 }
 
 func loop(gen_server *GenServer) {
@@ -127,11 +124,10 @@ func loop(gen_server *GenServer) {
 		case args, ok := <-gen_server.call_channel:
 			if ok {
 				// utils.INFO("handle_call: ", args)
-				method := args[0].String()
 				size := len(args)
 				response_channel := args[size-1]
-				result := utils.Call(gen_server.callback, method, args[1:size-1])
-				response_channel.Send(reflect.ValueOf(result))
+				result := gen_server.callback.HandleCall(args[0 : size-1])
+				response_channel.(chan interface{}) <- result
 			}
 		case sign_packet, ok := <-gen_server.sign_channel:
 			if ok {

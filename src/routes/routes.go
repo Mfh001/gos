@@ -2,7 +2,6 @@ package routes
 
 import (
 	"errors"
-	// "reflect"
 )
 
 type Handler func(ctx interface{}, params interface{}) interface{}
