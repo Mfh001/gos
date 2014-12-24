@@ -122,9 +122,7 @@ func loop(gen_server *GenServer) {
 		case args, ok := <-gen_server.cast_channel:
 			if ok {
 				// utils.INFO("handle_cast: ", args)
-				method := args[0].String()
-				utils.Call(gen_server.callback, method, args[1:])
-				// gen_server.callback.HandleCast(method, args[1:])
+				gen_server.callback.HandleCast(args)
 			}
 		case args, ok := <-gen_server.call_channel:
 			if ok {
