@@ -1,24 +1,23 @@
 package routes
 
 import (
-	"app/controllers"
 	"errors"
+	// "reflect"
 )
 
-type Router struct {
-	controller interface{}
-	method     string
+type Handler func(ctx interface{}, params interface{}) interface{}
+
+var routes = map[uint16]Handler{}
+
+func Add(protocol uint16, handler Handler) {
+	routes[protocol] = handler
 }
 
-var routes = map[uint16]Router{
-	1: Router{new(controllers.EquipsController), "Load"},
-}
-
-func Route(protocol uint16) (interface{}, string, error) {
-	router, ok := routes[protocol]
+func Route(protocol uint16) (Handler, error) {
+	handler, ok := routes[protocol]
 	if ok {
-		return router.controller, router.method, nil
+		return handler, nil
 	} else {
-		return nil, "", errors.New("Router not found!")
+		return handler, errors.New("Router not found!")
 	}
 }

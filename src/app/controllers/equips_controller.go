@@ -1,24 +1,13 @@
 package controllers
 
 import (
-// "app/models"
-// "game_data"
+	. "app/consts"
+	"fmt"
+	"gslib"
 )
 
 type EquipsController struct {
-	// Context interface{}
-}
-
-type Material struct {
-	category string
-	uuid     string
-	amount   int
-}
-
-type EquipLoadParams struct {
-	PlayerID string
-	EquipId  string
-	HeroId   string
+	Context *gslib.Player
 }
 
 // func (self *EquipsController) Load(player *player.Player, params *EquipLoadParams) (struct_name string, struct_instance interface{}) {
@@ -45,12 +34,8 @@ type EquipLoadParams struct {
 // 	return "Equip", &equip
 // }
 
-func (self *EquipsController) Load(player_id, equip_id, hero_id string) (string, string, string, string) {
-	return "EncodeEquip", "b", "c", "d"
-}
-
-func (self *EquipsController) Unload(player_id, equip_id, hero_id string) {
-}
-
-func (self *EquipsController) evolve(player_id, equip_id string, material []Material) {
+func (self *EquipsController) Load(params *EquipLoadParams) interface{} {
+	fmt.Println("Context: ", self.Context)
+	fmt.Println("SystemInfo: ", self.Context.SystemInfo())
+	return &EquipLoadResponse{"player_id", "equip_id", 10}
 }

@@ -1,4 +1,4 @@
-package main
+package gslib
 
 const (
 	GEN_SERVER_TIMEOUT = 10

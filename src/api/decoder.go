@@ -1,10 +1,14 @@
 package api
 
-import "utils/packet"
+import (
+	. "app/consts"
+	"utils/packet"
+)
 
-type Decoder struct {
-}
-
-func (self *Decoder) DecodeEquipsUnloadParams(data *packet.Packet) (player_id, equip_id, hero_id string) {
-	return "playerid", "equipsid", "heroid"
+func Decode(decode_method string, data *packet.Packet) interface{} {
+	if decode_method == "DecodeEquipsUnloadParams" {
+		return &EquipLoadParams{"playerid", "equipsid", "heroid"}
+	} else {
+		return nil
+	}
 }

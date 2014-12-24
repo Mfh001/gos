@@ -1,4 +1,4 @@
-package main
+package gslib
 
 import (
 	"api"
@@ -33,7 +33,7 @@ func (self *Player) Terminate(reason string) (err error) {
    IPC Methods
 */
 
-func (self *Player) SystemInfo(from string, time int) int {
+func (self *Player) SystemInfo() int {
 	return runtime.NumCPU()
 }
 
@@ -44,19 +44,23 @@ func (self *Player) SendData(struct_name string, struct_instance interface{}) {
 	self.OutBuffer.Send(data)
 }
 
+// type Handler func(args ...interface{})
+
 func (self *Player) HandleRequest(data []byte, out *Buffer) {
 	self.OutBuffer = out
 	reader := packet.Reader(data)
 	protocol, _ := reader.ReadU16()
-	controller, action, err := routes.Route(protocol)
+	handler, err := routes.Route(protocol)
 	if err == nil {
 		decode_method := "DecodeEquipsUnloadParams"
-		args := CallWithArgs(new(api.Decoder), decode_method, reader)
-		response_args := Call(controller, action, args)
-		encode_method := response_args[0].String()
-		response := Call(new(api.Encoder), encode_method, response_args[1:])
+		params := api.Decode(decode_method, reader)
+		response_struct := handler(self, params)
+
+		writer := packet.Writer()
+		var protocol int16 = 2
+		packet.Pack(protocol, response_struct, writer)
+		response_data := writer.Data()
 		self.processed++
-		response_data := response[0].Elem().FieldByName("data").Bytes()
 		// INFO("Processed: ", self.processed, " Response Data: ", response_data)
 		if err = out.Send(response_data); err != nil {
 			ERR("cannot send to client", err)
