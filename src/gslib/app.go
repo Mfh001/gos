@@ -57,15 +57,6 @@ func handleRequest(conn net.Conn) {
 	gen_server.Start(server_name, new(Player), server_name)
 
 	header := make([]byte, 2)
-	bufctrl := make(chan bool)
-
-	defer func() {
-		close(bufctrl)
-	}()
-
-	// create write buffer
-	out := NewBuffer(conn, bufctrl)
-	go out.Start()
 
 	for {
 		// header
@@ -85,7 +76,9 @@ func handleRequest(conn net.Conn) {
 			break
 		}
 
-		gen_server.Cast(server_name, "HandleRequest", data, out)
+		gen_server.Cast(server_name, "HandleRequest", data, conn)
 	}
+
+	gen_server.Cast(server_name, "removeConn")
 
 }

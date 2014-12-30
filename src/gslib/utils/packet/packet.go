@@ -1,8 +1,9 @@
 package packet
 
 import (
-	"errors"
+	. "gslib/utils"
 	"math"
+	"net"
 )
 
 const (
@@ -31,20 +32,19 @@ func (p *Packet) Seek(n uint) {
 }
 
 //=============================================== Readers
-func (p *Packet) ReadBool() (ret bool, err error) {
-	b, _err := p.ReadByte()
+func (p *Packet) ReadBool() (ret bool) {
+	b := p.ReadByte()
 
 	if b != byte(1) {
-		return false, _err
+		return false
 	}
 
-	return true, _err
+	return true
 }
 
-func (p *Packet) ReadByte() (ret byte, err error) {
+func (p *Packet) ReadByte() (ret byte) {
 	if p.pos >= uint(len(p.data)) {
-		err = errors.New("read byte failed")
-		return
+		panic("read byte failed")
 	}
 
 	ret = p.data[p.pos]
@@ -52,15 +52,13 @@ func (p *Packet) ReadByte() (ret byte, err error) {
 	return
 }
 
-func (p *Packet) ReadBytes() (ret []byte, err error) {
+func (p *Packet) ReadBytes() (ret []byte) {
 	if p.pos+2 > uint(len(p.data)) {
-		err = errors.New("read bytes header failed")
-		return
+		panic("read bytes header failed")
 	}
-	size, _ := p.ReadU16()
+	size := p.ReadUint16()
 	if p.pos+uint(size) > uint(len(p.data)) {
-		err = errors.New("read bytes data failed")
-		return
+		panic("read bytes data failed")
 	}
 
 	ret = p.data[p.pos : p.pos+uint(size)]
@@ -68,16 +66,14 @@ func (p *Packet) ReadBytes() (ret []byte, err error) {
 	return
 }
 
-func (p *Packet) ReadString() (ret string, err error) {
+func (p *Packet) ReadString() (ret string) {
 	if p.pos+2 > uint(len(p.data)) {
-		err = errors.New("read string header failed")
-		return
+		panic("read string header failed")
 	}
 
-	size, _ := p.ReadU16()
+	size := p.ReadUint16()
 	if p.pos+uint(size) > uint(len(p.data)) {
-		err = errors.New("read string data failed")
-		return
+		panic("read string data failed")
 	}
 
 	bytes := p.data[p.pos : p.pos+uint(size)]
@@ -86,10 +82,9 @@ func (p *Packet) ReadString() (ret string, err error) {
 	return
 }
 
-func (p *Packet) ReadU16() (ret uint16, err error) {
+func (p *Packet) ReadUint16() (ret uint16) {
 	if p.pos+2 > uint(len(p.data)) {
-		err = errors.New("read uint16 failed")
-		return
+		panic("read uint16 failed")
 	}
 
 	buf := p.data[p.pos : p.pos+2]
@@ -98,17 +93,15 @@ func (p *Packet) ReadU16() (ret uint16, err error) {
 	return
 }
 
-func (p *Packet) ReadS16() (ret int16, err error) {
-	_ret, _err := p.ReadU16()
+func (p *Packet) ReadInt16() (ret int16) {
+	_ret := p.ReadUint16()
 	ret = int16(_ret)
-	err = _err
 	return
 }
 
-func (p *Packet) ReadU24() (ret uint32, err error) {
+func (p *Packet) ReadUint24() (ret uint32) {
 	if p.pos+3 > uint(len(p.data)) {
-		err = errors.New("read uint24 failed")
-		return
+		panic("read uint24 failed")
 	}
 
 	buf := p.data[p.pos : p.pos+3]
@@ -117,17 +110,15 @@ func (p *Packet) ReadU24() (ret uint32, err error) {
 	return
 }
 
-func (p *Packet) ReadS24() (ret int32, err error) {
-	_ret, _err := p.ReadU24()
+func (p *Packet) ReadInt24() (ret int32) {
+	_ret := p.ReadUint24()
 	ret = int32(_ret)
-	err = _err
 	return
 }
 
-func (p *Packet) ReadU32() (ret uint32, err error) {
+func (p *Packet) ReadUint32() (ret uint32) {
 	if p.pos+4 > uint(len(p.data)) {
-		err = errors.New("read uint32 failed")
-		return
+		panic("read uint32 failed")
 	}
 
 	buf := p.data[p.pos : p.pos+4]
@@ -136,17 +127,15 @@ func (p *Packet) ReadU32() (ret uint32, err error) {
 	return
 }
 
-func (p *Packet) ReadS32() (ret int32, err error) {
-	_ret, _err := p.ReadU32()
+func (p *Packet) ReadInt32() (ret int32) {
+	_ret := p.ReadUint32()
 	ret = int32(_ret)
-	err = _err
 	return
 }
 
-func (p *Packet) ReadU64() (ret uint64, err error) {
+func (p *Packet) ReadUint64() (ret uint64) {
 	if p.pos+8 > uint(len(p.data)) {
-		err = errors.New("read uint64 failed")
-		return
+		panic("read uint64 failed")
 	}
 
 	ret = 0
@@ -158,39 +147,31 @@ func (p *Packet) ReadU64() (ret uint64, err error) {
 	return
 }
 
-func (p *Packet) ReadS64() (ret int64, err error) {
-	_ret, _err := p.ReadU64()
+func (p *Packet) ReadInt64() (ret int64) {
+	_ret := p.ReadInt64()
 	ret = int64(_ret)
-	err = _err
 	return
 }
 
-func (p *Packet) ReadFloat32() (ret float32, err error) {
-	bits, _err := p.ReadU32()
-	if _err != nil {
-		return float32(0), _err
-	}
+func (p *Packet) ReadFloat32() (ret float32) {
+	bits := p.ReadUint32()
 
 	ret = math.Float32frombits(bits)
 	if math.IsNaN(float64(ret)) || math.IsInf(float64(ret), 0) {
-		return 0, nil
+		return 0
 	}
 
-	return ret, nil
+	return ret
 }
 
-func (p *Packet) ReadFloat64() (ret float64, err error) {
-	bits, _err := p.ReadU64()
-	if _err != nil {
-		return float64(0), _err
-	}
-
+func (p *Packet) ReadFloat64() (ret float64) {
+	bits := p.ReadUint64()
 	ret = math.Float64frombits(bits)
 	if math.IsNaN(ret) || math.IsInf(ret, 0) {
-		return 0, nil
+		return 0
 	}
 
-	return ret, nil
+	return ret
 }
 
 //================================================ Writers
@@ -212,7 +193,7 @@ func (p *Packet) WriteByte(v byte) {
 }
 
 func (p *Packet) WriteBytes(v []byte) {
-	p.WriteU16(uint16(len(v)))
+	p.WriteUint16(uint16(len(v)))
 	p.data = append(p.data, v...)
 }
 
@@ -222,22 +203,22 @@ func (p *Packet) WriteRawBytes(v []byte) {
 
 func (p *Packet) WriteString(v string) {
 	bytes := []byte(v)
-	p.WriteU16(uint16(len(bytes)))
+	p.WriteUint16(uint16(len(bytes)))
 	p.data = append(p.data, bytes...)
 }
 
-func (p *Packet) WriteU16(v uint16) {
+func (p *Packet) WriteUint16(v uint16) {
 	buf := make([]byte, 2)
 	buf[0] = byte(v >> 8)
 	buf[1] = byte(v)
 	p.data = append(p.data, buf...)
 }
 
-func (p *Packet) WriteS16(v int16) {
-	p.WriteU16(uint16(v))
+func (p *Packet) WriteInt16(v int16) {
+	p.WriteUint16(uint16(v))
 }
 
-func (p *Packet) WriteU24(v uint32) {
+func (p *Packet) WriteUint24(v uint32) {
 	buf := make([]byte, 3)
 	buf[0] = byte(v >> 16)
 	buf[1] = byte(v >> 8)
@@ -245,7 +226,7 @@ func (p *Packet) WriteU24(v uint32) {
 	p.data = append(p.data, buf...)
 }
 
-func (p *Packet) WriteU32(v uint32) {
+func (p *Packet) WriteUint32(v uint32) {
 	buf := make([]byte, 4)
 	buf[0] = byte(v >> 24)
 	buf[1] = byte(v >> 16)
@@ -254,11 +235,11 @@ func (p *Packet) WriteU32(v uint32) {
 	p.data = append(p.data, buf...)
 }
 
-func (p *Packet) WriteS32(v int32) {
-	p.WriteU32(uint32(v))
+func (p *Packet) WriteInt32(v int32) {
+	p.WriteUint32(uint32(v))
 }
 
-func (p *Packet) WriteU64(v uint64) {
+func (p *Packet) WriteUint64(v uint64) {
 	buf := make([]byte, 8)
 	for i := range buf {
 		buf[i] = byte(v >> uint((7-i)*8))
@@ -267,18 +248,18 @@ func (p *Packet) WriteU64(v uint64) {
 	p.data = append(p.data, buf...)
 }
 
-func (p *Packet) WriteS64(v int64) {
-	p.WriteU64(uint64(v))
+func (p *Packet) WriteInt64(v int64) {
+	p.WriteUint64(uint64(v))
 }
 
 func (p *Packet) WriteFloat32(f float32) {
 	v := math.Float32bits(f)
-	p.WriteU32(v)
+	p.WriteUint32(v)
 }
 
 func (p *Packet) WriteFloat64(f float64) {
 	v := math.Float64bits(f)
-	p.WriteU64(v)
+	p.WriteUint64(v)
 }
 
 func Reader(data []byte) *Packet {
@@ -289,4 +270,16 @@ func Writer() *Packet {
 	pkt := &Packet{pos: 0}
 	pkt.data = make([]byte, 0, 128)
 	return pkt
+}
+
+func (p *Packet) Send(conn net.Conn) {
+	writer := Writer()
+	writer.WriteUint16(uint16(p.Length()))
+	writer.WriteRawBytes(p.Data())
+
+	n, err := conn.Write(writer.Data())
+	if err != nil {
+		ERR("Error send reply, bytes:", n, "reason:", err)
+		return
+	}
 }

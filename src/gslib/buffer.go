@@ -51,7 +51,7 @@ func (buf *Buffer) Start() {
 
 func (buf *Buffer) raw_send(data []byte) {
 	writer := packet.Writer()
-	writer.WriteU16(uint16(len(data)))
+	writer.WriteUint16(uint16(len(data)))
 	writer.WriteRawBytes(data)
 
 	n, err := buf.conn.Write(writer.Data())

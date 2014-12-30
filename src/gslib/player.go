@@ -7,13 +7,14 @@ import (
 	"gslib/routes"
 	. "gslib/utils"
 	"gslib/utils/packet"
+	"net"
 	"runtime"
 )
 
 type Player struct {
 	playerId  string
 	processed int
-	OutBuffer *Buffer
+	Conn      net.Conn
 }
 
 type WrapHandler func() interface{}
@@ -32,9 +33,11 @@ func (self *Player) Init(args []interface{}) (err error) {
 func (self *Player) HandleCast(args []interface{}) {
 	method_name := args[0].(string)
 	if method_name == "HandleRequest" {
-		self.HandleRequest(args[1].([]byte), args[2].(*Buffer))
+		self.HandleRequest(args[1].([]byte), args[2].(net.Conn))
 	} else if method_name == "HandleWrap" {
 		self.HandleWrap(args[1].(WrapHandler))
+	} else if method_name == "removeConn" {
+		self.Conn = nil
 	}
 }
 
@@ -60,17 +63,20 @@ func (self *Player) SystemInfo() int {
 }
 
 func (self *Player) SendData(struct_name string, struct_instance interface{}) {
-	var protocol int16 = 1
-	writer := packet.Writer()
-	data := packet.Pack(protocol, struct_instance, writer)
-	self.OutBuffer.Send(data)
+	if self.Conn != nil {
+		var protocol int16 = 1
+		writer := packet.Writer()
+		packet.Pack(protocol, struct_instance, writer)
+		writer.Send(self.Conn)
+	}
 }
 
-func (self *Player) HandleRequest(data []byte, out *Buffer) {
-	self.OutBuffer = out
+func (self *Player) HandleRequest(data []byte, conn net.Conn) {
+	self.Conn = conn
 	reader := packet.Reader(data)
-	protocol, _ := reader.ReadU16()
-	handler, err := routes.Route(protocol)
+	protocol := reader.ReadUint16()
+    protocol_name := api.IdToName[protocol]
+	handler, err := routes.Route(protocol_name)
 	if err == nil {
 		decode_method := "DecodeEquipsUnloadParams"
 		params := api.Decode(decode_method, reader)
@@ -78,12 +84,12 @@ func (self *Player) HandleRequest(data []byte, out *Buffer) {
 
 		writer := packet.Writer()
 		var protocol int16 = 2
-		response_data := packet.Pack(protocol, response_struct, writer)
+		packet.Pack(protocol, response_struct, writer)
 		self.processed++
 		// INFO("Processed: ", self.processed, " Response Data: ", response_data)
-		if err = out.Send(response_data); err != nil {
-			ERR("cannot send to client", err)
-		}
+        if self.Conn != nil {
+          writer.Send(self.Conn)
+        }
 	} else {
 		ERR(err)
 	}

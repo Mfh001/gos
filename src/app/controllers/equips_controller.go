@@ -15,3 +15,9 @@ func (self *EquipsController) Load(params *EquipLoadParams) interface{} {
 	// fmt.Println("SystemInfo: ", self.Context.SystemInfo())
 	return &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }
+
+func (self *EquipsController) UnLoad(params *EquipUnLoadParams) interface{} {
+	// fmt.Println("Context: ", self.Context)
+	// fmt.Println("SystemInfo: ", self.Context.SystemInfo())
+	return &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
+}

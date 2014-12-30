@@ -12,7 +12,7 @@ func Pack(tos int16, tbl interface{}, writer *Packet) []byte {
 
 	// write code
 	if tos != -1 {
-		writer.WriteU16(uint16(tos))
+		writer.WriteUint16(uint16(tos))
 	}
 
 	// is nil?
@@ -32,7 +32,7 @@ func Pack(tos int16, tbl interface{}, writer *Packet) []byte {
 		f := v.Field(i)
 		switch f.Type().Kind() {
 		case reflect.Slice, reflect.Array:
-			writer.WriteU16(uint16(f.Len()))
+			writer.WriteUint16(uint16(f.Len()))
 			for a := 0; a < f.Len(); a++ {
 				if _is_primitive(f.Index(a)) {
 					_write_primitive(f.Index(a), writer)
@@ -80,22 +80,22 @@ func _write_primitive(f reflect.Value, writer *Packet) {
 	case reflect.Uint8:
 		writer.WriteByte(f.Interface().(byte))
 	case reflect.Uint16:
-		writer.WriteU16(f.Interface().(uint16))
+		writer.WriteUint16(f.Interface().(uint16))
 	case reflect.Uint32:
-		writer.WriteU32(f.Interface().(uint32))
+		writer.WriteUint32(f.Interface().(uint32))
 	case reflect.Uint64:
-		writer.WriteU64(f.Interface().(uint64))
+		writer.WriteUint64(f.Interface().(uint64))
 
 	case reflect.Int:
-		writer.WriteU32(uint32(f.Interface().(int)))
+		writer.WriteUint32(uint32(f.Interface().(int)))
 	case reflect.Int8:
 		writer.WriteByte(byte(f.Interface().(int8)))
 	case reflect.Int16:
-		writer.WriteU16(uint16(f.Interface().(int16)))
+		writer.WriteUint16(uint16(f.Interface().(int16)))
 	case reflect.Int32:
-		writer.WriteU32(uint32(f.Interface().(int32)))
+		writer.WriteUint32(uint32(f.Interface().(int32)))
 	case reflect.Int64:
-		writer.WriteU64(uint64(f.Interface().(int64)))
+		writer.WriteUint64(uint64(f.Interface().(int64)))
 
 	case reflect.Float32:
 		writer.WriteFloat32(f.Interface().(float32))
