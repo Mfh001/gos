@@ -154,8 +154,8 @@ File.open(target, "w") do |io|
 package api
 
 import (
-	. "app/consts"
-	"gslib/utils/packet"
+	  . "app/consts"
+	  "gslib/utils/packet"
 )
 
 #{encode_handlers.join("\n")}
@@ -164,8 +164,12 @@ type EncodeHandler func(buffer *packet.Packet, value interface{})
 var encode_handlers = map[string]EncodeHandler{
     #{defines.keys.map{|protocol| "\"#{protocol}\": encode#{protocol}"}.join(",\n    ")}}
 
-func Ecode(encode_method string, buffer *packet.Packet, v interface{}) {
-	encode_handlers[encode_method](buffer, v)
+func Encode(encode_method string, v interface{}) *packet.Packet {
+    protocol := NameToId[encode_method]
+    buffer := packet.Writer()
+    buffer.WriteUint16(protocol)
+	  encode_handlers[encode_method](buffer, v)
+    return buffer
 }
 }
 end
@@ -178,8 +182,8 @@ File.open(target, "w") do |io|
   name_to_id = []
   id_to_name = []
   defines.keys.each_with_index do |name, idx|
-    name_to_id << %Q{"#{name}": uint16(#{idx})}
-    id_to_name << %Q{uint16(#{idx}): "#{name}"}
+    name_to_id << %Q{"#{name}": uint16(#{idx + 1})}
+    id_to_name << %Q{uint16(#{idx + 1}): "#{name}"}
   end
   io.write %Q{\
 #{header}

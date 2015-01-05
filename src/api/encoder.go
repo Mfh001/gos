@@ -5,8 +5,8 @@
 package api
 
 import (
-	. "app/consts"
-	"gslib/utils/packet"
+	  . "app/consts"
+	  "gslib/utils/packet"
 )
 
 
@@ -68,6 +68,10 @@ var encode_handlers = map[string]EncodeHandler{
     "EquipUnLoadResponse": encodeEquipUnLoadResponse,
     "LoginResponse": encodeLoginResponse}
 
-func Ecode(encode_method string, buffer *packet.Packet, v interface{}) {
-	encode_handlers[encode_method](buffer, v)
+func Encode(encode_method string, v interface{}) *packet.Packet {
+    protocol := NameToId[encode_method]
+    buffer := packet.Writer()
+    buffer.WriteUint16(protocol)
+	  encode_handlers[encode_method](buffer, v)
+    return buffer
 }

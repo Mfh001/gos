@@ -5,3 +5,7 @@ all:
 
 start:
 	./bin/server
+
+console:
+	go install server
+	./bin/server

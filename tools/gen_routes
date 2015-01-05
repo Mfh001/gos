@@ -14,7 +14,7 @@ defines.each do |key, value|
   controller = chunks[0]
   handler = chunks[1]
   contents << %Q{\
-    routes.Add("#{value}", func(ctx interface{}, params interface{}) interface{} {
+    routes.Add("#{value}", func(ctx interface{}, params interface{}) (string, interface{}) {
         instance := &controllers.#{controller}{Context: ctx.(*gslib.Player)}
         return instance.#{handler}(params.(*#{value}))
     })

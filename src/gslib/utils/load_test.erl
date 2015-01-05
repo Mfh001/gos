@@ -94,7 +94,11 @@ run(N, I, Sock, Udid) ->
     end,
     Protocol = <<1:16>>,
     Content  = <<"hello, i'm erlang TCPBOT!">>,
-    gen_tcp:send(Sock, list_to_binary([Protocol, Content])),
+    ContentLen = byte_size(Content),
+    gen_tcp:send(Sock, list_to_binary([Protocol, 
+                                       <<ContentLen:32>>, Content,
+                                       <<ContentLen:32>>, Content,
+                                       <<ContentLen:32>>, Content])),
     ets:update_counter(?TAB, sent, 1),
     case gen_tcp:recv(Sock, 0) of
         {ok, _Packet} -> 

@@ -62,34 +62,34 @@ func (self *Player) SystemInfo() int {
 	return runtime.NumCPU()
 }
 
-func (self *Player) SendData(struct_name string, struct_instance interface{}) {
+func (self *Player) SendData(encode_method string, msg interface{}) {
 	if self.Conn != nil {
-		var protocol int16 = 1
-		writer := packet.Writer()
-		packet.Pack(protocol, struct_instance, writer)
+		writer := api.Encode(encode_method, msg)
 		writer.Send(self.Conn)
 	}
 }
 
 func (self *Player) HandleRequest(data []byte, conn net.Conn) {
 	self.Conn = conn
+	defer func() {
+		if x := recover(); x != nil {
+			fmt.Println("caught panic in player HandleRequest(): ", x)
+		}
+	}()
 	reader := packet.Reader(data)
 	protocol := reader.ReadUint16()
-    protocol_name := api.IdToName[protocol]
-	handler, err := routes.Route(protocol_name)
+	decode_method := api.IdToName[protocol]
+	handler, err := routes.Route(decode_method)
 	if err == nil {
-		decode_method := "DecodeEquipsUnloadParams"
 		params := api.Decode(decode_method, reader)
-		response_struct := handler(self, params)
+		encode_method, response := handler(self, params)
+		writer := api.Encode(encode_method, response)
 
-		writer := packet.Writer()
-		var protocol int16 = 2
-		packet.Pack(protocol, response_struct, writer)
 		self.processed++
 		// INFO("Processed: ", self.processed, " Response Data: ", response_data)
-        if self.Conn != nil {
-          writer.Send(self.Conn)
-        }
+		if self.Conn != nil {
+			writer.Send(self.Conn)
+		}
 	} else {
 		ERR(err)
 	}

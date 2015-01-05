@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-type Handler func(ctx interface{}, params interface{}) interface{}
+type Handler func(ctx interface{}, params interface{}) (string, interface{})
 
 var routes = map[string]Handler{}
 
