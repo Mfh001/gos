@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"gslib/gen_server"
+	"gslib/store"
 	. "gslib/utils"
 	"io"
 	"log"
@@ -27,6 +28,9 @@ func Run() {
 	// time.Sleep(1 * time.Second)
 
 	fmt.Println("Server Started!")
+
+	// Start Shared Store
+	store.InitSharedInstance()
 
 	start_tcp_server()
 }
