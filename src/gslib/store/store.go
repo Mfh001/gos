@@ -82,7 +82,8 @@ func Test() {
 }
 
 func New() *Ets {
-	db := sqlx.MustConnect("mysql", "user=root dbname=game_server_development sslmode=disable")
+	// db := sqlx.MustConnect("mysql", "user=root dbname=game_server_development sslmode=disable")
+	db := sqlx.MustConnect("mysql", "root:@/game_server_development")
 
 	e := &Ets{
 		channel_in:  make(chan *packet),
@@ -305,7 +306,7 @@ func (e *Ets) executeSql(tx *sqlx.Tx, tableName string, status Store, tableCtx S
 		switch v.(int) {
 		case STATUS_UPDATE:
 			fields, values := joinFieldsAndValuesForUpdate(tableCtx[k])
-			tx.MustExec(fmt.Sprintf("UPDATE `%s` SET %s WHERE `uuid` = %s", tableName, fields, k), values...)
+			tx.MustExec(fmt.Sprintf("UPDATE `%s` SET %s WHERE `uuid` = '%s'", tableName, fields, k), values...)
 		case STATUS_DELETE:
 			tx.MustExec(fmt.Sprintf("DELETE FROM `%s` WHERE `uuid`='%s'", tableName, k))
 		case STATUS_CREATE:
@@ -317,6 +318,10 @@ func (e *Ets) executeSql(tx *sqlx.Tx, tableName string, status Store, tableCtx S
 
 func joinFieldsAndValuesForUpdate(s interface{}) (string, []interface{}) {
 	st := reflect.ValueOf(s)
+	switch st.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		st = st.Elem()
+	}
 	var fields []string
 	var values []interface{}
 	for i := 0; i < st.NumField(); i++ {
@@ -328,6 +333,10 @@ func joinFieldsAndValuesForUpdate(s interface{}) (string, []interface{}) {
 
 func joinFieldsAndValuesForCreate(s interface{}) (string, string, []interface{}) {
 	st := reflect.ValueOf(s)
+	switch st.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		st = st.Elem()
+	}
 	var fields []string
 	var values []interface{}
 	var valuesPlaceHolder []string
