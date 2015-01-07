@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gslib"
 	"gslib/store"
+	"reflect"
 	"runtime"
 	"time"
 )
@@ -18,13 +19,17 @@ func main() {
 	runtime.GOMAXPROCS(8)
 
 	store.InitSharedInstance()
+	store.Test()
 
 	start := time.Now()
-	times := 1000000
+	times := 10
 	person := hello{
 		name: "savin",
 		age:  26,
 	}
+
+	rp := reflect.ValueOf(person)
+	fmt.Println("reflect: ", rp.Type().Field(1).Name)
 
 	// for i := 0; i < times; i++ {
 	// 	// ets.Set("aaaa", "hello world")
