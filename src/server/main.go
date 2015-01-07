@@ -5,31 +5,28 @@ import (
 	"fmt"
 	"gslib"
 	"gslib/store"
-	"reflect"
 	"runtime"
 	"time"
 )
 
 type hello struct {
-	name string
-	age  int32
+	Name string
+	Age  int32
 }
 
 func main() {
 	runtime.GOMAXPROCS(8)
+
+	person := hello{
+		Name: "savin",
+		Age:  26,
+	}
 
 	store.InitSharedInstance()
 	store.Test()
 
 	start := time.Now()
 	times := 10
-	person := hello{
-		name: "savin",
-		age:  26,
-	}
-
-	rp := reflect.ValueOf(person)
-	fmt.Println("reflect: ", rp.Type().Field(1).Name)
 
 	// for i := 0; i < times; i++ {
 	// 	// ets.Set("aaaa", "hello world")
@@ -44,15 +41,15 @@ func main() {
 	store.Set([]string{"p", "persons"}, "person1", person)
 	store.Set([]string{"p", "persons"}, "person2", person)
 	vperson1 := store.Get([]string{"p", "persons"}, "person2").(hello)
-	vperson1.name = "chaned savin"
+	vperson1.Name = "chaned savin"
 
 	vperson := store.Get([]string{"p", "persons"}, "person2").(hello)
-	fmt.Println("vperson: ", vperson.name)
+	fmt.Println("vperson: ", vperson.Name)
 
 	for i := 0; i < times; i++ {
 		store.Select([]string{"p", "persons"}, func(elem interface{}) bool {
 			v := elem.(hello)
-			return v.name == "savin"
+			return v.Name == "savin"
 		})
 	}
 	duration := time.Since(start)

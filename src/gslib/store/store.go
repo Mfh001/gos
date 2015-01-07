@@ -1,10 +1,12 @@
 package store
 
 import (
-	"database/sql"
+	_ "database/sql"
 	"fmt"
-	"github.com/coopernurse/gorp"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+	// "log"
+	"reflect"
 	"strings"
 )
 
@@ -24,7 +26,7 @@ type Ets struct {
 	channel_in  chan *packet
 	channel_out chan interface{}
 	store       Store
-	db          *gorp.DbMap
+	db          *sqlx.DB
 }
 
 const (
@@ -64,7 +66,7 @@ type Equip struct {
 
 func Test() {
 	equip := &Equip{}
-	sharedInstance.db.SelectOne(&equip, "select * from equips where uuid='54A3927E2B89780A1491F441'")
+	sharedInstance.db.Select(&equip, "select * from equips where uuid='54A3927E2B89780A1491F441'")
 	fmt.Println("Store Test:", equip)
 
 	key := "54A3927E2B89780A1491F441"
@@ -80,19 +82,13 @@ func Test() {
 }
 
 func New() *Ets {
-	db, err := sql.Open("mysql", "root:@/game_server_development")
-	if err != nil {
-		panic(err.Error())
-	}
-	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
-	dbmap.AddTableWithName(Equip{}, "equips").SetKeys(false, "uuid")
-	// defer db.Close()
+	db := sqlx.MustConnect("mysql", "user=root dbname=game_server_development sslmode=disable")
 
 	e := &Ets{
 		channel_in:  make(chan *packet),
 		channel_out: make(chan interface{}),
 		store:       make(Store),
-		db:          dbmap,
+		db:          db,
 	}
 	go e.loop()
 	return e
@@ -292,39 +288,53 @@ func getStatusKey(namespaces []string) string {
 }
 
 func (e *Ets) persistAll(namespaces []string) {
-	trans, err := e.db.Begin()
-	if err != nil {
-		panic(err.Error())
-	}
+	tx := e.db.MustBegin()
 	for tableName, tableCtx := range e.getCtx(namespaces) {
 		status := e.allStatus([]string{namespaces[0], tableName})
-		e.executeSql(trans, tableName, status, tableCtx.(Store))
+		e.executeSql(tx, tableName, status, tableCtx.(Store))
 	}
-	err = trans.Commit()
+	err := tx.Commit()
 	if err != nil {
 		panic(err.Error())
 	}
 	e.cleanStatus(namespaces)
 }
 
-func (e *Ets) executeSql(trans *gorp.Transaction, tableName string, status Store, tableCtx Store) {
+func (e *Ets) executeSql(tx *sqlx.Tx, tableName string, status Store, tableCtx Store) {
 	for k, v := range status {
 		switch v.(int) {
 		case STATUS_UPDATE:
-			_, err := trans.Update(tableCtx[k])
-			if err != nil {
-				panic(err.Error())
-			}
+			fields, values := joinFieldsAndValuesForUpdate(tableCtx[k])
+			tx.MustExec(fmt.Sprintf("UPDATE `%s` SET %s WHERE `uuid` = %s", tableName, fields, k), values...)
 		case STATUS_DELETE:
-			_, err := trans.Exec(fmt.Sprintf("DELETE FROM `%s` WHERE `uuid`='%s'", tableName, k))
-			if err != nil {
-				panic(err.Error())
-			}
+			tx.MustExec(fmt.Sprintf("DELETE FROM `%s` WHERE `uuid`='%s'", tableName, k))
 		case STATUS_CREATE:
-			err := trans.Insert(tableCtx[k])
-			if err != nil {
-				panic(err.Error())
-			}
+			fields, valuesPlaceHolder, values := joinFieldsAndValuesForCreate(tableCtx[k])
+			tx.MustExec(fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", tableName, fields, valuesPlaceHolder), values...)
 		}
 	}
+}
+
+func joinFieldsAndValuesForUpdate(s interface{}) (string, []interface{}) {
+	st := reflect.ValueOf(s)
+	var fields []string
+	var values []interface{}
+	for i := 0; i < st.NumField(); i++ {
+		fields = append(fields, fmt.Sprintf("`%s` = ?", st.Type().Field(i).Name))
+		values = append(values, fmt.Sprint(st.Field(i).Interface()))
+	}
+	return strings.Join(fields, ", "), values
+}
+
+func joinFieldsAndValuesForCreate(s interface{}) (string, string, []interface{}) {
+	st := reflect.ValueOf(s)
+	var fields []string
+	var values []interface{}
+	var valuesPlaceHolder []string
+	for i := 0; i < st.NumField(); i++ {
+		fields = append(fields, fmt.Sprintf("`%s`", st.Type().Field(i).Name))
+		values = append(values, fmt.Sprint(st.Field(i).Interface()))
+		valuesPlaceHolder = append(valuesPlaceHolder, "?")
+	}
+	return strings.Join(fields, ", "), strings.Join(valuesPlaceHolder, ", "), values
 }
