@@ -1,5 +1,9 @@
 package models
 
+import (
+	"gslib/store"
+)
+
 type Equip struct {
 	Uuid   string
 	UserId string

@@ -15,5 +15,6 @@ func SysRoutine() {
 
 	runtime.GC()
 	INFO("Goroutine Count:", runtime.NumGoroutine())
-	time.AfterFunc(2*time.Second, SysRoutine)
+	time.AfterFunc(10*time.Second, SysRoutine)
+	INFO("after aaaaaaaaaaaaaaa")
 }
