@@ -11,3 +11,6 @@ package consts
 // 	EquipId  string
 // 	Level    int
 // }
+
+type Equip struct {
+}

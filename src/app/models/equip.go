@@ -1,26 +1,11 @@
 package models
 
 import (
-	"gslib/store"
+	. "app/consts"
+	"gslib"
 )
 
-type Equip struct {
-	Uuid   string
-	UserId string
-	ConfId int
-}
-
-var EquipMap = make(map[string]*Equip)
-
-func FindEquip(uuid string) *Equip {
-	equip, ok := EquipMap[uuid]
-	if ok {
-		return equip
-	} else {
-		return equip
-	}
-}
-
-func LoadData() {
-
+type EquipModel struct {
+	Ctx  *gslib.Player
+	Data *Equip
 }
