@@ -1,6 +1,7 @@
 package store
 
 import (
+	. "app/consts"
 	"database/sql"
 	"fmt"
 	"github.com/coopernurse/gorp"
@@ -36,16 +37,6 @@ const (
 	STATUS_UPDATE = 3
 	STATUS_DELETE = 4
 )
-
-type Equip struct {
-	Uuid    string `db:"uuid"`
-	UserId  string `db:"user_id"`
-	Level   int    `db:"level"`
-	ConfId  int    `db:"conf_id"`
-	Evolves string `db:"evolves"`
-	Equiped string `db:"equiped"`
-	Exp     int    `db:"exp"`
-}
 
 func Test(ets *Ets) {
 	equip := &Equip{}
