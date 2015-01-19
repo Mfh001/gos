@@ -23,9 +23,6 @@ type Player struct {
 	lastActive   int64
 }
 
-type WrapHandler func() interface{}
-type AsyncWrapHandler func()
-
 const (
 	EXPIRE_DURATION = 1800
 )
@@ -37,7 +34,7 @@ func (self *Player) Init(args []interface{}) (err error) {
 	name := args[0].(string)
 	fmt.Println("server ", name, " started!")
 	self.PlayerId = name
-	self.Store = store.New()
+	self.Store = store.New(self)
 	self.lastActive = time.Now().Unix()
 	self.startActiveCheck()
 	self.startPersistTimer()
@@ -55,7 +52,7 @@ func (self *Player) HandleCast(args []interface{}) {
 	if method_name == "HandleRequest" {
 		self.HandleRequest(args[1].([]byte), args[2].(net.Conn))
 	} else if method_name == "HandleWrap" {
-		self.HandleWrap(args[1].(WrapHandler))
+		self.HandleWrap(args[1].(func() interface{}))
 	} else if method_name == "PersistData" {
 		self.Store.Persist([]string{self.PlayerId})
 		self.startPersistTimer()
@@ -67,7 +64,7 @@ func (self *Player) HandleCast(args []interface{}) {
 func (self *Player) HandleCall(args []interface{}) interface{} {
 	method_name := args[0].(string)
 	if method_name == "HandleWrap" {
-		return self.HandleWrap(args[1].(WrapHandler))
+		return self.HandleWrap(args[1].(func() interface{}))
 	}
 	return nil
 }
@@ -106,11 +103,11 @@ func (self *Player) SendData(encode_method string, msg interface{}) {
 func (self *Player) HandleRequest(data []byte, conn net.Conn) {
 	self.lastActive = time.Now().Unix()
 	self.Conn = conn
-	defer func() {
-		if x := recover(); x != nil {
-			fmt.Println("caught panic in player HandleRequest(): ", x)
-		}
-	}()
+	// defer func() {
+	// 	if x := recover(); x != nil {
+	// 		fmt.Println("caught panic in player HandleRequest(): ", x)
+	// 	}
+	// }()
 	reader := packet.Reader(data)
 	protocol := reader.ReadUint16()
 	decode_method := api.IdToName[protocol]
@@ -130,17 +127,17 @@ func (self *Player) HandleRequest(data []byte, conn net.Conn) {
 	}
 }
 
-func (self *Player) HandleWrap(fun WrapHandler) interface{} {
+func (self *Player) HandleWrap(fun func() interface{}) interface{} {
 	self.lastActive = time.Now().Unix()
 	return fun()
 }
 
-func (self *Player) HandleAsyncWrap(fun AsyncWrapHandler) {
+func (self *Player) HandleAsyncWrap(fun func()) {
 	self.lastActive = time.Now().Unix()
 	fun()
 }
 
-func (self *Player) Wrap(targetPlayerId string, fun WrapHandler) (interface{}, error) {
+func (self *Player) Wrap(targetPlayerId string, fun func() interface{}) (interface{}, error) {
 	if self.PlayerId == targetPlayerId {
 		return self.HandleWrap(fun), nil
 	} else {
@@ -148,7 +145,7 @@ func (self *Player) Wrap(targetPlayerId string, fun WrapHandler) (interface{}, e
 	}
 }
 
-func (self *Player) AsyncWrap(targetPlayerId string, fun AsyncWrapHandler) {
+func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
 	if self.PlayerId == targetPlayerId {
 		self.HandleAsyncWrap(fun)
 	} else {

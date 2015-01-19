@@ -8,7 +8,8 @@ import (
 
 func main() {
 	register.Load()
+	register.RegisterDataLoader()
 	store.InitDB()
-	register.DataLoaderMap["equips"]("54B9D9C02B897851E30F71F4", nil)
+	// register.DataLoaderMap["equips"]("54B9D9C02B897851E30F71F4", nil)
 	gslib.Run()
 }

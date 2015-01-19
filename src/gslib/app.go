@@ -23,7 +23,7 @@ func Run() {
 	// runtime.GOMAXPROCS(runtime.NumCPU())
 	runtime.GOMAXPROCS(1)
 
-	go SysRoutine()
+	// go SysRoutine()
 
 	// time.Sleep(1 * time.Second)
 
@@ -31,6 +31,18 @@ func Run() {
 
 	// Init DB Connections
 	store.InitDB()
+
+	// player := new(Player)
+	// gen_server.Start("test", player, "test")
+	// gen_server.Call("test", "HandleWrap", func() interface{} {
+	// 	fmt.Println("player: ", player.PlayerId)
+	// 	player.Store.LoadData("equips", "54BC69792B897814D763403B")
+	// 	// player.Store.Get([]string{"equips"})
+	// 	fmt.Println("equips count: ", player.Store.Count([]string{"equips"}))
+	// 	equipModel := player.Store.Get([]string{"equips"}, "54BC69792B897814D7634040")
+	// 	fmt.Println("equipModel: ", equipModel)
+	// 	return "ok"
+	// })
 
 	start_tcp_server()
 }

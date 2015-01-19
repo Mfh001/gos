@@ -10,13 +10,13 @@ import (
 )
 
 func Load() {
-    routes.Add("EquipLoadParams", func(ctx interface{}, params interface{}) (string, interface{}) {
-        instance := &controllers.EquipsController{Context: ctx.(*gslib.Player)}
-        return instance.Load(params.(*EquipLoadParams))
-    })
-    routes.Add("EquipUnLoadParams", func(ctx interface{}, params interface{}) (string, interface{}) {
-        instance := &controllers.EquipsController{Context: ctx.(*gslib.Player)}
-        return instance.UnLoad(params.(*EquipUnLoadParams))
-    })
+	routes.Add("EquipLoadParams", func(ctx interface{}, params interface{}) (string, interface{}) {
+		instance := &controllers.EquipsController{Ctx: ctx.(*gslib.Player)}
+		return instance.Load(params.(*EquipLoadParams))
+	})
+	routes.Add("EquipUnLoadParams", func(ctx interface{}, params interface{}) (string, interface{}) {
+		instance := &controllers.EquipsController{Ctx: ctx.(*gslib.Player)}
+		return instance.UnLoad(params.(*EquipUnLoadParams))
+	})
 
 }

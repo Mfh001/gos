@@ -2,16 +2,36 @@ package controllers
 
 import (
 	. "app/consts"
-	// "fmt"
+	. "app/models"
+	"fmt"
 	"gslib"
 )
 
 type EquipsController struct {
-	Context *gslib.Player
+	Ctx *gslib.Player
 }
 
 func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}) {
-	// fmt.Println("Context: ", self.Context)
+	player := self.Ctx
+	player.Store.LoadData("equips", "54BC69792B897814D763403B")
+	equipModel := player.Store.Get([]string{"models", "equips"}, "54BC69792B897814D7634040").(*EquipModel)
+
+	// equipModel := model.Find(self.Ctx, "equips", params.Uuid).(*EquipModel)
+
+	equipModel.Load("hahah")
+	fmt.Println("old level: ", equipModel.Data.Level)
+	equipModel.Data.Level = 0
+	equipModel.Save()
+	player.Store.Persist([]string{"models"})
+	fmt.Println("new level: ", equipModel.Data.Level)
+
+	gslib.CreateModel(self.Ctx, &EquipModel{Data: &Equip{Uuid: "test udid"}})
+
+	equipModel = gslib.FindModel(self.Ctx, "equips", "test udid").(*EquipModel)
+
+	fmt.Println("equipModel: ", equipModel)
+	fmt.Println("new level: ", equipModel.Data.Uuid)
+
 	// fmt.Println("SystemInfo: ", self.Context.SystemInfo())
 	return "EquipLoadResponse", &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }

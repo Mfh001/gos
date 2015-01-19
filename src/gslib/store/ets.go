@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/coopernurse/gorp"
 	_ "github.com/go-sql-driver/mysql"
+	"reflect"
 	"strings"
 )
 
@@ -13,12 +14,14 @@ type Filter func(elem interface{}) bool
 
 type Store map[string]interface{}
 
-type DataLoader func(playerId string)
+type dataLoader func(modelName string, ctx interface{}) interface{}
+
+var dataLoaderMap = map[string]dataLoader{}
 
 type Ets struct {
-	store         Store
-	db            *gorp.DbMap
-	dataLoaderMap map[string]DataLoader
+	store Store
+	Db    *gorp.DbMap
+	Ctx   interface{}
 }
 
 const (
@@ -31,16 +34,9 @@ const (
 	PERSIST = 7
 )
 
-const (
-	STATUS_ORIGIN = 1
-	STATUS_CREATE = 2
-	STATUS_UPDATE = 3
-	STATUS_DELETE = 4
-)
-
 func Test(ets *Ets) {
 	equip := &Equip{}
-	ets.db.SelectOne(&equip, "select * from equips where uuid='54A3927E2B89780A1491F441'")
+	ets.Db.SelectOne(&equip, "select * from equips where uuid='54A3927E2B89780A1491F441'")
 	fmt.Println("Store Test:", equip)
 
 	key := "54A3927E2B89780A1491F441"
@@ -74,17 +70,31 @@ func GetSharedDBInstance() *gorp.DbMap {
 	return sharedDBInstance
 }
 
-func New() *Ets {
+func New(ctx interface{}) *Ets {
 	e := &Ets{
-		dataLoaderMap: make(map[string]DataLoader),
-		store:         make(Store),
-		db:            GetSharedDBInstance(),
+		store: make(Store),
+		Db:    GetSharedDBInstance(),
+		Ctx:   ctx,
 	}
 	return e
 }
 
-func (e *Ets) RegisterDataLoader(modelName string, dataLoader DataLoader) {
-	e.dataLoaderMap[modelName] = dataLoader
+func RegisterDataLoader(modelName string, loader dataLoader) {
+	dataLoaderMap[modelName] = loader
+}
+
+func (e *Ets) LoadData(modelName, playerId string) {
+	handler, ok := dataLoaderMap[modelName]
+	if ok {
+		values := reflect.ValueOf(handler(playerId, e.Ctx))
+		for i := 0; i < values.Len(); i++ {
+			model := values.Index(i)
+			value := model.Elem()
+			data := value.FieldByName("Data")
+			key := data.Elem().FieldByName("Uuid").String()
+			e.Load([]string{"models", modelName}, key, model.Interface())
+		}
+	}
 }
 
 func (e *Ets) Get(namespaces []string, key string) interface{} {
@@ -103,16 +113,16 @@ func (e *Ets) Load(namespaces []string, key string, value interface{}) {
 func (e *Ets) Set(namespaces []string, key string, value interface{}) {
 	ctx := e.makeCtx(namespaces)
 	if ctx[key] == nil {
-		e.updateStatus(namespaces, key, STATUS_CREATE)
+		e.UpdateStatus(namespaces, key, STATUS_CREATE)
 	} else {
-		e.updateStatus(namespaces, key, STATUS_UPDATE)
+		e.UpdateStatus(namespaces, key, STATUS_UPDATE)
 	}
 	ctx[key] = value
 }
 
 func (e *Ets) Del(namespaces []string, key string) {
 	if ctx := e.getCtx(namespaces); ctx != nil {
-		e.updateStatus(namespaces, key, STATUS_DELETE)
+		e.UpdateStatus(namespaces, key, STATUS_DELETE)
 		delete(ctx, key)
 	}
 }
@@ -141,8 +151,16 @@ func (e *Ets) Select(namespaces []string, filter Filter) interface{} {
 	return elems
 }
 
+func (e *Ets) Count(namespaces []string) int {
+	if ctx := e.getCtx(namespaces); ctx != nil {
+		return len(ctx)
+	} else {
+		return 0
+	}
+}
+
 func (e *Ets) Persist(namespaces []string) {
-	trans, err := e.db.Begin()
+	trans, err := e.Db.Begin()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -200,7 +218,7 @@ func (e *Ets) makeCtx(namespaces []string) Store {
 	return ctx
 }
 
-func (e *Ets) updateStatus(namespaces []string, key string, status int) {
+func (e *Ets) UpdateStatus(namespaces []string, key string, status int) {
 	statusKey := getStatusKey(namespaces)
 	ctx, ok := e.store[statusKey]
 	if !ok {
@@ -241,7 +259,8 @@ func executeSql(trans *gorp.Transaction, tableName string, status Store, tableCt
 	for k, v := range status {
 		switch v.(int) {
 		case STATUS_UPDATE:
-			_, err := trans.Update(tableCtx[k])
+			fmt.Println("STATUS_UPDATE: ", reflect.ValueOf(tableCtx[k]).Elem().FieldByName("Data").Interface())
+			_, err := trans.Update(reflect.ValueOf(tableCtx[k]).Elem().FieldByName("Data").Interface())
 			if err != nil {
 				panic(err.Error())
 			}
@@ -251,7 +270,7 @@ func executeSql(trans *gorp.Transaction, tableName string, status Store, tableCt
 				panic(err.Error())
 			}
 		case STATUS_CREATE:
-			err := trans.Insert(tableCtx[k])
+			err := trans.Insert(reflect.ValueOf(tableCtx[k]).Elem().FieldByName("Data").Interface())
 			if err != nil {
 				panic(err.Error())
 			}
