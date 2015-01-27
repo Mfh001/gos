@@ -1,5 +1,5 @@
 ####介绍
-[Code For Fun] Gos是一个基于Golang的简易游戏服务器框架
+    Gos是一个基于Golang的游戏服务器框架
 
 ####启动
 	git checkout https://github.com/mafei198/gos.git
@@ -10,6 +10,9 @@
 1. GenServer类似于Erlang的Behavior，封装了Goroutine的基本启动、查找、call、cast，以及对其callback module方法的动态调用
 2. Routes 根据请求协议号，动态的将请求分发到对应的玩家Goroutine处理
 3. Connection 建立TCP连接后自动分配Player Goroutine
+4. 热数据按需加载、定时持久化至MySQL
+5. 通讯协议Generator
+6. Table Structs Generator
 
 ####试玩总结
 Golang 优点:
@@ -25,14 +28,14 @@ Golang 缺点:
 3. 没有内置REPL交互环境，需要自己写交互Inspect运行时的环境
 4. 没有内置监督树支持，goroutine需要自行管理(锁死、crash)
 
+####功能
 
 
 ####TODO
 
 * Player Goroutine Service:
-  1. 热数据加载、持久化
-  2. 消息订阅
-  3. 消息发布
+  1. 消息订阅
+  2. 消息发布
  
 * Timertask Manager
   1. 增加、删除、修改定时服务
@@ -40,6 +43,3 @@ Golang 缺点:
   
 * Timertask worker
   1. 定时任务执行
-
-* 数据库接入
-	

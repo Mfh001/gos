@@ -7,7 +7,3 @@ const (
 	STATUS_UPDATE = 3
 	STATUS_DELETE = 4
 )
-
-var StructToTableNameMap = map[string]string{
-	"Equip": "equips",
-}

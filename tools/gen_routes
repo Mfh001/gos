@@ -3,7 +3,7 @@
 require "yaml"
 
 source = "./src/config/routes.yml"
-target = "./src/app/register/register.go"
+target = "./src/app/register/register_routes.go"
 
 defines = YAML.load_file(source)
 
@@ -15,7 +15,7 @@ defines.each do |key, value|
   handler = chunks[1]
   contents << %Q{\
     routes.Add("#{value}", func(ctx interface{}, params interface{}) (string, interface{}) {
-        instance := &controllers.#{controller}{Context: ctx.(*gslib.Player)}
+        instance := &controllers.#{controller}{Ctx: ctx.(*gslib.Player)}
         return instance.#{handler}(params.(*#{value}))
     })
 }

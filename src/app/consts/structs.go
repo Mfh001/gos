@@ -12,12 +12,12 @@ package consts
 // 	Level    int
 // }
 
-type Equip struct {
-	Uuid    string `db:"uuid"`
-	UserId  string `db:"user_id"`
-	Level   int    `db:"level"`
-	ConfId  int    `db:"conf_id"`
-	Evolves string `db:"evolves"`
-	Equiped string `db:"equiped"`
-	Exp     int    `db:"exp"`
-}
+// type Equip struct {
+// 	Uuid    string `db:"uuid"`
+// 	UserId  string `db:"user_id"`
+// 	Level   int    `db:"level"`
+// 	ConfId  int    `db:"conf_id"`
+// 	Evolves string `db:"evolves"`
+// 	Equiped string `db:"equiped"`
+// 	Exp     int    `db:"exp"`
+// }

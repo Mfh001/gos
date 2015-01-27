@@ -2,6 +2,7 @@ package store
 
 import (
 	. "app/consts"
+	"app/register/tables"
 	"database/sql"
 	"fmt"
 	"github.com/coopernurse/gorp"
@@ -59,11 +60,7 @@ func InitDB() {
 		panic(err.Error())
 	}
 	sharedDBInstance = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
-	registerTables()
-}
-
-func registerTables() {
-	sharedDBInstance.AddTableWithName(Equip{}, "equips").SetKeys(false, "uuid")
+	tables.RegisterTables(sharedDBInstance)
 }
 
 func GetSharedDBInstance() *gorp.DbMap {
