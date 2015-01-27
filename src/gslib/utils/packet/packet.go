@@ -272,10 +272,18 @@ func Writer() *Packet {
 	return pkt
 }
 
+var encrypt = false
+
 func (p *Packet) Send(conn net.Conn) {
 	writer := Writer()
-	writer.WriteUint16(uint16(p.Length()))
-	writer.WriteRawBytes(p.Data())
+	if encrypt {
+		data := Encrypt(p.Data())
+		writer.WriteUint16(uint16(len(data)))
+		writer.WriteRawBytes(data)
+	} else {
+		writer.WriteUint16(uint16(p.Length()))
+		writer.WriteRawBytes(p.Data())
+	}
 
 	n, err := conn.Write(writer.Data())
 	if err != nil {
