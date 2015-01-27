@@ -2,9 +2,7 @@ package main
 
 import (
 	"app/register"
-	"fmt"
 	"gslib"
-	"gslib/utils"
 )
 
 func main() {
