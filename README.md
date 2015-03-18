@@ -13,6 +13,7 @@
 4. 热数据按需加载、定时持久化至MySQL
 5. 通讯协议Generator
 6. Table Structs Generator
+7. Broadcast
 
 ####试玩总结
 Golang 优点:
@@ -32,11 +33,6 @@ Golang 缺点:
 
 
 ####TODO
-
-* Player Goroutine Service:
-  1. 消息订阅
-  2. 消息发布
- 
 * Timertask Manager
   1. 增加、删除、修改定时服务
   2. work pool管理
