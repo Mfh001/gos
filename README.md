@@ -5,7 +5,6 @@
 	git checkout https://github.com/mafei198/gos.git
 	go install server && bin/server
 
-
 ######已实现功能
 1. GenServer类似于Erlang的Behavior，封装了Goroutine的基本启动、查找、call、cast，以及对其callback module方法的动态调用
 2. Routes 根据请求协议号，动态的将请求分发到对应的玩家Goroutine处理
@@ -29,9 +28,6 @@ Golang 缺点:
 3. 没有内置REPL交互环境，需要自己写交互Inspect运行时的环境
 4. 没有内置监督树支持，goroutine需要自行管理(锁死、crash)
 
-####功能
-
-
 ####TODO
 * Timertask Manager
   1. 增加、删除、修改定时服务
@@ -39,3 +35,7 @@ Golang 缺点:
   
 * Timertask worker
   1. 定时任务执行
+
+* 游戏配置文件生成器
+
+* 运行时REPL交互环境
