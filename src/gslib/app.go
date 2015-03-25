@@ -31,6 +31,9 @@ func Run() {
 	// Init DB Connections
 	store.InitDB()
 
+	// Start broadcast server
+	gen_server.Start(BROADCAST_SERVER_ID, new(Broadcast))
+
 	start_tcp_server()
 }
 

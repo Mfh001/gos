@@ -26,3 +26,14 @@ const (
 	SYS_MQ_SIZE = 65535 // size of sys routine's message queue
 	GC_INTERVAL = 300   // voluntary GC interval
 )
+
+type BroadcastMsg struct {
+	Category string
+	Channel  string
+	SenderId string
+	Data     interface{}
+}
+
+const (
+	BROADCAST_SERVER_ID = "__broadcast_server__"
+)

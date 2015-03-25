@@ -58,6 +58,8 @@ func (self *Player) HandleCast(args []interface{}) {
 		self.startPersistTimer()
 	} else if method_name == "removeConn" {
 		self.Conn = nil
+	} else if method_name == "broadcast" {
+		self.HandleBroadcast(args[1].(*BroadcastMsg))
 	}
 }
 
@@ -137,6 +139,18 @@ func (self *Player) HandleAsyncWrap(fun func()) {
 	fun()
 }
 
+var BroadcastHandler func(*Player, *BroadcastMsg) = nil
+
+func (self *Player) HandleBroadcast(msg *BroadcastMsg) {
+	if BroadcastHandler != nil {
+		BroadcastHandler(self, msg)
+	}
+}
+
+/*
+   IPC Methods
+*/
+
 func (self *Player) Wrap(targetPlayerId string, fun func() interface{}) (interface{}, error) {
 	if self.PlayerId == targetPlayerId {
 		return self.HandleWrap(fun), nil
@@ -151,4 +165,22 @@ func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
 	} else {
 		gen_server.Cast(targetPlayerId, "HandleAsyncWrap", fun)
 	}
+}
+
+func (self *Player) JoinChannel(channel string) {
+	gen_server.Cast(BROADCAST_SERVER_ID, "JoinChannel", self.PlayerId, channel)
+}
+
+func (self *Player) LeaveChannel(channel string) {
+	gen_server.Cast(BROADCAST_SERVER_ID, "LeaveChannel", self.PlayerId, channel)
+}
+
+func (self *Player) PublishChannelMsg(channel, category string, data interface{}) {
+	msg := &BroadcastMsg{
+		Category: category,
+		Channel:  channel,
+		SenderId: self.PlayerId,
+		Data:     data,
+	}
+	gen_server.Cast(BROADCAST_SERVER_ID, "Publish", msg)
 }
