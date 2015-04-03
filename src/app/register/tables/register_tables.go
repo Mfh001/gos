@@ -4,7 +4,7 @@ package tables
 
 import (
 	. "app/consts"
-	"github.com/coopernurse/gorp"
+	"github.com/go-gorp/gorp"
 )
 
 func RegisterTables(dbInstance *gorp.DbMap) {

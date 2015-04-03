@@ -20,7 +20,8 @@ func Run() {
 		}
 	}()
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	// runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(1)
 
 	go SysRoutine()
 

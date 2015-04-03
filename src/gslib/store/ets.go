@@ -5,7 +5,7 @@ import (
 	"app/register/tables"
 	"database/sql"
 	"fmt"
-	"github.com/coopernurse/gorp"
+	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	"reflect"
 	"strings"
