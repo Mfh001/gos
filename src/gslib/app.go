@@ -35,6 +35,12 @@ func Run() {
 	// Start broadcast server
 	gen_server.Start(BROADCAST_SERVER_ID, new(Broadcast))
 
+	server_name := "test_player"
+	gen_server.Start(server_name, new(Player), server_name)
+	for i := 0; i < 100000; i++ {
+		gen_server.Cast(server_name, "hello")
+	}
+
 	start_tcp_server()
 }
 

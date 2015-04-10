@@ -34,6 +34,14 @@ type BroadcastMsg struct {
 	Data     interface{}
 }
 
+type LeaderboardData struct {
+	member     string
+	score      int
+	rank       int
+	memberData string
+}
+
 const (
-	BROADCAST_SERVER_ID = "__broadcast_server__"
+	BROADCAST_SERVER_ID   = "__broadcast_server__"
+	LEADERBOARD_SERVER_ID = "__leaderboard_server__"
 )
