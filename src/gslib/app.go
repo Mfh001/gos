@@ -35,6 +35,19 @@ func Run() {
 	// Start broadcast server
 	gen_server.Start(BROADCAST_SERVER_ID, new(Broadcast))
 
+	server_name := "test_player"
+	gen_server.Start(server_name, new(Player), server_name)
+	start := time.Now()
+	var times int64 = 1000000
+	var i int64
+	for i = 0; i < times; i++ {
+		gen_server.Call(server_name, "hello")
+	}
+	stop := time.Now()
+	fmt.Println("sub: ", float64(stop.Sub(start).Seconds()))
+	fmt.Println("nanoseconds: ", stop.UnixNano()-start.UnixNano())
+	fmt.Println("per seconds: ", float64(times)/stop.Sub(start).Seconds())
+
 	start_tcp_server()
 }
 
