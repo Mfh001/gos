@@ -1,0 +1,4 @@
+let mapleader = ','
+nmap <leader>t :CtrlP /Users/savin/code_fun/Golang/gos<CR>
+nmap <c-p> :CtrlP /Users/savin/code_fun/Golang/gos<CR>
+imap <c-p> :CtrlP /Users/savin/code_fun/Golang/gos<CR>

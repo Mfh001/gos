@@ -35,10 +35,10 @@ type BroadcastMsg struct {
 }
 
 type LeaderboardData struct {
-	member     string
-	score      int
-	rank       int
-	memberData string
+	Member     string
+	Score      int
+	Rank       int
+	MemberData string
 }
 
 const (

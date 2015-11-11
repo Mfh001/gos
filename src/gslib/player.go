@@ -105,11 +105,11 @@ func (self *Player) SendData(encode_method string, msg interface{}) {
 func (self *Player) HandleRequest(data []byte, conn net.Conn) {
 	self.lastActive = time.Now().Unix()
 	self.Conn = conn
-	// defer func() {
-	// 	if x := recover(); x != nil {
-	// 		fmt.Println("caught panic in player HandleRequest(): ", x)
-	// 	}
-	// }()
+	defer func() {
+		if x := recover(); x != nil {
+			fmt.Println("caught panic in player HandleRequest(): ", x)
+		}
+	}()
 	reader := packet.Reader(data)
 	protocol := reader.ReadUint16()
 	decode_method := api.IdToName[protocol]

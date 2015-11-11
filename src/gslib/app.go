@@ -9,7 +9,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"runtime"
 	"time"
 )
 
@@ -19,9 +18,6 @@ func Run() {
 			fmt.Println("caught panic in main()", x)
 		}
 	}()
-
-	// runtime.GOMAXPROCS(runtime.NumCPU())
-	runtime.GOMAXPROCS(1)
 
 	go SysRoutine()
 
@@ -37,9 +33,17 @@ func Run() {
 
 	server_name := "test_player"
 	gen_server.Start(server_name, new(Player), server_name)
-	for i := 0; i < 100000; i++ {
-		gen_server.Cast(server_name, "hello")
-	}
+
+	// start := time.Now()
+	// var times int64 = 1000000
+	// var i int64
+	// for i = 0; i < times; i++ {
+	// 	gen_server.Call(server_name, "hello")
+	// }
+	// stop := time.Now()
+	// fmt.Println("sub: ", float64(stop.Sub(start).Seconds()))
+	// fmt.Println("nanoseconds: ", stop.UnixNano()-start.UnixNano())
+	// fmt.Println("per seconds: ", float64(times)/stop.Sub(start).Seconds())
 
 	start_tcp_server()
 }
