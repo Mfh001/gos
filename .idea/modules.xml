@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AuthApp/AuthApp.iml" filepath="$PROJECT_DIR$/AuthApp/AuthApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ConnectApp/ConnectApp.iml" filepath="$PROJECT_DIR$/ConnectApp/ConnectApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/GameApp/GameApp.iml" filepath="$PROJECT_DIR$/GameApp/GameApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/WorldApp/WorldApp.iml" filepath="$PROJECT_DIR$/WorldApp/WorldApp.iml" />
+    </modules>
+  </component>
+</project>

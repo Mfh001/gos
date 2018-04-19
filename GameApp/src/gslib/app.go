@@ -93,7 +93,7 @@ func handleRequest(conn net.Conn) {
 			break
 		}
 
-		gen_server.Cast(server_name, "HandleRequest", data, conn)
+		gen_server.Cast(server_name, "handleRequest", data, conn)
 	}
 
 	gen_server.Cast(server_name, "removeConn")

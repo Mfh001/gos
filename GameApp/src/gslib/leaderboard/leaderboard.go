@@ -39,16 +39,17 @@ func (l *Leaderboard) HandleCast(args []interface{}) {
 }
 
 func handleCallAndCast(args []interface{}) error {
-	method := args[0].(string)
-	if method == "add" {
-		return t.DoAdd(args[1].(string), args[2].(int), args[3].(func()))
-	} else if method == "update" {
-		return t.DoUpdate(args[1].(string), args[2].(int))
-	} else if method == "finish" {
-		return t.DoFinish(args[1].(string))
-	} else if method == "del" {
-		return t.DoDel(args[1].(string))
-	}
+	//method := args[0].(string)
+	//if method == "add" {
+	//	return t.DoAdd(args[1].(string), args[2].(int), args[3].(func()))
+	//} else if method == "update" {
+	//	return t.DoUpdate(args[1].(string), args[2].(int))
+	//} else if method == "finish" {
+	//	return t.DoFinish(args[1].(string))
+	//} else if method == "del" {
+	//	return t.DoDel(args[1].(string))
+	//}
+	return nil
 }
 
 // Private Methods

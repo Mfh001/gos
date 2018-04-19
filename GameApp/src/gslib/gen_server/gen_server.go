@@ -6,6 +6,9 @@ import (
 	"gslib/utils"
 )
 
+var SIGN_STOP int = 1
+var ServerRegisterMap = utils.NewCMap()
+
 type Packet struct {
 	method string
 	args   []interface{}
@@ -24,16 +27,12 @@ type GenServer struct {
 	sign_channel chan SignPacket
 }
 
-var SIGN_STOP int = 1
-
 type GenServerBehavior interface {
 	Init(args []interface{}) (err error)
 	HandleCast(args []interface{})
 	HandleCall(args []interface{}) interface{}
 	Terminate(reason string) (err error)
 }
-
-var ServerRegisterMap = utils.NewCMap()
 
 func setGenServer(name string, instance *GenServer) {
 	ServerRegisterMap.Set(name, instance)
