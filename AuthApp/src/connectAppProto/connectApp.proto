@@ -12,7 +12,6 @@ service Dispatcher {
 
 message DispatchRequest {
     string accountId = 1;
-    string serverId = 2;
 }
 
 message DispatchReply {
