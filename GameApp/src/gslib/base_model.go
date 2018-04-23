@@ -2,8 +2,9 @@ package gslib
 
 import (
 	. "app/consts"
-	// "fmt"
 	"reflect"
+	"goslib/memStore"
+	"github.com/kataras/iris/core/memstore"
 )
 
 type BaseModel struct {
@@ -13,7 +14,7 @@ type BaseModel struct {
 }
 
 func (self *BaseModel) Save() {
-	self.Ctx.Store.UpdateStatus([]string{"models", self.TableName}, self.Uuid, STATUS_UPDATE)
+	self.Ctx.Store.UpdateStatus(self.TableName, self.Uuid, memStore.STATUS_UPDATE)
 }
 
 func (self *BaseModel) Delete() {

@@ -5,9 +5,11 @@ import (
 	"context"
 	"log"
 	pb "connectAppProto"
-	"redisDB"
+	"goslib/redisDB"
 	"fmt"
 	"strconv"
+	"goslib/logger"
+	"math/rand"
 )
 
 var ConnectRpcClient pb.DispatcherClient
@@ -19,6 +21,7 @@ const (
 
 type Account struct {
 	Uuid string
+	GroupId string
 	Category int
 	Username string
 	Password string
@@ -27,43 +30,47 @@ type Account struct {
 /*
  * Lookup Account
  */
-func Lookup(accountId string) *Account {
-	values, err := redisDB.Instance().HMGet(accountId, "uuid", "category", "username", "password").Result()
+func Lookup(username string) (*Account, error) {
+	values, err := redisDB.Instance().HGetAll(username).Result()
 	if err != nil {
 		log.Fatalf("Account Lookup Error: %v", err)
-		return nil
+		return nil, err
 	}
 
 	fmt.Println("values: ", values)
 
-	if values[0] == nil {
-		return nil
+	if values["uuid"] == "" {
+		return nil, nil
 	}
 
-	category, err := strconv.Atoi(values[1].(string))
+	category, err := strconv.Atoi(values["category"])
 
 	return &Account{
-		values[0].(string),
+		values["uuid"],
+		values["groupId"],
 		category,
-		values[2].(string),
-		values[3].(string),
-	}
+		values["username"],
+		values["password"],
+	}, nil
 }
 
 /*
  * Register Account
  */
-func Create(username string, password string) *Account {
+func Create(username string, password string) (*Account, error) {
 	params := make(map[string]interface{})
 	params["uuid"] = username
+	params["groupId"] = ""
 	params["category"] = ACCOUNT_NORMAL
 	params["username"] = username
 	params["password"] = password
 
+	fmt.Println("uuid: ", params["uuid"])
 	val, err := redisDB.Instance().HMSet(username, params).Result()
 
 	if err != nil {
 		log.Fatalf("Create account failed: %v", err)
+		return nil, err
 	}
 
 	fmt.Println("Create: ", val)
@@ -73,18 +80,18 @@ func Create(username string, password string) *Account {
 		Category:ACCOUNT_NORMAL,
 		Username:username,
 		Password:password,
-	}
+	}, nil
 }
 
-func Delete(accountId string) {
-	redisDB.Instance().Del(accountId)
+func Delete(username string) {
+	redisDB.Instance().Del(username)
 }
 
 /*
  * Check password is valid for this account
  */
 func (self *Account)Auth(password string) bool {
-	return true
+	return self.Password == password
 }
 
 func (self *Account)ChangePassword(newPassword string) {
@@ -94,20 +101,23 @@ func (self *Account)ChangePassword(newPassword string) {
  * RPC
  * request ConnectAppMgr dispatch connectApp for user connecting
  */
-func (self *Account)Dispatch() (connectAppHost string, connectAppPort string) {
+func (self *Account)Dispatch() (connectAppHost string, connectAppPort string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	reply, err := ConnectRpcClient.DispatchPlayer(ctx, &pb.DispatchRequest{AccountId:self.Uuid})
+	reply, err := ConnectRpcClient.DispatchPlayer(ctx, &pb.DispatchRequest{
+		AccountId:self.Uuid,
+		GroupId:self.GroupId,
+		//GroupId:strconv.Itoa(rand.Intn(20)),
+		})
 	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-		return
+		logger.ERR("could not greet: ", err)
+		return "", "", err
 	}
 
-	log.Printf("Greeting: %s:%s", reply.GetConnectAppHost(), reply.GetConnectAppPort())
+	logger.DEBUG("Greeting: %s:%s", reply.GetConnectAppHost(), reply.GetConnectAppPort())
 
 	connectAppHost = reply.GetConnectAppHost()
 	connectAppPort = reply.GetConnectAppPort()
-
 	return
 }

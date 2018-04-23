@@ -3,28 +3,29 @@ package gslib
 import (
 	"api"
 	"fmt"
-	"gslib/gen_server"
+	"goslib/gen_server"
+	. "goslib/logger"
 	"gslib/routes"
-	"gslib/store"
-	. "gslib/utils"
-	"gslib/utils/packet"
+	"goslib/memStore"
+	"goslib/packet"
 	"net"
 	"runtime"
 	"time"
+	"goslib/broadcast"
 )
 
 type Player struct {
 	PlayerId     string
 	processed    int
 	Conn         net.Conn
-	Store        *store.Ets
+	Store        *memStore.MemStore
 	activeTimer  *time.Timer
 	persistTimer *time.Timer
 	lastActive   int64
 }
 
 const EXPIRE_DURATION = 1800
-var BroadcastHandler func(*Player, *BroadcastMsg) = nil
+var BroadcastHandler func(*Player, *broadcast.BroadcastMsg) = nil
 
 /*
    GenServer Callbacks
@@ -33,7 +34,7 @@ func (self *Player) Init(args []interface{}) (err error) {
 	name := args[0].(string)
 	fmt.Println("server ", name, " started!")
 	self.PlayerId = name
-	self.Store = store.New(self)
+	self.Store = memStore.New(self)
 	self.lastActive = time.Now().Unix()
 	self.startActiveCheck()
 	self.startPersistTimer()
@@ -55,12 +56,12 @@ func (self *Player) HandleCast(args []interface{}) {
 	} else if method_name == "handleAsyncWrap" {
 		self.handleAsyncWrap(args[0].(func()))
 	} else if method_name == "PersistData" {
-		self.Store.Persist([]string{self.PlayerId})
+		self.Store.Persist([]string{"models"})
 		self.startPersistTimer()
 	} else if method_name == "removeConn" {
 		self.Conn = nil
 	} else if method_name == "broadcast" {
-		self.handleBroadcast(args[1].(*BroadcastMsg))
+		self.handleBroadcast(args[1].(*broadcast.BroadcastMsg))
 	}
 }
 
@@ -108,7 +109,7 @@ func (self *Player) handleRequest(data []byte, conn net.Conn) {
 	self.Conn = conn
 	defer func() {
 		if x := recover(); x != nil {
-			fmt.Println("caught panic in player handleRequest(): ", x)
+			ERR("caught panic in player handleRequest(): ", x)
 		}
 	}()
 	reader := packet.Reader(data)
@@ -127,6 +128,8 @@ func (self *Player) handleRequest(data []byte, conn net.Conn) {
 		}
 	} else {
 		ERR(err)
+		// TODO
+		// response erro msg to user
 	}
 }
 
@@ -140,7 +143,7 @@ func (self *Player) handleAsyncWrap(fun func()) {
 	fun()
 }
 
-func (self *Player) handleBroadcast(msg *BroadcastMsg) {
+func (self *Player) handleBroadcast(msg *broadcast.BroadcastMsg) {
 	if BroadcastHandler != nil {
 		BroadcastHandler(self, msg)
 	}
@@ -175,7 +178,7 @@ func (self *Player) LeaveChannel(channel string) {
 }
 
 func (self *Player) PublishChannelMsg(channel, category string, data interface{}) {
-	msg := &BroadcastMsg{
+	msg := &broadcast.BroadcastMsg{
 		Category: category,
 		Channel:  channel,
 		SenderId: self.PlayerId,

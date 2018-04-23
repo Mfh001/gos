@@ -27,13 +27,6 @@ const (
 	GC_INTERVAL = 300   // voluntary GC interval
 )
 
-type BroadcastMsg struct {
-	Category string
-	Channel  string
-	SenderId string
-	Data     interface{}
-}
-
 type LeaderboardData struct {
 	Member     string
 	Score      int

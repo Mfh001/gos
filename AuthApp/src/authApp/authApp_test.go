@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 	"account"
 	"fmt"
-	"redisDB"
+	"goslib/redisDB"
 )
 
 var _ = Describe("AuthApp", func() {

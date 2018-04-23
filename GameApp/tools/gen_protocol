@@ -124,7 +124,7 @@ package api
 
 import (
 	. "app/consts"
-	"gslib/utils/packet"
+	"goslib/packet"
 )
 
 #{decode_handlers.join("\n")}
@@ -155,7 +155,7 @@ package api
 
 import (
 	  . "app/consts"
-	  "gslib/utils/packet"
+  	"goslib/packet"
 )
 
 #{encode_handlers.join("\n")}

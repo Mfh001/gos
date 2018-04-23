@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/AuthApp/AuthApp.iml" filepath="$PROJECT_DIR$/AuthApp/AuthApp.iml" />
       <module fileurl="file://$PROJECT_DIR$/ConnectApp/ConnectApp.iml" filepath="$PROJECT_DIR$/ConnectApp/ConnectApp.iml" />
       <module fileurl="file://$PROJECT_DIR$/GameApp/GameApp.iml" filepath="$PROJECT_DIR$/GameApp/GameApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/GosLib/GosLib.iml" filepath="$PROJECT_DIR$/GosLib/GosLib.iml" />
       <module fileurl="file://$PROJECT_DIR$/WorldApp/WorldApp.iml" filepath="$PROJECT_DIR$/WorldApp/WorldApp.iml" />
     </modules>
   </component>

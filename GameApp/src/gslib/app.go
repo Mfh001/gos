@@ -3,13 +3,15 @@ package gslib
 import (
 	"encoding/binary"
 	"fmt"
-	"gslib/gen_server"
-	"gslib/store"
-	. "gslib/utils"
+	"goslib/gen_server"
+	"goslib/memStore"
 	"io"
 	"log"
 	"net"
 	"time"
+	"app/register/tables"
+	"goslib/broadcast"
+	"goslib/logger"
 )
 
 func Run() {
@@ -26,10 +28,11 @@ func Run() {
 	fmt.Println("Server Started!")
 
 	// Init DB Connections
-	store.InitDB()
+	memStore.InitDB()
+	tables.RegisterTables(memStore.GetSharedDBInstance())
 
 	// Start broadcast server
-	gen_server.Start(BROADCAST_SERVER_ID, new(Broadcast))
+	gen_server.Start(BROADCAST_SERVER_ID, new(broadcast.Broadcast))
 
 	server_name := "test_player"
 	gen_server.Start(server_name, new(Player), server_name)
@@ -66,7 +69,7 @@ func start_tcp_server() {
 func handleRequest(conn net.Conn) {
 	defer func() {
 		if x := recover(); x != nil {
-			ERR("caught panic in handleClient", x)
+			logger.ERR("caught panic in handleClient", x)
 		}
 	}()
 
@@ -80,7 +83,7 @@ func handleRequest(conn net.Conn) {
 		conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT * time.Second))
 		n, err := io.ReadFull(conn, header)
 		if err != nil {
-			NOTICE("Connection Closed: ", err)
+			logger.NOTICE("Connection Closed: ", err)
 			break
 		}
 
@@ -89,7 +92,7 @@ func handleRequest(conn net.Conn) {
 		data := make([]byte, size)
 		n, err = io.ReadFull(conn, data)
 		if err != nil {
-			WARN("error receiving msg, bytes:", n, "reason:", err)
+			logger.WARN("error receiving msg, bytes:", n, "reason:", err)
 			break
 		}
 

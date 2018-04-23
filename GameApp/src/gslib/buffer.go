@@ -2,11 +2,8 @@ package gslib
 
 import (
 	"net"
-)
-
-import (
 	. "gslib/utils"
-	"gslib/utils/packet"
+	"goslib/packet"
 )
 
 type Buffer struct {

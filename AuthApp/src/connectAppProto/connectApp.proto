@@ -12,9 +12,11 @@ service Dispatcher {
 
 message DispatchRequest {
     string accountId = 1;
+    string groupId = 2;
 }
 
 message DispatchReply {
-    string connectAppHost = 1;
-    string connectAppPort = 2;
+    string connectAppId = 1;
+    string connectAppHost = 2;
+    string connectAppPort = 3;
 }

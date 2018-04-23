@@ -1,0 +1,23 @@
+// Generate Proto At ./AuthApp
+// protoc -I src/connectAppProto --go_out=plugins=grpc:src/connectAppProto src/connectAppProto/connectApp.proto
+
+syntax = "proto3";
+
+package connectApp;
+option go_package = "connectAppProto";
+
+service GameDispatcher {
+    rpc DispatchGame(DispatchGameRequest) returns (DispatchGameReply) {}
+}
+
+message DispatchGameRequest {
+    string accountId = 1;
+    string serverId = 2;
+    string sceneId = 3;
+}
+
+message DispatchGameReply {
+    string gameAppId = 1;
+    string gameAppHost = 2;
+    string gameAppPort = 3;
+}

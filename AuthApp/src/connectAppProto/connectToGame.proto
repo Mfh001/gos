@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package connectApp;
+option go_package = "connectAppProto";
+
+// Interface exported by the server.
+service RouteConnectGame {
+    // A Bidirectional streaming RPC.
+    //
+    // Accepts a stream of RouteNotes sent while a route is being traversed,
+    // while receiving other RouteNotes (e.g. from other users).
+    rpc AgentStream(stream RouteMsg) returns (stream RouteMsg) {}
+}
+
+// A RouteNote is a message sent while at a given point.
+message RouteMsg {
+    // The location from which the message is sent.
+    string accountId = 1;
+
+    // The message to be sent.
+    bytes data = 2;
+}

@@ -14,10 +14,11 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 	"google.golang.org/grpc"
-	"log"
 	"account"
 	pb "connectAppProto"
-	"redisDB"
+	"goslib/redisDB"
+	gl "goslib/logger"
+	"log"
 )
 
 const (
@@ -50,7 +51,6 @@ func connectConnectApp() {
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
-	defer conn.Close()
 
 	account.ConnectRpcClient = pb.NewDispatcherClient(conn)
 }
@@ -80,30 +80,113 @@ func registerHandlers(app *iris.Application) {
 }
 
 func registerHandler(ctx iris.Context) {
-	//username := ctx.Params().Get("username")
-	//password := ctx.Params().Get("password")
+	username := ctx.PostValue("username")
+	password := ctx.PostValue("password")
 
-	ctx.JSON(iris.Map{"message": "Hello iris web framework."})
+	user, err := account.Lookup(username)
+	if err != nil {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_internal_error"})
+		return
+	}
+
+	if user != nil {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_username_already_used"})
+		return
+	}
+
+	gl.INFO("HandleRegister, username: ", username)
+	user, err = account.Create(username, password)
+
+	if err != nil {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_internal_error"})
+		return
+	}
+
+	dispathAndRsp(ctx, user)
 }
 
 func loginHandler(ctx iris.Context) {
-	//username := ctx.Params().Get("username")
-	//password := ctx.Params().Get("password")
+	username := ctx.PostValue("username")
+	password := ctx.PostValue("password")
 
-	ctx.JSON(iris.Map{"message": "Hello iris web framework."})
+	user, err := account.Lookup(username)
+	if err != nil {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_internal_error"})
+		return
+	}
+
+	if user == nil {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_user_not_found"})
+		return
+	}
+
+	if !user.Auth(password) {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_password_invalid"})
+		return
+	}
+
+	dispathAndRsp(ctx, user)
 }
 
 /*
  * Guest login without register
  */
 func loginByGuestHandler(ctx iris.Context) {
-	//username := ctx.Params().Get("username")
-	//password := ctx.Params().Get("password")
+	username := ctx.PostValue("username")
 
-	session := &Session{
-		accountId: "",
+	user, err := account.Lookup(username)
+	if err != nil {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_internal_error"})
+		return
 	}
 
-	//ctx.JSON(iris.Map{"message": "Hello iris web framework."})
-	ctx.JSON(session)
+	if user == nil {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_user_not_found"})
+		return
+	}
+
+	if user.Category != account.ACCOUNT_GUEST {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_password_invalid"})
+		return
+	}
+
+	dispathAndRsp(ctx, user)
+}
+
+/*
+ * Private Methods
+ */
+func dispathAndRsp(ctx iris.Context, user *account.Account) {
+	host, port, err := user.Dispatch()
+
+	if err != nil {
+		ctx.JSON(iris.Map{
+			"status": "failed",
+			"error_code": "error_internal_error"})
+		return
+	}
+
+	ctx.JSON(iris.Map{
+		"status": "success",
+		"connectHost": host,
+		"port": port,
+		"accountId": user.Uuid})
 }

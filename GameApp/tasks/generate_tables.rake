@@ -19,6 +19,7 @@ task :generate_tables => :environment do
   data_loader = []
   ActiveRecord::Base.connection.tables.each do |table_name|
     next if table_name == 'schema_migrations'
+    next if table_name == 'ar_internal_metadata'
     struct_name = table_name.singularize.camelize
     structs_content << "type #{struct_name} struct{\n"
     ActiveRecord::Base.connection.columns(table_name).each do |c| 
@@ -28,15 +29,13 @@ task :generate_tables => :environment do
     struct_to_table_name << %Q{"#{struct_name}": "#{table_name}",\n}
     register_content << %Q{    dbInstance.AddTableWithName(#{struct_name}{}, "#{table_name}").SetKeys(false, "uuid")\n}
     data_loader << %Q{
-  store.RegisterDataLoader("#{table_name}", func(playerId string, ctx interface{}) interface{} {
+  memStore.RegisterDataLoader("#{table_name}", func(playerId string, ets *memStore.Ets) {
     var datas []#{struct_name}
-    var models []*#{struct_name}Model
-    ctx.(*gslib.Player).Store.Db.Select(&datas, "SELECT * FROM #{table_name} where user_id=?", playerId)
+    ets.Db.Select(&datas, "SELECT * FROM #{table_name} where user_id=?", playerId)
     for i := 0; i < len(datas); i++ {
       data := datas[i]
-      models = append(models, &#{struct_name}Model{gslib.BaseModel{"#{table_name}", data.Uuid, ctx.(*gslib.Player)}, &data})
+			ets.Load([]string{"models", "#{table_name}"}, data.Uuid, &#{struct_name}Model{gslib.BaseModel{"#{table_name}", data.Uuid, ets.Ctx.(*gslib.Player)}, &data})
     }
-    return models
   })
 }
   end
@@ -88,7 +87,7 @@ import (
   . "app/consts"
   . "app/models"
   "gslib"
-  "gslib/store"
+	"goslib/memStore"
 )
 
 func RegisterDataLoader() {\
