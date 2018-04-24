@@ -19,6 +19,7 @@ func main() {
 	register.RegisterDataLoader()
 	register.CustomRegisterDataLoader()
 	callbacks.RegisterBroadcast()
+	callbacks.RegisterSceneLoad()
 	leaderboard.Start()
 	gslib.Run()
 	sceneMgr.StartSceneMgr()

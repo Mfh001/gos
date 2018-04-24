@@ -3,10 +3,11 @@ package sceneMgr
 import (
 	"goslib/gen_server"
 	"sync"
-	"GameAppMgr/sceneCell"
 	"goslib/redisDB"
 	"goslib/logger"
 )
+
+var SceneLoadHandler func(sceneId string, sceneType string, sceneConfigId string) = nil
 
 /*
    GenServer Callbacks
@@ -58,4 +59,5 @@ func doLoadScene(sceneId string) {
 	}
 	sceneType := valueMap["sceneType"]
 	sceneConfigId := valueMap["sceneConfigId"]
+	SceneLoadHandler(sceneId, sceneType, sceneConfigId)
 }
