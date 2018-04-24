@@ -5,6 +5,12 @@ SessionAuthParams:
 
 SessionAuthResponse:
   Success: bool
+
+Ok:
+  OK: bool
+
+Fail:
+  Fail: string
 # ==============Framework Required==============
 
 EquipLoadParams:

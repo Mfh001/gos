@@ -30,6 +30,7 @@ func startConnectAppMgrRpc() {
 	rpcServer := grpc.NewServer()
 	pb.RegisterDispatcherServer(rpcServer, &connectAppMgr{})
 	reflection.Register(rpcServer)
+	logger.INFO("ConnectAppMgr started!")
 	if err := rpcServer.Serve(lis); err != nil {
 		logger.ERR("failed to serve: ", err)
 	}

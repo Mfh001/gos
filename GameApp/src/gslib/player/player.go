@@ -4,7 +4,7 @@ import (
 	"api"
 	"fmt"
 	"goslib/gen_server"
-	. "goslib/logger"
+	"goslib/logger"
 	"gslib/routes"
 	"goslib/memStore"
 	"goslib/packet"
@@ -12,10 +12,14 @@ import (
 	"time"
 	"goslib/broadcast"
 	"gslib"
+	"app/consts"
+	"goslib/sessionMgr"
+	"gslib/sceneMgr"
 )
 
 type Player struct {
 	PlayerId     string
+	Session      *sessionMgr.Session
 	processed    int
 	Store        *memStore.MemStore
 	activeTimer  *time.Timer
@@ -55,6 +59,15 @@ func (self *Player) Init(args []interface{}) (err error) {
 	self.lastActive = time.Now().Unix()
 	self.startActiveCheck()
 	self.startPersistTimer()
+
+	session, err := sessionMgr.Find(self.PlayerId)
+	if err != nil {
+		logger.ERR("Player lookup session failed: ", self.PlayerId, " err: ", err)
+	} else {
+		self.Session = session
+		sceneMgr.TryLoadScene(session.SceneId)
+	}
+
 	return nil
 }
 
@@ -123,25 +136,24 @@ func (self *Player) handleRequest(data []byte) {
 	self.lastActive = time.Now().Unix()
 	defer func() {
 		if x := recover(); x != nil {
-			ERR("caught panic in player handleRequest(): ", x)
+			logger.ERR("caught panic in player handleRequest(): ", x)
 		}
 	}()
 	reader := packet.Reader(data)
 	protocol := reader.ReadUint16()
 	decode_method := api.IdToName[protocol]
 	handler, err := routes.Route(decode_method)
+	self.processed++
 	if err == nil {
 		params := api.Decode(decode_method, reader)
 		encode_method, response := handler(self, params)
 		writer := api.Encode(encode_method, response)
-
-		self.processed++
 		// INFO("Processed: ", self.processed, " Response Data: ", response_data)
 		self.sendToClient(writer.GetSendData())
 	} else {
-		ERR(err)
-		// TODO
-		// response erro msg to user
+		logger.ERR(err)
+		writer := api.Encode("Fail", &consts.Fail{Fail: "error_route_not_found"})
+		self.sendToClient(writer.GetSendData())
 	}
 }
 

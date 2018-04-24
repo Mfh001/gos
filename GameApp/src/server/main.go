@@ -8,6 +8,7 @@ import (
 	"gosconf"
 	"goslib/redisDB"
 	"gslib/player"
+	"gslib/sceneMgr"
 )
 
 func main() {
@@ -20,6 +21,7 @@ func main() {
 	callbacks.RegisterBroadcast()
 	leaderboard.Start()
 	gslib.Run()
+	sceneMgr.StartSceneMgr()
 	player.StartRpcStream()
 }
 

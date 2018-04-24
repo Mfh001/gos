@@ -12,6 +12,8 @@ service RouteConnectGame {
     rpc AgentStream(stream RouteMsg) returns (stream RouteMsg) {}
 
     rpc AgentRegister(RegisterMsg) returns (RegisterReply) {}
+
+    rpc DeployScene(DeploySceneRequest) returns (DeploySceneReply) {}
 }
 
 // A RouteNote is a message sent while at a given point.
@@ -31,4 +33,12 @@ message RegisterMsg {
 
 message RegisterReply {
     bool status = 1;
+}
+
+message DeploySceneRequest {
+    string sceneId = 1;
+}
+
+message DeploySceneReply {
+    bool success = 1;
 }

@@ -11,6 +11,7 @@ import (
 	"goslib/sessionMgr"
 	"context"
 	"sync"
+	"gslib/sceneMgr"
 )
 
 type StreamServer struct {
@@ -30,8 +31,8 @@ func StartRpcStream() {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterRouteConnectGameServer(grpcServer, &StreamServer{false, ""})
+	logger.INFO("GameApp started!")
 	grpcServer.Serve(lis)
-
 }
 
 func GetConnectId(accountId string) string {
@@ -55,6 +56,11 @@ func (s *StreamServer) AgentRegister(ctx context.Context, in *pb.RegisterMsg) (*
 		accountConnectMap.Delete(in.GetAccountId())
 	}
 	return &pb.RegisterReply{Status: true}, nil
+}
+
+func (s *StreamServer) DeployScene(ctx context.Context, in *pb.DeploySceneRequest) (*pb.DeploySceneReply, error) {
+	success := sceneMgr.TryLoadScene(in.GetSceneId())
+	return &pb.DeploySceneReply{Success: success}, nil
 }
 
 func (s *StreamServer) startReceiver(stream pb.RouteConnectGame_AgentStreamServer) error {

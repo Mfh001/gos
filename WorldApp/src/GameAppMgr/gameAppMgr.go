@@ -11,9 +11,7 @@ import (
 	"gosconf"
 )
 
-// server is used to implement helloworld.GreeterServer.
 type gameAppMgr struct{
-
 }
 
 func Start() {
@@ -30,6 +28,7 @@ func startGameAppMgrRPC() {
 	rpcServer := grpc.NewServer()
 	pb.RegisterGameDispatcherServer(rpcServer, &gameAppMgr{})
 	reflection.Register(rpcServer)
+	logger.INFO("GameAppMgr started!")
 	if err := rpcServer.Serve(lis); err != nil {
 		logger.ERR("failed to serve: ", err)
 	}

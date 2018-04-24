@@ -15,6 +15,8 @@ It has these top-level messages:
 	RouteMsg
 	RegisterMsg
 	RegisterReply
+	DeploySceneRequest
+	DeploySceneReply
 	DispatchGameRequest
 	DispatchGameReply
 */

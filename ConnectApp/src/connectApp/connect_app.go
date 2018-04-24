@@ -5,7 +5,6 @@ import (
 	"goslib/logger"
 	"connection"
 	"goslib/redisDB"
-	"agent"
 	"google.golang.org/grpc"
 	pb "gosRpcProto"
 	"gosconf"
@@ -23,13 +22,14 @@ func main() {
 	conf := gosconf.REDIS_FOR_SERVICE
 	redisDB.Connect(conf.Host, conf.Password, conf.Db)
 	connectGameMgr()
-	agent.Setup()
+	connection.Setup()
 
 	tcpConf := gosconf.TCP_SERVER_CONNECT_APP
 	l, err := net.Listen(tcpConf.Network, tcpConf.Address)
 	if err != nil {
 		logger.ERR("Connection listen failed: ", err)
 	}
+	logger.INFO("ConnectApp started!")
 	defer l.Close()
 	for {
 		conn, err := l.Accept()
@@ -47,6 +47,6 @@ func connectGameMgr() {
 		logger.ERR("connection connectGameMgr failed: ", err)
 	}
 
-	agent.GameMgrRpcClient = pb.NewGameDispatcherClient(conn)
+	connection.GameMgrRpcClient = pb.NewGameDispatcherClient(conn)
 }
 

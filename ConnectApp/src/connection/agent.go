@@ -1,4 +1,4 @@
-package agent
+package connection
 
 import (
 	"google.golang.org/grpc"
@@ -28,9 +28,11 @@ type Agent struct {
 const AGENT_SERVER = "AGENT_SERVER"
 
 var streamMap *sync.Map
+var clientMap *sync.Map
 
 func Setup() {
 	streamMap = new(sync.Map)
+	clientMap = new(sync.Map)
 	gen_server.Start(AGENT_SERVER, new(Agent))
 }
 
@@ -70,6 +72,28 @@ func MakeSureConnectedToGame(gameAppId string, host string, port string) error {
 		logger.ERR("StartStream failed: ", err)
 	}
 	return err
+}
+
+func SetRegisterAccountToGameApp(session *sessionMgr.Session, isRegister bool) {
+	rpcClient, ok := clientMap.Load(session.GameAppId)
+	if !ok {
+		logger.ERR("RegisterAccountToGameApp failed rpcClient not exists!")
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	reply, err := rpcClient.(pb.RouteConnectGameClient).AgentRegister(ctx, &pb.RegisterMsg{
+		AccountId: session.AccountId,
+		ConnectAppId: session.ConnectAppId,
+		IsRegister: isRegister,
+	})
+	if err != nil {
+		logger.ERR("could not greet: ", err)
+	}
+
+	logger.DEBUG("Greeting: %s:%s", reply.GetStatus())
 }
 
 func (self *Agent) Init(args []interface{}) (err error) {
@@ -112,6 +136,7 @@ func (self *Agent)doConnectGameApp(gameAppId string, addr string) {
 	}
 
 	streamMap.Store(gameAppId, stream)
+	clientMap.Store(gameAppId, client)
 
 	// start stream sender
 	StartAgentSender(gameAppId, stream)

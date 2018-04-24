@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"goslib/logger"
 	"goslib/sessionMgr"
+	"goslib/secure"
 )
 
 var ConnectRpcClient pb.DispatcherClient
@@ -123,15 +124,13 @@ func (self *Account)Dispatch() (string, string, error) {
 	}
 
 	if session == nil {
-		//TODO generate token
-		token := ""
 		_, err := sessionMgr.Create(map[string]string{
 			"accountId": self.Uuid,
 			"serverId": self.GroupId,
 			"sceneId": "",
 			"connectAppId": reply.GetConnectAppId(),
 			"gameAppId": "",
-			"token": token,
+			"token": secure.SessionToken(),
 		})
 		if err != nil {
 			return "", "", nil

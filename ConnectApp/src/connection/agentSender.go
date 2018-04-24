@@ -1,4 +1,4 @@
-package agent
+package connection
 
 import (
 	"goslib/logger"

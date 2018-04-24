@@ -8,7 +8,6 @@ import (
 	"goslib/packet"
 	"goslib/logger"
 	"api"
-	"agent"
 	"errors"
 	"app/consts"
 	"sync"
@@ -21,7 +20,7 @@ type Connection struct {
 	authed bool
 	conn net.Conn
 	processed int64
-	agent *agent.Agent
+	agent *Agent
 	session *sessionMgr.Session
 }
 
@@ -64,7 +63,7 @@ func (self *Connection)handleRequest() {
 		}
 
 		if self.authed {
-			agent.ProxyToGame(self.session, data)
+			ProxyToGame(self.session, data)
 		} else {
 			success, err := self.authConn(data)
 			if err != nil {
@@ -79,10 +78,13 @@ func (self *Connection)handleRequest() {
 				}
 				sessionMap.Store(self.session.AccountId, self.session)
 				connectionMap.Store(self.session.AccountId, self)
-				agent.DispatchToGameApp(self.session)
+				DispatchToGameApp(self.session)
+				SetRegisterAccountToGameApp(self.session, true)
 			}
 		}
 	}
+
+	SetRegisterAccountToGameApp(self.session, false)
 }
 
 // Block And Receiving "request data"

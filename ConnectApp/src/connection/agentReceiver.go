@@ -1,8 +1,7 @@
-package agent
+package connection
 
 import (
 	"io"
-	"connection"
 	pb "gosRpcProto"
 	"goslib/logger"
 )
@@ -25,5 +24,5 @@ func StartReceiving(stream pb.RouteConnectGame_AgentStreamClient) {
 }
 
 func proxyToClient(accountId string, data []byte) {
-	connection.SendRawData(accountId, data)
+	SendRawData(accountId, data)
 }
