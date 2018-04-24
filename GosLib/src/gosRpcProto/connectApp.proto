@@ -4,7 +4,7 @@
 syntax = "proto3";
 
 package connectApp;
-option go_package = "connectAppProto";
+option go_package = "gosRPcProto";
 
 service Dispatcher {
     rpc DispatchPlayer(DispatchRequest) returns (DispatchReply) {}

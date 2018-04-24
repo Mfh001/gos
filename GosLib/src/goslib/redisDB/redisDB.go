@@ -1,6 +1,8 @@
 package redisDB
 
-import "github.com/go-redis/redis"
+import (
+	"github.com/go-redis/redis"
+)
 
 var redisClient *redis.Client
 
@@ -16,5 +18,8 @@ func Connect(host string, password string, db int) {
 }
 
 func Instance() *redis.Client {
+	if redisClient == nil {
+		panic("Redis not connected!")
+	}
 	return redisClient
 }

@@ -15,7 +15,7 @@ defines.each do |key, value|
   handler = chunks[1]
   contents << %Q{\
     routes.Add("#{value}", func(ctx interface{}, params interface{}) (string, interface{}) {
-        instance := &controllers.#{controller}{Ctx: ctx.(*gslib.Player)}
+        instance := &controllers.#{controller}{Ctx: ctx.(*player.Player)}
         return instance.#{handler}(params.(*#{value}))
     })
 }
@@ -30,7 +30,7 @@ package register
 import (
 	. "app/consts"
 	"app/controllers"
-	"gslib"
+	"gslib/player"
 	"gslib/routes"
 )
 

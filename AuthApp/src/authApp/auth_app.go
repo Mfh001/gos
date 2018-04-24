@@ -15,30 +15,16 @@ import (
 	"github.com/kataras/iris/middleware/recover"
 	"google.golang.org/grpc"
 	"account"
-	pb "connectAppProto"
+	pb "gosRpcProto"
 	"goslib/redisDB"
 	gl "goslib/logger"
 	"log"
+	"gosconf"
 )
-
-const (
-	SERVER_PORT = "3000"
-	REDIS_URL = "localhost:6379"
-	REDIS_PASSWORD = ""
-	REDIS_DB = 0
-
-	GRPC_CONNECT_APP_ADDR = "localhost:50051"
-)
-
-type Session struct {
-	accountId string
-	token string
-	connectHost string
-	connectPort string
-}
 
 func main() {
-	redisDB.Connect(REDIS_URL, REDIS_PASSWORD, REDIS_DB)
+	conf := gosconf.REDIS_FOR_SERVICE
+	redisDB.Connect(conf.Host, conf.Password, conf.Db)
 	connectConnectApp()
 	startHttpServer()
 }
@@ -47,7 +33,8 @@ func main() {
  * connect to ConnectAppMgr
  */
 func connectConnectApp() {
-	conn, err := grpc.Dial(GRPC_CONNECT_APP_ADDR, grpc.WithInsecure())
+	conf := gosconf.RPC_FOR_CONNECT_APP_MGR
+	conn, err := grpc.Dial(conf.DialAddress, conf.DialOptions...)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -70,7 +57,7 @@ func startHttpServer() {
 
 	registerHandlers(app)
 
-	app.Run(iris.Addr(":" + SERVER_PORT))
+	app.Run(iris.Addr(":" + gosconf.AUTH_SERVICE_PORT))
 }
 
 func registerHandlers(app *iris.Application) {

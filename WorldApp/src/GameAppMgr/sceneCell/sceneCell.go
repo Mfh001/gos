@@ -5,12 +5,13 @@ import (
 	"goslib/logger"
 	. "GameAppMgr/commonConst"
 	"strconv"
+	"gosconf"
 )
 
 func LoadScenes() ([]*SceneCell, map[string]*SceneCell) {
-	mapScenes := make(map[string]*GameCell)
-	ids, _ := redisDB.Instance().SMembers(SCENE_CELL_IDS_KEY).Result()
-	scenes := make([]*GameCell, 0)
+	mapScenes := make(map[string]*SceneCell)
+	ids, _ := redisDB.Instance().SMembers(gosconf.RK_SCENE_IDS).Result()
+	scenes := make([]*SceneCell, 0)
 	for i := 0; i < len(ids); i++ {
 		id := ids[i]
 		valueMap, _ := redisDB.Instance().HGetAll(id).Result()

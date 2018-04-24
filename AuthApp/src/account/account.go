@@ -4,12 +4,12 @@ import (
 	"time"
 	"context"
 	"log"
-	pb "connectAppProto"
+	pb "gosRpcProto"
 	"goslib/redisDB"
 	"fmt"
 	"strconv"
 	"goslib/logger"
-	"math/rand"
+	"goslib/sessionMgr"
 )
 
 var ConnectRpcClient pb.DispatcherClient
@@ -101,7 +101,7 @@ func (self *Account)ChangePassword(newPassword string) {
  * RPC
  * request ConnectAppMgr dispatch connectApp for user connecting
  */
-func (self *Account)Dispatch() (connectAppHost string, connectAppPort string, err error) {
+func (self *Account)Dispatch() (string, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -117,7 +117,29 @@ func (self *Account)Dispatch() (connectAppHost string, connectAppPort string, er
 
 	logger.DEBUG("Greeting: %s:%s", reply.GetConnectAppHost(), reply.GetConnectAppPort())
 
-	connectAppHost = reply.GetConnectAppHost()
-	connectAppPort = reply.GetConnectAppPort()
-	return
+	session, err := sessionMgr.Find(self.Uuid)
+	if err != nil {
+		return "", "", err
+	}
+
+	if session == nil {
+		//TODO generate token
+		token := ""
+		_, err := sessionMgr.Create(map[string]string{
+			"accountId": self.Uuid,
+			"serverId": self.GroupId,
+			"sceneId": "",
+			"connectAppId": reply.GetConnectAppId(),
+			"gameAppId": "",
+			"token": token,
+		})
+		if err != nil {
+			return "", "", nil
+		}
+	} else {
+		session.ConnectAppId = reply.GetConnectAppId()
+		session.Save()
+	}
+
+	return reply.GetConnectAppHost(), reply.GetConnectAppPort(), nil
 }

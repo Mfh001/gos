@@ -2,10 +2,10 @@ package models
 
 import (
 	. "app/consts"
-	"gslib"
+	"gslib/baseModel"
 )
 
 type UserModel struct {
-	gslib.BaseModel
+	baseModel.BaseModel
 	Data *User
 }

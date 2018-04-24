@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	. "gslib"
-	"gslib/gen_server"
+	"goslib/gen_server"
 	"math"
 )
 

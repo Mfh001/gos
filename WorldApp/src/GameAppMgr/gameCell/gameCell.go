@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"goslib/logger"
 	."GameAppMgr/commonConst"
+	"gosconf"
 )
 
 func SetupForTest() {
@@ -21,7 +22,7 @@ func SetupForTest() {
 		value["ccuMax"] = 100
 		value["status"] = SERVER_STATUS_WORKING
 		redisDB.Instance().HMSet(uuid, value)
-		redisDB.Instance().SAdd(GAME_APP_IDS_KEY, uuid)
+		redisDB.Instance().SAdd(gosconf.RK_GAME_APP_IDS, uuid)
 	}
 	// SceneConf
 	for i := 0; i < 10; i++  {
@@ -32,13 +33,13 @@ func SetupForTest() {
 		value["sceneType"] = "agent:" + num
 		value["ccuMax"] = 100
 		redisDB.Instance().HMSet(uuid, value)
-		redisDB.Instance().SAdd(SCENE_CONF_IDS_KEY, uuid)
+		redisDB.Instance().SAdd(gosconf.RK_SCENE_CONF_IDS, uuid)
 	}
 }
 
 func LoadApps() ([]*GameCell, map[string]*GameCell) {
 	mapApps := make(map[string]*GameCell)
-	ids, _ := redisDB.Instance().SMembers(GAME_APP_IDS_KEY).Result()
+	ids, _ := redisDB.Instance().SMembers(gosconf.RK_GAME_APP_IDS).Result()
 	apps := make([]*GameCell, 0)
 	for i := 0; i < len(ids); i++ {
 		id := ids[i]

@@ -2,26 +2,32 @@ package agent
 
 import (
 	"goslib/logger"
-	pb "connectAppProto"
-	"connection"
+	pb "gosRpcProto"
 	"goslib/gen_server"
+	"goslib/sessionMgr"
 )
 
 /*
    GenServer Callbacks
 */
 type AgentSender struct {
-	targetGameApp string
+	gameAppId string
 	stream pb.RouteConnectGame_AgentStreamClient
 }
 
-func ProxyToGame(session *connection.Session, data []byte) {
-	gen_server.Cast(session.ServerId, "sendToGameServer", session.AccountId, data)
+func StartAgentSender(gameAppId string, stream pb.RouteConnectGame_AgentStreamClient) {
+	gen_server.Start(gameAppId, new(AgentSender), gameAppId, stream)
+}
+
+func ProxyToGame(session *sessionMgr.Session, data []byte) {
+	gen_server.Cast(session.GameAppId, "sendToGameServer", session.AccountId, data)
 }
 
 func (self *AgentSender) Init(args []interface{}) (err error) {
-	self.targetGameApp = args[0].(string)
-	self.stream = args[1].(pb.RouteConnectGame_AgentStreamClient)
+	name := args[0].(string)
+	logger.INFO("AgentSender started: ", name)
+	self.gameAppId = args[1].(string)
+	self.stream = args[2].(pb.RouteConnectGame_AgentStreamClient)
 	return nil
 }
 
@@ -35,7 +41,7 @@ func (self *AgentSender) HandleCast(args []interface{}) {
 			Data: data,
 		})
 		if err != nil {
-			logger.ERR("AgentSender sendMsg error: ", err)
+			logger.ERR("AgentServer sendMsg failed: ", accountId, " err: ", err)
 		}
 	}
 }

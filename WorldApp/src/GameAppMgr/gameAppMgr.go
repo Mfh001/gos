@@ -4,14 +4,11 @@ import (
 	"net"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	pb "connectAppProto"
+	pb "gosRpcProto"
 	"google.golang.org/grpc/reflection"
 	"GameAppMgr/gameApp"
 	"goslib/logger"
-)
-
-const (
-	port = ":50052"
+	"gosconf"
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -25,13 +22,13 @@ func Start() {
 }
 
 func startGameAppMgrRPC() {
-	lis, err := net.Listen("tcp", port)
+	conf := gosconf.RPC_FOR_GAME_APP_MGR
+	lis, err := net.Listen(conf.ListenNet, conf.ListenAddr)
 	if err != nil {
 		logger.ERR("failed to listen: ", err)
 	}
 	rpcServer := grpc.NewServer()
 	pb.RegisterGameDispatcherServer(rpcServer, &gameAppMgr{})
-	// Register reflection service on gRPC server.
 	reflection.Register(rpcServer)
 	if err := rpcServer.Serve(lis); err != nil {
 		logger.ERR("failed to serve: ", err)
@@ -40,10 +37,12 @@ func startGameAppMgrRPC() {
 
 // DispatchPlayer implements connectAppProto.DispatchPlayer
 func (s *gameAppMgr) DispatchGame(ctx context.Context, in *pb.DispatchGameRequest) (*pb.DispatchGameReply, error) {
-	host, port, err := gameApp.Dispatch(in.AccountId, in.ServerId, in.SceneId)
+	info, err := gameApp.Dispatch(in.AccountId, in.ServerId, in.SceneId)
 
 	return  &pb.DispatchGameReply{
-		GameAppHost: host,
-		GameAppPort: port,
+		GameAppId: info.AppId,
+		GameAppHost: info.AppHost,
+		GameAppPort: info.AppPort,
+		SceneId: info.SceneId,
 	}, err
 }

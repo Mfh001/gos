@@ -2,8 +2,8 @@ package gslib
 
 import (
 	"net"
-	. "gslib/utils"
 	"goslib/packet"
+	"goslib/logger"
 )
 
 type Buffer struct {
@@ -16,7 +16,7 @@ type Buffer struct {
 func (buf *Buffer) Send(data []byte) (err error) {
 	defer func() {
 		if x := recover(); x != nil {
-			WARN("buffer.Send failed", x)
+			logger.WARN("buffer.Send failed", x)
 		}
 	}()
 
@@ -27,7 +27,7 @@ func (buf *Buffer) Send(data []byte) (err error) {
 func (buf *Buffer) Start() {
 	defer func() {
 		if x := recover(); x != nil {
-			ERR("caught panic in buffer goroutine", x)
+			logger.ERR("caught panic in buffer goroutine", x)
 		}
 	}()
 
@@ -53,7 +53,7 @@ func (buf *Buffer) raw_send(data []byte) {
 
 	n, err := buf.conn.Write(writer.Data())
 	if err != nil {
-		ERR("Error send reply, bytes:", n, "reason:", err)
+		logger.ERR("Error send reply, bytes:", n, "reason:", err)
 		return
 	}
 }

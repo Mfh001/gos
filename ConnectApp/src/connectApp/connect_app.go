@@ -2,23 +2,14 @@ package main
 
 import (
 	"net"
-	"log"
-	"time"
-	"io"
-	"encoding/binary"
 	"goslib/logger"
-	"account"
-	"goslib/packet"
-	"api"
-	"gslib/routes"
 	"connection"
 	"goslib/redisDB"
 	"agent"
 	"google.golang.org/grpc"
-	pb "connectAppProto"
+	pb "gosRpcProto"
+	"gosconf"
 )
-
-const GRPC_GAME_APP_MGR_ADDR = "localhost:50052"
 
 /*
  * 连接服务
@@ -29,28 +20,31 @@ const GRPC_GAME_APP_MGR_ADDR = "localhost:50052"
  */
 
 func main() {
-	redisDB.Connect("localhost:6379", "", 0)
+	conf := gosconf.REDIS_FOR_SERVICE
+	redisDB.Connect(conf.Host, conf.Password, conf.Db)
 	connectGameMgr()
 	agent.Setup()
 
-	l, err := net.Listen("tcp", ":3000")
+	tcpConf := gosconf.TCP_SERVER_CONNECT_APP
+	l, err := net.Listen(tcpConf.Network, tcpConf.Address)
 	if err != nil {
-		log.Fatal(err)
+		logger.ERR("Connection listen failed: ", err)
 	}
 	defer l.Close()
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			log.Fatal(err)
+			logger.ERR("Connection accept failed: ", err)
 		}
 		connection.Start(conn)
 	}
 }
 
 func connectGameMgr() {
-	conn, err := grpc.Dial(GRPC_GAME_APP_MGR_ADDR, grpc.WithInsecure())
+	conf := gosconf.RPC_FOR_GAME_APP_MGR
+	conn, err := grpc.Dial(conf.DialAddress, conf.DialOptions...)
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		logger.ERR("connection connectGameMgr failed: ", err)
 	}
 
 	agent.GameMgrRpcClient = pb.NewGameDispatcherClient(conn)

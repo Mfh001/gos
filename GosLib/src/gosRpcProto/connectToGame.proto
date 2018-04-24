@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package connectApp;
-option go_package = "connectAppProto";
+option go_package = "gosRPcProto";
 
 // Interface exported by the server.
 service RouteConnectGame {
@@ -10,6 +10,8 @@ service RouteConnectGame {
     // Accepts a stream of RouteNotes sent while a route is being traversed,
     // while receiving other RouteNotes (e.g. from other users).
     rpc AgentStream(stream RouteMsg) returns (stream RouteMsg) {}
+
+    rpc AgentRegister(RegisterMsg) returns (RegisterReply) {}
 }
 
 // A RouteNote is a message sent while at a given point.
@@ -19,4 +21,14 @@ message RouteMsg {
 
     // The message to be sent.
     bytes data = 2;
+}
+
+message RegisterMsg {
+    string accountId = 1;
+    string connectAppId = 2;
+    bool isRegister = 3;
+}
+
+message RegisterReply {
+    bool status = 1;
 }

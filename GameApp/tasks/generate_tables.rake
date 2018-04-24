@@ -29,12 +29,12 @@ task :generate_tables => :environment do
     struct_to_table_name << %Q{"#{struct_name}": "#{table_name}",\n}
     register_content << %Q{    dbInstance.AddTableWithName(#{struct_name}{}, "#{table_name}").SetKeys(false, "uuid")\n}
     data_loader << %Q{
-  memStore.RegisterDataLoader("#{table_name}", func(playerId string, ets *memStore.Ets) {
+  memStore.RegisterDataLoader("#{table_name}", func(playerId string, ets *memStore.MemStore) {
     var datas []#{struct_name}
     ets.Db.Select(&datas, "SELECT * FROM #{table_name} where user_id=?", playerId)
     for i := 0; i < len(datas); i++ {
       data := datas[i]
-			ets.Load([]string{"models", "#{table_name}"}, data.Uuid, &#{struct_name}Model{gslib.BaseModel{"#{table_name}", data.Uuid, ets.Ctx.(*gslib.Player)}, &data})
+			ets.Load([]string{"models", "#{table_name}"}, data.Uuid, &#{struct_name}Model{baseModel.BaseModel{"#{table_name}", data.Uuid, ets.Ctx.(*player.Player)}, &data})
     }
   })
 }
@@ -86,8 +86,9 @@ package register
 import (
   . "app/consts"
   . "app/models"
-  "gslib"
+  "gslib/baseModel"
 	"goslib/memStore"
+  "gslib/player"
 )
 
 func RegisterDataLoader() {\

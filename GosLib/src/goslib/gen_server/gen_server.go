@@ -41,10 +41,14 @@ func setGenServer(name string, instance *GenServer) {
 func GetGenServer(name string) (*GenServer, bool) {
 	v := ServerRegisterMap.Get(name)
 	if v == nil {
-		return &GenServer{}, false
+		return nil, false
 	} else {
 		return v.(*GenServer), true
 	}
+}
+
+func Exists(name string) bool {
+	return ServerRegisterMap.Check(name)
 }
 
 func delGenServer(name string) {

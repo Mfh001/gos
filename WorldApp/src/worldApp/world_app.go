@@ -4,10 +4,12 @@ import (
 	"ConnectAppMgr"
 	"GameAppMgr"
 	"goslib/redisDB"
+	"gosconf"
 )
 
 func main() {
-	redisDB.Connect("localhost:6379", "", 0)
+	conf := gosconf.REDIS_FOR_SERVICE
+	redisDB.Connect(conf.Host, conf.Password, conf.Db)
 	ConnectAppMgr.Start()
 	GameAppMgr.Start()
 }

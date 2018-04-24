@@ -3,11 +3,11 @@ package models
 import (
 	. "app/consts"
 	"fmt"
-	"gslib"
+	"gslib/baseModel"
 )
 
 type EquipModel struct {
-	gslib.BaseModel
+	baseModel.BaseModel
 	Data *Equip
 }
 

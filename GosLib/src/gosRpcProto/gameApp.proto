@@ -4,7 +4,7 @@
 syntax = "proto3";
 
 package connectApp;
-option go_package = "connectAppProto";
+option go_package = "gosRPcProto";
 
 service GameDispatcher {
     rpc DispatchGame(DispatchGameRequest) returns (DispatchGameReply) {}
@@ -20,4 +20,5 @@ message DispatchGameReply {
     string gameAppId = 1;
     string gameAppHost = 2;
     string gameAppPort = 3;
+    string sceneId = 4;
 }

@@ -2,16 +2,15 @@ package agent
 
 import (
 	"google.golang.org/grpc"
-	"connection"
-	pb "connectAppProto"
+	pb "gosRpcProto"
 	"time"
-	"io"
 	"context"
 	"goslib/logger"
-	"log"
 	"goslib/gen_server"
 	"sync"
 	"strings"
+	"goslib/sessionMgr"
+	"gosconf"
 )
 
 var GameMgrRpcClient pb.GameDispatcherClient
@@ -36,7 +35,7 @@ func Setup() {
 }
 
 // Request GameAppMgr to dispatch GameApp for session
-func DispatchToGameApp(session *connection.Session) error {
+func DispatchToGameApp(session *sessionMgr.Session) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -44,16 +43,18 @@ func DispatchToGameApp(session *connection.Session) error {
 		AccountId: session.AccountId,
 		ServerId: session.ServerId,
 		SceneId: session.SceneId,
-		ConnectId: session.ConnectId,
 	})
 	if err != nil {
-		logger.ERR("could not greet: ", err)
+		logger.ERR("DispatchGame failed: ", err)
 		return err
 	}
 
-	logger.DEBUG("Greeting: %s:%s", reply.GetGameAppHost(), reply.GetGameAppPort())
+	session.GameAppId = reply.GetGameAppId()
+	session.SceneId = reply.GetSceneId()
+	session.Save()
 
 	err = MakeSureConnectedToGame(reply.GetGameAppId(), reply.GetGameAppHost(), reply.GetGameAppPort())
+
 	return err
 }
 
@@ -83,7 +84,7 @@ func (self *Agent) HandleCall(args []interface{}) interface{} {
 	if handle == "ConnectGameAppMgr" {
 		gameAppId := args[1].(string)
 		addr := args[2].(string)
-		self.doConnectGameAppMgr(gameAppId, addr)
+		self.doConnectGameApp(gameAppId, addr)
 	}
 	return nil
 }
@@ -93,10 +94,11 @@ func (self *Agent) Terminate(reason string) (err error) {
 }
 
 /*
- * connect to ConnectAppMgr
+ * connect to GameApp Stream
  */
-func (self *Agent)doConnectGameAppMgr(gameAppId string, addr string) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+func (self *Agent)doConnectGameApp(gameAppId string, addr string) {
+	conf := gosconf.RPC_FOR_GAME_APP_STREAM
+	conn, err := grpc.Dial(addr, conf.DialOptions...)
 	if err != nil {
 		logger.ERR("did not connect: ", err)
 	}
@@ -111,27 +113,9 @@ func (self *Agent)doConnectGameAppMgr(gameAppId string, addr string) {
 
 	streamMap.Store(gameAppId, stream)
 
-	startReceiving(stream)
-}
+	// start stream sender
+	StartAgentSender(gameAppId, stream)
 
-func startReceiving(stream pb.RouteConnectGame_AgentStreamClient) {
-	go func() {
-		for {
-			in, err := stream.Recv()
-			if err == io.EOF {
-				// read done.
-				return
-			}
-			if err != nil {
-				log.Fatalf("Failed to receive a note : %v", err)
-			}
-			log.Printf("Got message %s at point(%d, %d)", in.GetAccountId(), in.GetData())
-			proxyToClient(in.AccountId, in.Data)
-		}
-	}()
-}
-
-func proxyToClient(accountId string, data []byte) {
-	session := connection.GetSession(accountId)
-	session.Connection.SendRawData(data)
+	// start stream receiver
+	StartReceiving(stream)
 }

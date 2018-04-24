@@ -11,34 +11,26 @@ import (
 	"agent"
 	"errors"
 	"app/consts"
-	"goslib/redisDB"
 	"sync"
+	"goslib/sessionMgr"
 )
 
 const TCP_TIMEOUT = 5 // seconds
-
-type Session struct {
-	AccountId string
-	ServerId  string
-	SceneId   string
-	ConnectAppId string
-	GameAppId string
-	Token     string
-	Connection *Connection
-}
 
 type Connection struct {
 	authed bool
 	conn net.Conn
 	processed int64
 	agent *agent.Agent
-	session *Session
+	session *sessionMgr.Session
 }
 
 var sessionMap *sync.Map
+var connectionMap *sync.Map
 
 func Start(_conn net.Conn) {
 	sessionMap = new(sync.Map)
+	connectionMap = new(sync.Map)
 	instance := &Connection{
 		authed: false,
 		conn: _conn,
@@ -47,16 +39,19 @@ func Start(_conn net.Conn) {
 	go instance.handleRequest()
 }
 
-func GetSession(accountId string) *Session {
+func GetSession(accountId string) *sessionMgr.Session {
 	session, ok := sessionMap.Load(accountId)
 	if !ok {
 		return nil
 	}
-	return session.(*Session)
+	return session.(*sessionMgr.Session)
 }
 
-func (self *Connection)SendRawData(data []byte) {
-	self.conn.Write(data)
+func SendRawData(accountId string, data []byte) {
+	connection, ok := connectionMap.Load(accountId)
+	if ok {
+		connection.(*Connection).conn.Write(data)
+	}
 }
 
 func (self *Connection)handleRequest() {
@@ -82,8 +77,8 @@ func (self *Connection)handleRequest() {
 					logger.ERR("GetRoleInfo error: ", err)
 					break
 				}
-				self.session.Connection = self
 				sessionMap.Store(self.session.AccountId, self.session)
+				connectionMap.Store(self.session.AccountId, self)
 				agent.DispatchToGameApp(self.session)
 			}
 		}
@@ -140,21 +135,16 @@ func (self *Connection)authConn(data []byte) (bool, error){
 
 func (self *Connection)validateSession(params *consts.SessionAuthParams) (bool, error) {
 	// Get session from redis
-	sessionMap, err := redisDB.Instance().HGetAll("session:" + params.AccountId).Result()
+	session, err := sessionMgr.Find(params.AccountId)
 	if err != nil {
 		return false, err
 	}
 
-	if sessionMap["token"] != params.Token {
+	if session.Token != params.Token {
 		return false, errors.New("Session Token invalid!")
 	}
 
-	self.session = &Session{
-		AccountId: params.AccountId,
-		ServerId:  sessionMap["serverId"],
-		SceneId:   sessionMap["sceneId"],
-		Token:     params.Token,
-	}
+	self.session = session
 
 	return true,nil
 }

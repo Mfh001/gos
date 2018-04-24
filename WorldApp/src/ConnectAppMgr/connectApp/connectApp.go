@@ -64,6 +64,7 @@ func Dispatch(accountId string, groupId string) (appId string, host string, port
 	if app == nil {
 		return "", "", "", nil
 	}
+
 	appId = app.Uuid
 	host = app.Host
 	port = app.Port

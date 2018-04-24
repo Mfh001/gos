@@ -276,6 +276,14 @@ func Writer() *Packet {
 var encrypt = false
 
 func (p *Packet) Send(conn net.Conn) {
+	n, err := conn.Write(p.GetSendData())
+	if err != nil {
+		logger.ERR("Error send reply, bytes:", n, "reason:", err)
+		return
+	}
+}
+
+func (p *Packet) GetSendData() ([]byte) {
 	writer := Writer()
 	if encrypt {
 		data := secure.Encrypt(p.Data())
@@ -286,9 +294,5 @@ func (p *Packet) Send(conn net.Conn) {
 		writer.WriteRawBytes(p.Data())
 	}
 
-	n, err := conn.Write(writer.Data())
-	if err != nil {
-		logger.ERR("Error send reply, bytes:", n, "reason:", err)
-		return
-	}
+	return writer.Data()
 }

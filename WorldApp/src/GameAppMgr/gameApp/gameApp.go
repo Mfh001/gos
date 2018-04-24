@@ -9,24 +9,29 @@ import (
 	. "GameAppMgr/commonConst"
 	"GameAppMgr/sceneCell"
 	"GameAppMgr/gameCell"
+	"gosconf"
 )
 
 func Start() {
-	gen_server.Start(SERVER, new(Dispatcher))
+	gen_server.Start(DISPATCH_SERVER, new(Dispatcher))
 	gameCell.SetupForTest()
 }
 
-func Dispatch(accountId string, serverId string, sceneId string) (string, string, string, error) {
-	result, err := gen_server.Call(SERVER, "Dispatch", accountId, serverId, sceneId)
+type DispatchInfo struct {
+	AppId string
+	AppHost string
+	AppPort string
+	SceneId string
+}
+
+func Dispatch(accountId string, serverId string, sceneId string) (*DispatchInfo, error) {
+	result, err := gen_server.Call(DISPATCH_SERVER, "Dispatch", accountId, serverId, sceneId)
 	if err != nil {
 		logger.ERR("connectApp Dispatch failed: %v", err)
-		return "", "", "", err
+		return nil, err
 	}
-	app := result.(*GameCell)
-	if app == nil {
-		return "", "", "", nil
-	}
-	return app.Uuid, app.Host, app.Port, nil
+	info := result.(*DispatchInfo)
+	return info, nil
 }
 
 /*
@@ -48,7 +53,7 @@ type Dispatcher struct {
 
 func (self *Dispatcher) startPrintTimer() {
 	self.printTimer = time.AfterFunc(5*time.Second, func() {
-		gen_server.Cast(SERVER, "printStatus")
+		gen_server.Cast(DISPATCH_SERVER, "printStatus")
 	})
 }
 
@@ -94,7 +99,7 @@ func (self *Dispatcher) Terminate(reason string) (err error) {
 }
 
 func (self *Dispatcher)InitDefaultServerScene() {
-	sceneConf, err := sceneCell.FindSceneConf(DEFAULT_SERVER_SCENE_CONF_ID)
+	sceneConf, err := sceneCell.FindSceneConf(gosconf.RK_DEFAULT_SERVER_SCENE_CONF_ID)
 	if err != nil {
 		logger.ERR("Init Default Server SceneCell failed!")
 	}
@@ -106,18 +111,29 @@ func (self *Dispatcher)InitDefaultServerScene() {
  *  如果sceneId为空，根据serverId将玩家分配到对应游戏服务
  *	如果sceneId不为空，根据serverId和sceneId将玩家分配到对应游戏服务
  */
-func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId string) *GameCell {
+func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId string) *DispatchInfo {
 	var dispatchApp *GameCell
 	var dispatchScene *SceneCell
+	var err error
 	if sceneId == "" {
-		dispatchApp, dispatchScene, err := self.dispatchByServerId(serverId)
+		dispatchApp, dispatchScene, err = self.dispatchByServerId(serverId)
 	} else {
-		dispatchApp, dispatchScene, err := self.dispatchBySceneId(sceneId)
+		dispatchApp, dispatchScene, err = self.dispatchBySceneId(sceneId)
+	}
+
+	if err != nil {
+		logger.ERR("Dispatch Game Failed: ", err)
+		return nil
 	}
 
 	dispatchApp.Ccu++
 
-	return dispatchApp
+	return &DispatchInfo{
+		dispatchApp.Uuid,
+		dispatchApp.Host,
+		dispatchApp.Port,
+		dispatchScene.Uuid,
+	}
 }
 
 func (self *Dispatcher)dispatchByServerId(serverId string) (*GameCell, *SceneCell, error) {

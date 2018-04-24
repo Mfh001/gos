@@ -1,24 +1,19 @@
 package ConnectAppMgr
 
 import (
-	"log"
 	"net"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	pb "connectAppProto"
+	pb "gosRpcProto"
 	"google.golang.org/grpc/reflection"
 	"ConnectAppMgr/connectApp"
-	"goslib/redisDB"
-)
-
-const (
-	port = ":50051"
+	"gosconf"
+	"goslib/logger"
 )
 
 // server is used to implement helloworld.GreeterServer.
 type connectAppMgr struct{
-
 }
 
 func Start() {
@@ -27,16 +22,16 @@ func Start() {
 }
 
 func startConnectAppMgrRpc() {
-	lis, err := net.Listen("tcp", port)
+	conf := gosconf.RPC_FOR_CONNECT_APP_MGR
+	lis, err := net.Listen(conf.ListenNet, conf.ListenAddr)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.ERR("failed to listen: ", err)
 	}
 	rpcServer := grpc.NewServer()
 	pb.RegisterDispatcherServer(rpcServer, &connectAppMgr{})
-	// Register reflection service on gRPC server.
 	reflection.Register(rpcServer)
 	if err := rpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		logger.ERR("failed to serve: ", err)
 	}
 }
 

@@ -1,4 +1,4 @@
-package gslib
+package player
 
 import (
 	"api"
@@ -8,16 +8,15 @@ import (
 	"gslib/routes"
 	"goslib/memStore"
 	"goslib/packet"
-	"net"
 	"runtime"
 	"time"
 	"goslib/broadcast"
+	"gslib"
 )
 
 type Player struct {
 	PlayerId     string
 	processed    int
-	Conn         net.Conn
 	Store        *memStore.MemStore
 	activeTimer  *time.Timer
 	persistTimer *time.Timer
@@ -27,12 +26,30 @@ type Player struct {
 const EXPIRE_DURATION = 1800
 var BroadcastHandler func(*Player, *broadcast.BroadcastMsg) = nil
 
+func HandleRequest(accountId string, requestData []byte) {
+	CastPlayer(accountId, "handleRequest", requestData)
+}
+
+func CallPlayer(accountId string, args ...interface{}) (interface{}, error) {
+	if !gen_server.Exists(accountId) {
+		StartPlayer(accountId)
+	}
+	return gen_server.Call(accountId, args...)
+}
+
+func CastPlayer(accountId string, args ...interface{}) {
+	if !gen_server.Exists(accountId) {
+		StartPlayer(accountId)
+	}
+	gen_server.Cast(accountId, args...)
+}
+
 /*
    GenServer Callbacks
 */
 func (self *Player) Init(args []interface{}) (err error) {
 	name := args[0].(string)
-	fmt.Println("server ", name, " started!")
+	fmt.Println("Player: ", name, " started!")
 	self.PlayerId = name
 	self.Store = memStore.New(self)
 	self.lastActive = time.Now().Unix()
@@ -50,7 +67,7 @@ func (self *Player) startPersistTimer() {
 func (self *Player) HandleCast(args []interface{}) {
 	method_name := args[0].(string)
 	if method_name == "handleRequest" {
-		self.handleRequest(args[1].([]byte), args[2].(net.Conn))
+		self.handleRequest(args[1].([]byte))
 	} else if method_name == "handleWrap" {
 		self.handleWrap(args[1].(func() interface{}))
 	} else if method_name == "handleAsyncWrap" {
@@ -59,7 +76,7 @@ func (self *Player) HandleCast(args []interface{}) {
 		self.Store.Persist([]string{"models"})
 		self.startPersistTimer()
 	} else if method_name == "removeConn" {
-		self.Conn = nil
+		//self.Conn = nil
 	} else if method_name == "broadcast" {
 		self.handleBroadcast(args[1].(*broadcast.BroadcastMsg))
 	}
@@ -98,15 +115,12 @@ func (self *Player) SystemInfo() int {
 }
 
 func (self *Player) SendData(encode_method string, msg interface{}) {
-	if self.Conn != nil {
-		writer := api.Encode(encode_method, msg)
-		writer.Send(self.Conn)
-	}
+	writer := api.Encode(encode_method, msg)
+	self.sendToClient(writer.GetSendData())
 }
 
-func (self *Player) handleRequest(data []byte, conn net.Conn) {
+func (self *Player) handleRequest(data []byte) {
 	self.lastActive = time.Now().Unix()
-	self.Conn = conn
 	defer func() {
 		if x := recover(); x != nil {
 			ERR("caught panic in player handleRequest(): ", x)
@@ -123,13 +137,18 @@ func (self *Player) handleRequest(data []byte, conn net.Conn) {
 
 		self.processed++
 		// INFO("Processed: ", self.processed, " Response Data: ", response_data)
-		if self.Conn != nil {
-			writer.Send(self.Conn)
-		}
+		self.sendToClient(writer.GetSendData())
 	} else {
 		ERR(err)
 		// TODO
 		// response erro msg to user
+	}
+}
+
+func (self *Player) sendToClient(data []byte) {
+	connectAppId := GetConnectId(self.PlayerId)
+	if connectAppId != "" {
+		ProxyToConnect(connectAppId, self.PlayerId, data)
 	}
 }
 
@@ -157,7 +176,7 @@ func (self *Player) Wrap(targetPlayerId string, fun func() interface{}) (interfa
 	if self.PlayerId == targetPlayerId {
 		return self.handleWrap(fun), nil
 	} else {
-		return gen_server.Call(targetPlayerId, "handleWrap", fun)
+		return CallPlayer(targetPlayerId, "handleWrap", fun)
 	}
 }
 
@@ -165,16 +184,16 @@ func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
 	if self.PlayerId == targetPlayerId {
 		self.handleAsyncWrap(fun)
 	} else {
-		gen_server.Cast(targetPlayerId, "HandleAsyncWrap", fun)
+		CastPlayer(targetPlayerId, "HandleAsyncWrap", fun)
 	}
 }
 
 func (self *Player) JoinChannel(channel string) {
-	gen_server.Cast(BROADCAST_SERVER_ID, "JoinChannel", self.PlayerId, channel)
+	gen_server.Cast(gslib.BROADCAST_SERVER_ID, "JoinChannel", self.PlayerId, channel)
 }
 
 func (self *Player) LeaveChannel(channel string) {
-	gen_server.Cast(BROADCAST_SERVER_ID, "LeaveChannel", self.PlayerId, channel)
+	gen_server.Cast(gslib.BROADCAST_SERVER_ID, "LeaveChannel", self.PlayerId, channel)
 }
 
 func (self *Player) PublishChannelMsg(channel, category string, data interface{}) {
@@ -184,5 +203,5 @@ func (self *Player) PublishChannelMsg(channel, category string, data interface{}
 		SenderId: self.PlayerId,
 		Data:     data,
 	}
-	gen_server.Cast(BROADCAST_SERVER_ID, "Publish", msg)
+	gen_server.Cast(gslib.BROADCAST_SERVER_ID, "Publish", msg)
 }
