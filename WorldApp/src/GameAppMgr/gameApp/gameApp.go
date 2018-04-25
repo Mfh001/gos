@@ -203,7 +203,7 @@ func (self *Dispatcher)dispatchScene(scene *SceneCell) error {
 	}
 
 	scene.GameAppId = minPresureApp.Uuid
-	sceneCell.DeploySceneToGameApp(scene)
+	//sceneCell.DeploySceneToGameApp(scene)
 
 	params := make(map[string]interface{})
 	params["gameAppId"] = scene.GameAppId

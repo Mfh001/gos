@@ -12,7 +12,6 @@ import (
 	"time"
 	"goslib/broadcast"
 	"gslib"
-	"app/consts"
 	"goslib/sessionMgr"
 	"gslib/sceneMgr"
 )
@@ -152,7 +151,7 @@ func (self *Player) handleRequest(data []byte) {
 		self.sendToClient(writer.GetSendData())
 	} else {
 		logger.ERR(err)
-		writer := api.Encode("Fail", &consts.Fail{Fail: "error_route_not_found"})
+		writer := api.Encode("Fail", &api.Fail{Fail: "error_route_not_found"})
 		self.sendToClient(writer.GetSendData())
 	}
 }

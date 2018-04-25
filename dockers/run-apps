@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require "./const.rb"
+
+AppMappings.each do |image_name, port_mapping|
+  puts "Run docker: #{image_name} -> #{port_mapping}"
+  $stdout.puts `sudo docker run -d #{port_mapping} #{image_name}`
+end

@@ -9,7 +9,6 @@ import (
 	"goslib/logger"
 	"api"
 	"errors"
-	"app/consts"
 	"sync"
 	"goslib/sessionMgr"
 )
@@ -115,7 +114,7 @@ func (self *Connection)authConn(data []byte) (bool, error){
 		return false, errors.New("Request UnAuthed connection: " + decode_method)
 	}
 
-	params := api.Decode(decode_method, reader).(*consts.SessionAuthParams)
+	params := api.Decode(decode_method, reader).(*api.SessionAuthParams)
 
 	// Validate Token from AuthApp
 	success, err := self.validateSession(params)
@@ -124,7 +123,7 @@ func (self *Connection)authConn(data []byte) (bool, error){
 	}
 
 	// Send auth response to client
-	writer := api.Encode("SessionAuthResponse", &consts.SessionAuthResponse{Success: success})
+	writer := api.Encode("SessionAuthResponse", &api.SessionAuthResponse{Success: success})
 
 	self.processed++
 	// INFO("Processed: ", self.processed, " Response Data: ", response_data)
@@ -135,7 +134,7 @@ func (self *Connection)authConn(data []byte) (bool, error){
 	return success, nil
 }
 
-func (self *Connection)validateSession(params *consts.SessionAuthParams) (bool, error) {
+func (self *Connection)validateSession(params *api.SessionAuthParams) (bool, error) {
 	// Get session from redis
 	session, err := sessionMgr.Find(params.AccountId)
 	if err != nil {

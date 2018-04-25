@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require "./const.rb"
+
+AppNames.each do |name, image_name|
+  puts "Load image: #{name} -> #{image_name}.tar"
+  $stdout.puts `sudo docker load < images/#{image_name}.tar`
+end

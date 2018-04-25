@@ -28,7 +28,7 @@ File.open(target, "w") do |io|
 package register
 
 import (
-	. "app/consts"
+	. "api"
 	"app/controllers"
 	"gslib/player"
 	"gslib/routes"

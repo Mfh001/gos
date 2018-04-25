@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	. "api"
 	. "app/consts"
 	 . "app/models"
 	"gslib/player"

@@ -13,3 +13,13 @@ tcp_protocol:
 
 generate_tables:
 	cd GameApp && bundle exec rake generate_tables
+
+gopath:
+	export GOPATH=$HOME/.go:$(pwd)/AuthApp:$(pwd)/ConnectApp:$(pwd)/GameApp:$(pwd)/WorldApp:$(pwd)/GosLib
+	export PATH=$PATH:$GOPATH/bin
+
+build:
+	sh build_gos.sh
+
+build_linux:
+	sudo docker run --rm -v $(shell pwd):/usr/src/gos -w /usr/src/gos -e GOOS=linux -e GOARCH=amd64 golang:latest make build
