@@ -1,25 +1,21 @@
 #!/usr/bin/env ruby
 
-require "./const.rb"
-
-# Build gos executables in golang:alpine
-$stdout.puts `sudo -u savin docker run --rm -v "$PWD/../":/usr/src/gos -w /usr/src/gos golang:alpine sh build_gos.sh`
+require "./cmds_lib/const.rb"
+require "./cmds_lib/cmds.rb"
 
 # Build and save docker images
-AppNames.each do |name, image_name|
-  docker_filename = "./Dockerfile.#{name}.tmp"
-  File.open(docker_filename, "w") do |io|
-    io.write(%Q{\
-FROM alpine
-ADD ./#{name}/bin/#{name} /
-CMD ["/#{name}"]
-})
-  end
+AppNames.each do |app_name, image_name|
+  # Dockerfile path
+  docker_filename = "./Dockerfile.#{app_name}.tmp"
+
+  # Gen dockerfile
+  Cmds.gen_dockerfile docker_filename, app_name
 
   # Build docker image
-  $stdout.puts `sudo -u savin docker build -t #{image_name} -f #{docker_filename} ../`
+  Cmds.build_image image_name, docker_filename
+
   # Export docker image
-  $stdout.puts `sudo -u savin docker image save -o ./images/#{image_name}.tar #{image_name}`
+  Cmds.export_image image_name
 
   # Remove tmp docker file
   `rm #{docker_filename}`
