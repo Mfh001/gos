@@ -155,10 +155,3 @@ func GetGameAppServiceConn(gameAppId string) *grpc.ClientConn {
 	return conn.(*grpc.ClientConn)
 }
 
-func GetGameAppServiceStream(accountId string) (pb.RouteConnectGame_AgentStreamClient, bool) {
-	stream, ok := accountStreamMap.Load(accountId)
-	if !ok {
-		return nil, ok
-	}
-	return stream.(pb.RouteConnectGame_AgentStreamClient), ok
-}
