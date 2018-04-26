@@ -33,8 +33,8 @@ const CONNECT_APP_IDS_KEY = "__CONNECT_APP_IDS_KEY"
 const SERVER = "ConnectAppDispatcher"
 
 func Start() {
-	gen_server.Start(SERVER, new(Dispatcher))
 	SetupForTest()
+	gen_server.Start(SERVER, new(Dispatcher))
 }
 
 func SetupForTest() {

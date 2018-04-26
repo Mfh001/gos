@@ -22,7 +22,14 @@
 %% SOFTWARE.
 
 -module(load_test).
--export([on/1, b/3, bench/2, summary/0, d/1]).
+
+-export([once/0, 
+         on/1, 
+         b/3, 
+         bench/2, 
+         bench/3, 
+         summary/0, 
+         d/1]).
 
 -define(TAB, ?MODULE).
 -define(CLOSE_SOCKET, true).
@@ -31,13 +38,28 @@
 %% N: 每个客户端发送请求数量
 %% I: 客户端请求发送间隔时间
 
-on(C) ->
-    b(C, 10000, 1).
+on(Clients) ->
+    b(Clients, 10000, 1).
 
-d(C) ->
-    b(C, 10, 300).
+d(Clients) ->
+    b(Clients, 10, 300).
 
-b(C, N, I) ->
+once() ->
+    b(1, 1, 1).
+
+t(Requests, Delay) ->
+    b(999, Requests, Delay).
+
+parse_session() ->
+    Path = "/Users/savin/code_fun/Golang/gos/sessions.txt",
+    {ok, Content} = file:read_file(Path),
+    Lines = string:tokens(binary_to_list(Content), "\n"),
+    lists:foldl(fun(Line, Acc) ->
+        [AccountId, Token] = string:tokens(Line, ","),
+        [{list_to_binary(AccountId), list_to_binary(Token)}|Acc]
+    end, [], Lines).
+
+b(Clients, Requests, Delay) ->
     case ets:info(?TAB) of
         undefined -> do_nothing;
         _ -> ets:delete(?TAB)
@@ -46,26 +68,53 @@ b(C, N, I) ->
     ets:insert(?TAB, {count, 0}),
     ets:insert(?TAB, {sent, 0}),
     ets:insert(?TAB, {msecs, 0}),
-    ets:insert(?TAB, {c, C}),
-    ets:insert(?TAB, {n, N}),
+    ets:insert(?TAB, {c, Clients}),
+    ets:insert(?TAB, {n, Requests}),
     ets:insert(?TAB, {error, 0}),
     ets:insert(?TAB, {number, 0}),
-    times(C, fun() -> spawn(load_test, bench, [N, I]) end).
+    Sessions = parse_session(),
+    times(Clients, fun(Idx) -> 
+        spawn(load_test, bench, [Requests, Delay, lists:nth(Idx, Sessions)]) 
+    end).
 
 times(0, _F) -> ok;
 times(N, F) ->
-    F(),
+    F(N),
     times(N - 1, F).
 
 bench(N, I) ->
-    % {ok, Socket} = gen_tcp:connect("127.0.0.1", 5050, [{active, false}, {packet, 0}]),
-    % gen_tcp:send(Socket, "hello, i'm erlang client!!!!!!!!!!!!!!!!!!!"),
-    % {ok, PortString} = gen_tcp:recv(Socket, 0),
-    % gen_tcp:close(Socket),
-    % Sock = connect(list_to_integer(PortString)),
-    Sock = connect(4100),
+    bench(N, I, undefined).
+
+bench(N, I, Session) ->
+    Sock = connect(4000),
     Udid = "tt",
     StartTimeStamp = os:timestamp(),
+
+    if
+        Session =:= undefined ->
+            %% Login
+            Protocol = <<1:16>>,
+            AccountId  = <<"usernamet10">>,
+            AccountIdLen = byte_size(AccountId),
+            Token  = <<"tISWFanBJkKHuxjOmlNSuSkwOQAzlzOV">>,
+            TokenLen = byte_size(Token),
+            gen_tcp:send(Sock, list_to_binary([Protocol, 
+                                               <<AccountIdLen:16>>, AccountId,
+                                               <<TokenLen:16>>, Token]));
+        true ->
+            %% Login
+            Protocol = <<1:16>>,
+            {AccountId, Token}  = Session,
+            AccountIdLen = byte_size(AccountId),
+            TokenLen = byte_size(Token),
+            gen_tcp:send(Sock, list_to_binary([Protocol, 
+                                               <<AccountIdLen:16>>, AccountId,
+                                               <<TokenLen:16>>, Token]))
+    end,
+
+    {ok, Res} = gen_tcp:recv(Sock, 0),
+    error_logger:info_msg("LoginRes: ~p~n", [Res]),
+
     run(N, I, Sock, Udid),
     StopTimeStamp = os:timestamp(),
     result(StartTimeStamp, StopTimeStamp),
@@ -92,16 +141,15 @@ run(N, I, Sock, Udid) ->
         true ->
             do_nothing
     end,
-    Protocol = <<1:16>>,
-    Content  = <<"hello, i'm erlang TCPBOT!">>,
-    ContentLen = byte_size(Content),
-    gen_tcp:send(Sock, list_to_binary([Protocol, 
-                                       <<ContentLen:32>>, Content,
-                                       <<ContentLen:32>>, Content,
-                                       <<ContentLen:32>>, Content])),
+
+    gen_tcp:send(Sock, list_to_binary([<<5:16>>, 
+                                       <<1:16>>, <<"a">>,
+                                       <<1:16>>, <<"b">>,
+                                       <<1:16>>, <<"c">>])),
+
     ets:update_counter(?TAB, sent, 1),
     case gen_tcp:recv(Sock, 0) of
-        {ok, _Packet} -> 
+        {ok, Packet} -> 
             % error_logger:info_msg("Response: ~p~n", [Packet]),
             ets:update_counter(?TAB, count, 1),
             run(N-1, I, Sock, Udid);

@@ -1,7 +1,9 @@
-AppNames = {"AuthApp"    => "gos-auth-app",
-            "ConnectApp" => "gos-connect-app",
-            "GameApp"    => "gos-game-app",
-            "WorldApp"   => "gos-world-app"}
+AppNames = {
+  "AuthApp"    => "gos-auth-app",
+  "ConnectApp" => "gos-connect-app",
+  "GameApp"    => "gos-game-app",
+  "WorldApp"   => "gos-world-app"
+}
 
 AppMappings = {"gos-auth-app" => "-p 3000:3000",
                "gos-connect-app" => "-p 4000:4000",

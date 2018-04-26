@@ -23,6 +23,7 @@ func main() {
 	leaderboard.Start()
 	gslib.Run()
 	sceneMgr.StartSceneMgr()
+	player.StartPlayerManager()
 	player.StartRpcStream()
 }
 

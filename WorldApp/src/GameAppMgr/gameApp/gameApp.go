@@ -13,8 +13,8 @@ import (
 )
 
 func Start() {
-	gen_server.Start(DISPATCH_SERVER, new(Dispatcher))
 	gameCell.SetupForTest()
+	gen_server.Start(DISPATCH_SERVER, new(Dispatcher))
 }
 
 type DispatchInfo struct {
@@ -115,6 +115,7 @@ func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId st
 	var dispatchApp *GameCell
 	var dispatchScene *SceneCell
 	var err error
+	logger.INFO("doDispatch accountId: ", accountId, " serverId: ", serverId, " sceneId: ", sceneId)
 	if sceneId == "" {
 		dispatchApp, dispatchScene, err = self.dispatchByServerId(serverId)
 	} else {
@@ -139,18 +140,18 @@ func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId st
 func (self *Dispatcher)dispatchByServerId(serverId string) (*GameCell, *SceneCell, error) {
 	// Lookup scene
 	sceneIns, ok := self.mapScenes[serverId]
-	if !ok {
-		return nil, nil, nil
-	}
 
-	if sceneIns == nil {
+	if !ok {
 		sceneIns, err := sceneCell.CreateDefaultServerScene(serverId, self.defaultServerSceneConf)
 		if err != nil {
 			return nil, nil, err
 		}
+		self.mapScenes[serverId] = sceneIns
+		self.scenes = append(self.scenes, sceneIns)
 		return self.dispatchedInfo(sceneIns)
 	}
 
+	logger.INFO("sceneIns: ", sceneIns.Uuid)
 	return self.dispatchedInfo(sceneIns)
 }
 

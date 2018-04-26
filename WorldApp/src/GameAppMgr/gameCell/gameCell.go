@@ -16,8 +16,8 @@ func SetupForTest() {
 		value := make(map[string]interface{})
 		value["uuid"] = uuid
 		value["name"] = "agent:" + num
-		value["host"] = "127.0.0.1"
-		value["port"] = "500" + num
+		value["host"] = "localhost"
+		value["port"] = "50053"
 		value["ccu"] = 0
 		value["ccuMax"] = 100
 		value["status"] = SERVER_STATUS_WORKING
@@ -57,6 +57,9 @@ func FindGameApp(gameAppId string) (*GameCell, error) {
 	if err != nil {
 		logger.ERR("findGameApp: ", gameAppId, " failed: ", err)
 		return nil, err
+	}
+	if len(valueMap) == 0 {
+		return nil, nil
 	}
 	return parseGameApp(valueMap), nil
 }

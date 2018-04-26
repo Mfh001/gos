@@ -36,7 +36,7 @@ func connectConnectApp() {
 	conf := gosconf.RPC_FOR_CONNECT_APP_MGR
 	conn, err := grpc.Dial(conf.DialAddress, conf.DialOptions...)
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Println("did not connect: %v", err)
 	}
 
 	account.ConnectRpcClient = pb.NewDispatcherClient(conn)
@@ -162,7 +162,7 @@ func loginByGuestHandler(ctx iris.Context) {
  * Private Methods
  */
 func dispathAndRsp(ctx iris.Context, user *account.Account) {
-	host, port, err := user.Dispatch()
+	host, port, session, err := user.Dispatch()
 
 	if err != nil {
 		ctx.JSON(iris.Map{
@@ -175,5 +175,6 @@ func dispathAndRsp(ctx iris.Context, user *account.Account) {
 		"status": "success",
 		"connectHost": host,
 		"port": port,
-		"accountId": user.Uuid})
+		"accountId": user.Uuid,
+		"sessionToken": session.Token})
 }

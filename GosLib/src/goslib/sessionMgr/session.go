@@ -18,7 +18,7 @@ type Session struct {
 func Find(accountId string) (*Session, error) {
 	uuid := "session:" + accountId
 	sessionMap, err := redisDB.Instance().HGetAll(uuid).Result()
-	if err != nil {
+	if len(sessionMap) == 0 || err != nil {
 		return nil, err
 	}
 

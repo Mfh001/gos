@@ -75,7 +75,7 @@ var RPC_FOR_GAME_APP_MGR = &Rpc{
 // Dial addresses are dynamic dispatched by GameAppMgr
 var RPC_FOR_GAME_APP_STREAM = &Rpc{
 	"tcp4",
-	":50053",
+	"localhost:50053",
 	"",
 	[]grpc.DialOption{grpc.WithInsecure()},
 }

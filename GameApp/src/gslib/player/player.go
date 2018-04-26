@@ -14,13 +14,15 @@ import (
 	"gslib"
 	"goslib/sessionMgr"
 	"gslib/sceneMgr"
+	pb "gosRpcProto"
 )
 
 type Player struct {
 	PlayerId     string
-	Session      *sessionMgr.Session
-	processed    int
 	Store        *memStore.MemStore
+	Session      *sessionMgr.Session
+	stream       pb.RouteConnectGame_AgentStreamServer
+	processed    int
 	activeTimer  *time.Timer
 	persistTimer *time.Timer
 	lastActive   int64
@@ -28,6 +30,14 @@ type Player struct {
 
 const EXPIRE_DURATION = 1800
 var BroadcastHandler func(*Player, *broadcast.BroadcastMsg) = nil
+
+func PlayerConnected(accountId string, stream pb.RouteConnectGame_AgentStreamServer) {
+	CastPlayer(accountId, "connected", stream)
+}
+
+func PlayerDisconnected(accountId string) {
+	CastPlayer(accountId, "disconnected")
+}
 
 func HandleRequest(accountId string, requestData []byte) {
 	CastPlayer(accountId, "handleRequest", requestData)
@@ -85,12 +95,17 @@ func (self *Player) HandleCast(args []interface{}) {
 	} else if method_name == "handleAsyncWrap" {
 		self.handleAsyncWrap(args[0].(func()))
 	} else if method_name == "PersistData" {
-		self.Store.Persist([]string{"models"})
+		// FIXME
+		//self.Store.Persist([]string{"models"})
 		self.startPersistTimer()
 	} else if method_name == "removeConn" {
 		//self.Conn = nil
 	} else if method_name == "broadcast" {
 		self.handleBroadcast(args[1].(*broadcast.BroadcastMsg))
+	} else if method_name == "connected" {
+		self.stream = args[1].(pb.RouteConnectGame_AgentStreamServer)
+	} else if method_name == "disconnected" {
+		self.stream = nil
 	}
 }
 
@@ -142,12 +157,13 @@ func (self *Player) handleRequest(data []byte) {
 	protocol := reader.ReadUint16()
 	decode_method := api.IdToName[protocol]
 	handler, err := routes.Route(decode_method)
+	logger.INFO("handelRequest: ", decode_method)
 	self.processed++
 	if err == nil {
 		params := api.Decode(decode_method, reader)
 		encode_method, response := handler(self, params)
 		writer := api.Encode(encode_method, response)
-		// INFO("Processed: ", self.processed, " Response Data: ", response_data)
+		logger.INFO("Processed: ", self.processed, " Response Data: ", response)
 		self.sendToClient(writer.GetSendData())
 	} else {
 		logger.ERR(err)
@@ -157,9 +173,16 @@ func (self *Player) handleRequest(data []byte) {
 }
 
 func (self *Player) sendToClient(data []byte) {
-	connectAppId := GetConnectId(self.PlayerId)
-	if connectAppId != "" {
-		ProxyToConnect(connectAppId, self.PlayerId, data)
+	if self.stream != nil {
+		err := self.stream.Send(&pb.RouteMsg{
+			self.PlayerId,
+			data,
+		})
+		if err != nil {
+			logger.ERR("sendToClient failed: ", err)
+		}
+	} else {
+		logger.WARN("sendToClient failed, connectAppId is nil!")
 	}
 }
 

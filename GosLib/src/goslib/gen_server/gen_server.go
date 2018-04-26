@@ -83,6 +83,7 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 func Stop(server_name, reason string) {
 	if gen_server, exists := GetGenServer(server_name); exists {
 		gen_server.sign_channel <- SignPacket{SIGN_STOP, reason}
+		delGenServer(server_name)
 	} else {
 		fmt.Println(server_name, " not found!")
 	}

@@ -11,6 +11,9 @@ import (
 	"strings"
 	"goslib/sessionMgr"
 	"gosconf"
+	"google.golang.org/grpc/metadata"
+	"net"
+	"io"
 )
 
 var GameMgrRpcClient pb.GameDispatcherClient
@@ -27,12 +30,12 @@ type Agent struct {
 
 const AGENT_SERVER = "AGENT_SERVER"
 
-var streamMap *sync.Map
-var clientMap *sync.Map
+var gameConnMap *sync.Map
+var accountStreamMap *sync.Map
 
 func Setup() {
-	streamMap = new(sync.Map)
-	clientMap = new(sync.Map)
+	gameConnMap = new(sync.Map)
+	accountStreamMap = new(sync.Map)
 	gen_server.Start(AGENT_SERVER, new(Agent))
 }
 
@@ -60,40 +63,53 @@ func DispatchToGameApp(session *sessionMgr.Session) error {
 	return err
 }
 
+func StartConnToGameStream(gameAppId string, accountId string, rawConn net.Conn) (pb.RouteConnectGame_AgentStreamClient, error) {
+	conn := GetGameAppServiceConn(gameAppId)
+	client := pb.NewRouteConnectGameClient(conn)
+	header := metadata.New(map[string]string{"session": accountId})
+	ctx := metadata.NewOutgoingContext(context.Background(), header)
+	stream, err := client.AgentStream(ctx)
+	if err != nil {
+		logger.ERR("startPlayerProxyStream failed: ", client, " err:", err)
+		return nil, err
+	}
+
+	accountStreamMap.Store(accountId, stream)
+
+	// start stream receiver
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				logger.ERR("AgentStream read done: ", err)
+				break
+			}
+			if err != nil {
+				logger.ERR("AgentStream failed to receive : ", err)
+				break
+			}
+			logger.INFO("AgentStream received: ", in.AccountId)
+			rawConn.Write(in.GetData())
+		}
+		accountStreamMap.Delete(accountId)
+		stream.CloseSend()
+	}()
+
+	return stream, nil
+}
+
 func MakeSureConnectedToGame(gameAppId string, host string, port string) error {
-	addr := strings.Join([]string{host, port}, ":")
-	_, ok := streamMap.Load(gameAppId)
+	_, ok := gameConnMap.Load(gameAppId)
 	if ok {
 		return nil
 	}
 
-	_, err := gen_server.Call(AGENT_SERVER, "ConnectGameAppMgr", gameAppId, addr)
+	addr := strings.Join([]string{host, port}, ":")
+	_, err := gen_server.Call(AGENT_SERVER, "ConnectGameApp", gameAppId, addr)
 	if err != nil {
 		logger.ERR("StartStream failed: ", err)
 	}
 	return err
-}
-
-func SetRegisterAccountToGameApp(session *sessionMgr.Session, isRegister bool) {
-	rpcClient, ok := clientMap.Load(session.GameAppId)
-	if !ok {
-		logger.ERR("RegisterAccountToGameApp failed rpcClient not exists!")
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	reply, err := rpcClient.(pb.RouteConnectGameClient).AgentRegister(ctx, &pb.RegisterMsg{
-		AccountId: session.AccountId,
-		ConnectAppId: session.ConnectAppId,
-		IsRegister: isRegister,
-	})
-	if err != nil {
-		logger.ERR("could not greet: ", err)
-	}
-
-	logger.DEBUG("Greeting: %s:%s", reply.GetStatus())
 }
 
 func (self *Agent) Init(args []interface{}) (err error) {
@@ -105,7 +121,7 @@ func (self *Agent) HandleCast(args []interface{}) {
 
 func (self *Agent) HandleCall(args []interface{}) interface{} {
 	handle := args[0].(string)
-	if handle == "ConnectGameAppMgr" {
+	if handle == "ConnectGameApp" {
 		gameAppId := args[1].(string)
 		addr := args[2].(string)
 		self.doConnectGameApp(gameAppId, addr)
@@ -122,25 +138,27 @@ func (self *Agent) Terminate(reason string) (err error) {
  */
 func (self *Agent)doConnectGameApp(gameAppId string, addr string) {
 	conf := gosconf.RPC_FOR_GAME_APP_STREAM
+	logger.INFO("ConnectGameApp: ", addr)
 	conn, err := grpc.Dial(addr, conf.DialOptions...)
 	if err != nil {
 		logger.ERR("did not connect: ", err)
+		return
 	}
+	gameConnMap.Store(gameAppId, conn)
+}
 
-	client := pb.NewRouteConnectGameClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	stream, err := client.AgentStream(ctx)
-	if err != nil {
-		logger.ERR(client, ".RouteChat(_) = _, ", err)
+func GetGameAppServiceConn(gameAppId string) *grpc.ClientConn {
+	conn, ok := gameConnMap.Load(gameAppId)
+	if !ok {
+		return nil
 	}
+	return conn.(*grpc.ClientConn)
+}
 
-	streamMap.Store(gameAppId, stream)
-	clientMap.Store(gameAppId, client)
-
-	// start stream sender
-	StartAgentSender(gameAppId, stream)
-
-	// start stream receiver
-	StartReceiving(stream)
+func GetGameAppServiceStream(accountId string) (pb.RouteConnectGame_AgentStreamClient, bool) {
+	stream, ok := accountStreamMap.Load(accountId)
+	if !ok {
+		return nil, ok
+	}
+	return stream.(pb.RouteConnectGame_AgentStreamClient), ok
 }

@@ -11,6 +11,7 @@ import (
 	"errors"
 	"sync"
 	"goslib/sessionMgr"
+	pb "gosRpcProto"
 )
 
 const TCP_TIMEOUT = 5 // seconds
@@ -19,8 +20,8 @@ type Connection struct {
 	authed bool
 	conn net.Conn
 	processed int64
-	agent *Agent
 	session *sessionMgr.Session
+	stream pb.RouteConnectGame_AgentStreamClient
 }
 
 var sessionMap *sync.Map
@@ -37,21 +38,6 @@ func Start(_conn net.Conn) {
 	go instance.handleRequest()
 }
 
-func GetSession(accountId string) *sessionMgr.Session {
-	session, ok := sessionMap.Load(accountId)
-	if !ok {
-		return nil
-	}
-	return session.(*sessionMgr.Session)
-}
-
-func SendRawData(accountId string, data []byte) {
-	connection, ok := connectionMap.Load(accountId)
-	if ok {
-		connection.(*Connection).conn.Write(data)
-	}
-}
-
 func (self *Connection)handleRequest() {
 	header := make([]byte, 2)
 
@@ -62,7 +48,17 @@ func (self *Connection)handleRequest() {
 		}
 
 		if self.authed {
-			ProxyToGame(self.session, data)
+			if self.stream != nil {
+				err := self.stream.Send(&pb.RouteMsg{
+					Data: data,
+				})
+				if err != nil {
+					logger.ERR("SendMsg to GameApp failed: ", self.session.AccountId, " err: ", err)
+					break
+				}
+			} else {
+				logger.ERR("Stream not exist!")
+			}
 		} else {
 			success, err := self.authConn(data)
 			if err != nil {
@@ -71,19 +67,27 @@ func (self *Connection)handleRequest() {
 			}
 			self.authed = success
 			if success {
-				if err != nil {
-					logger.ERR("GetRoleInfo error: ", err)
-					break
-				}
 				sessionMap.Store(self.session.AccountId, self.session)
 				connectionMap.Store(self.session.AccountId, self)
-				DispatchToGameApp(self.session)
-				SetRegisterAccountToGameApp(self.session, true)
+				err = DispatchToGameApp(self.session)
+				if err != nil {
+					logger.ERR("DispatchToGameApp failed: ", err)
+					break
+				}
+				self.stream, err = StartConnToGameStream(self.session.GameAppId, self.session.AccountId, self.conn)
+				if err != nil {
+					logger.ERR("StartConnToGameStream failed: ", err)
+					break
+				}
 			}
 		}
 	}
 
-	SetRegisterAccountToGameApp(self.session, false)
+	// save close connection
+	self.stream.CloseSend()
+	self.conn.Close()
+	self.session = nil
+	self.authed = false
 }
 
 // Block And Receiving "request data"
@@ -96,12 +100,14 @@ func (self *Connection)receiveRequest(header []byte) ([]byte, error) {
 	}
 
 	size := binary.BigEndian.Uint16(header)
+	logger.INFO("begin received: ", size)
 	data := make([]byte, size)
 	n, err = io.ReadFull(self.conn, data)
 	if err != nil {
 		logger.ERR("error receiving msg, bytes: ", n, "reason: ", err)
 		return nil, err
 	}
+	logger.INFO("received: ", size)
 	return data, nil
 }
 
@@ -141,6 +147,8 @@ func (self *Connection)validateSession(params *api.SessionAuthParams) (bool, err
 		return false, err
 	}
 
+	logger.INFO("params.AccountId: ", params.AccountId, " params.Token: ", params.Token)
+	logger.INFO("sessionId: ", session.Uuid, " sessionServerId: ", session.ServerId)
 	if session.Token != params.Token {
 		return false, errors.New("Session Token invalid!")
 	}

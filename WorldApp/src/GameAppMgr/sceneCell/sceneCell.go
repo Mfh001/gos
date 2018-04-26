@@ -29,6 +29,9 @@ func FindScene(sceneId string) (*SceneCell, error) {
 		logger.ERR("findScene: ", sceneId, " failed: ", err)
 		return nil, err
 	}
+	if len(sceneMap) == 0 {
+		return nil, nil
+	}
 	return parseScene(sceneMap), nil
 }
 
@@ -37,6 +40,16 @@ func FindSceneConf(confId string) (*SceneConf, error) {
 	if err != nil {
 		logger.ERR("findSceneConf: ", confId, " failed: ", err)
 		return nil, err
+	}
+	if len(valueMap) == 0 {
+		logger.ERR("SceneConf: ", confId, " Not Found!")
+		//FIXME
+		return &SceneConf{
+			ConfId: "default_conf_id",
+			SceneType: "default_server",
+			CcuMax: 100,
+		}, nil
+		//return nil, nil
 	}
 	return parseSceneConf(valueMap), nil
 }
@@ -56,6 +69,7 @@ func CreateDefaultServerScene(serverId string, conf *SceneConf) (*SceneCell, err
 		logger.ERR("createDefaultServerScene: ", serverId, " failed: ", err)
 		return nil, err
 	}
+	redisDB.Instance().SAdd(gosconf.RK_SCENE_IDS, serverId)
 	return &SceneCell{
 		serverId,
 		"",

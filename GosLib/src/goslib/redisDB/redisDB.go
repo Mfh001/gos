@@ -18,8 +18,8 @@ func Connect(host string, password string, db int) {
 }
 
 func Instance() *redis.Client {
-	if redisClient == nil {
-		panic("Redis not connected!")
-	}
+	//if redisClient == nil {
+	//	panic("Redis not connected!")
+	//}
 	return redisClient
 }

@@ -34,7 +34,7 @@ type Account struct {
 func Lookup(username string) (*Account, error) {
 	values, err := redisDB.Instance().HGetAll(username).Result()
 	if err != nil {
-		log.Fatalf("Account Lookup Error: %v", err)
+		log.Println("Account Lookup Error: %v", err)
 		return nil, err
 	}
 
@@ -60,8 +60,9 @@ func Lookup(username string) (*Account, error) {
  */
 func Create(username string, password string) (*Account, error) {
 	params := make(map[string]interface{})
+	groupId := "server001"
 	params["uuid"] = username
-	params["groupId"] = ""
+	params["groupId"] = groupId
 	params["category"] = ACCOUNT_NORMAL
 	params["username"] = username
 	params["password"] = password
@@ -70,7 +71,7 @@ func Create(username string, password string) (*Account, error) {
 	val, err := redisDB.Instance().HMSet(username, params).Result()
 
 	if err != nil {
-		log.Fatalf("Create account failed: %v", err)
+		log.Println("Create account failed: %v", err)
 		return nil, err
 	}
 
@@ -78,6 +79,7 @@ func Create(username string, password string) (*Account, error) {
 
 	return &Account{
 		Uuid:username,
+		GroupId:groupId,
 		Category:ACCOUNT_NORMAL,
 		Username:username,
 		Password:password,
@@ -102,7 +104,7 @@ func (self *Account)ChangePassword(newPassword string) {
  * RPC
  * request ConnectAppMgr dispatch connectApp for user connecting
  */
-func (self *Account)Dispatch() (string, string, error) {
+func (self *Account)Dispatch() (string, string, *sessionMgr.Session, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -113,18 +115,18 @@ func (self *Account)Dispatch() (string, string, error) {
 		})
 	if err != nil {
 		logger.ERR("could not greet: ", err)
-		return "", "", err
+		return "", "", nil, err
 	}
 
-	logger.DEBUG("Greeting: %s:%s", reply.GetConnectAppHost(), reply.GetConnectAppPort())
-
-	session, err := sessionMgr.Find(self.Uuid)
+	var session *sessionMgr.Session
+	session, err = sessionMgr.Find(self.Uuid)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
 	if session == nil {
-		_, err := sessionMgr.Create(map[string]string{
+		logger.INFO("session not exists!")
+		session, err = sessionMgr.Create(map[string]string{
 			"accountId": self.Uuid,
 			"serverId": self.GroupId,
 			"sceneId": "",
@@ -133,12 +135,15 @@ func (self *Account)Dispatch() (string, string, error) {
 			"token": secure.SessionToken(),
 		})
 		if err != nil {
-			return "", "", nil
+			return "", "", nil, nil
 		}
 	} else {
+		logger.INFO("session exists!")
 		session.ConnectAppId = reply.GetConnectAppId()
 		session.Save()
 	}
 
-	return reply.GetConnectAppHost(), reply.GetConnectAppPort(), nil
+	logger.INFO(session.Uuid, session.ServerId, session.Token)
+
+	return reply.GetConnectAppHost(), reply.GetConnectAppPort(), session, nil
 }

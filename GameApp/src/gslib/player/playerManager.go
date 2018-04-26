@@ -32,7 +32,7 @@ func (self *PlayerManager) HandleCall(args []interface{}) interface{} {
 	if handle == "StartPlayer" {
 		accountId := args[1].(string)
 		if !gen_server.Exists(accountId) {
-			gen_server.Start(accountId, new(Player))
+			gen_server.Start(accountId, new(Player), accountId)
 		}
 	}
 	return nil
