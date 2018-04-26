@@ -1,17 +1,18 @@
+#!/usr/bin/env bash
 basePath=$(pwd)/vendor
 
-# Build AuthApp
-export GOPATH=$basePath:$(pwd)/AuthApp:$(pwd)/GosLib
-go install AuthApp
+# Build auth
+export GOPATH=$basePath:$(pwd)/auth:$(pwd)/goslib
+go install auth
 
-# Build ConnectApp
-export GOPATH=$basePath:$(pwd)/ConnectApp:$(pwd)/GosLib:$(pwd)/GameApp
-go install ConnectApp
+# Build agent
+export GOPATH=$basePath:$(pwd)/agent:$(pwd)/goslib:$(pwd)/game
+go install agent
 
-# Build GameApp
-export GOPATH=$basePath:$(pwd)/GameApp:$(pwd)/GosLib
-go install GameApp
+# Build game
+export GOPATH=$basePath:$(pwd)/game:$(pwd)/goslib
+go install game
 
-# Build WorldApp
-export GOPATH=$basePath:$(pwd)/WorldApp:$(pwd)/GosLib
-go install WorldApp
+# Build world
+export GOPATH=$basePath:$(pwd)/world:$(pwd)/goslib
+go install world

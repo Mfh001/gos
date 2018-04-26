@@ -1,4 +1,6 @@
+#!/usr/bin/env bash
 basePath=$(pwd)/vendor
+
 mkdir -p $basePath
 export GOPATH=$basePath
 
@@ -16,3 +18,10 @@ go get -u google.golang.org/grpc
 #BDD
 go get -u github.com/onsi/ginkgo/ginkgo
 go get -u github.com/onsi/gomega/...
+
+#Skiplist
+go get -u github.com/ryszard/goskiplist/skiplist
+
+#ORM
+go get -u github.com/go-gorp/gorp
+go get -u github.com/go-sql-driver/mysql

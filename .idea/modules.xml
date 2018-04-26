@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/AuthApp/AuthApp.iml" filepath="$PROJECT_DIR$/AuthApp/AuthApp.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ConnectApp/ConnectApp.iml" filepath="$PROJECT_DIR$/ConnectApp/ConnectApp.iml" />
-      <module fileurl="file://$PROJECT_DIR$/GameApp/GameApp.iml" filepath="$PROJECT_DIR$/GameApp/GameApp.iml" />
-      <module fileurl="file://$PROJECT_DIR$/GosLib/GosLib.iml" filepath="$PROJECT_DIR$/GosLib/GosLib.iml" />
-      <module fileurl="file://$PROJECT_DIR$/WorldApp/WorldApp.iml" filepath="$PROJECT_DIR$/WorldApp/WorldApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/agent/agent.iml" filepath="$PROJECT_DIR$/agent/agent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/auth/auth.iml" filepath="$PROJECT_DIR$/auth/auth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/game/game.iml" filepath="$PROJECT_DIR$/game/game.iml" />
+      <module fileurl="file://$PROJECT_DIR$/goslib/goslib.iml" filepath="$PROJECT_DIR$/goslib/goslib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/world/world.iml" filepath="$PROJECT_DIR$/world/world.iml" />
     </modules>
   </component>
 </project>

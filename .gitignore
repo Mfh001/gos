@@ -11,3 +11,14 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 */pkg/darwin_amd64
+
+# builds
+auth/bin/auth
+agent/bin/agent
+game/bin/game
+world/bin/world
+
+# deps
+/vendor
+
+.DS_Store

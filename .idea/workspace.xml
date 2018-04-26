@@ -2,21 +2,107 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="337311cf-085e-4000-b2d7-4bfaee1526f0" name="Default" comment="">
+      <change beforePath="" afterPath="$PROJECT_DIR$/world/src/world/world.go" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/AuthApp/bin/AuthApp" afterPath="$PROJECT_DIR$/AuthApp/bin/AuthApp" />
-      <change beforePath="$PROJECT_DIR$/AuthApp/pkg/darwin_amd64/account.a" afterPath="$PROJECT_DIR$/AuthApp/pkg/darwin_amd64/account.a" />
-      <change beforePath="$PROJECT_DIR$/ConnectApp/bin/ConnectApp" afterPath="$PROJECT_DIR$/ConnectApp/bin/ConnectApp" />
-      <change beforePath="$PROJECT_DIR$/ConnectApp/pkg/darwin_amd64/connection.a" afterPath="$PROJECT_DIR$/ConnectApp/pkg/darwin_amd64/connection.a" />
-      <change beforePath="$PROJECT_DIR$/ConnectApp/src/connection/connect_app_service.go" afterPath="$PROJECT_DIR$/ConnectApp/src/connection/connect_app_service.go" />
-      <change beforePath="$PROJECT_DIR$/GosLib/pkg/darwin_amd64/goslib/redisDB.a" afterPath="$PROJECT_DIR$/GosLib/pkg/darwin_amd64/goslib/redisDB.a" />
-      <change beforePath="$PROJECT_DIR$/GosLib/pkg/darwin_amd64/goslib/sessionMgr.a" afterPath="$PROJECT_DIR$/GosLib/pkg/darwin_amd64/goslib/sessionMgr.a" />
-      <change beforePath="$PROJECT_DIR$/WorldApp/bin/WorldApp" afterPath="$PROJECT_DIR$/WorldApp/bin/WorldApp" />
-      <change beforePath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/ConnectAppMgr.a" afterPath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/ConnectAppMgr.a" />
-      <change beforePath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/ConnectAppMgr/connectApp.a" afterPath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/ConnectAppMgr/connectApp.a" />
-      <change beforePath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/GameAppMgr.a" afterPath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/GameAppMgr.a" />
-      <change beforePath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/GameAppMgr/gameApp.a" afterPath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/GameAppMgr/gameApp.a" />
-      <change beforePath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/GameAppMgr/gameCell.a" afterPath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/GameAppMgr/gameCell.a" />
-      <change beforePath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/GameAppMgr/sceneCell.a" afterPath="$PROJECT_DIR$/WorldApp/pkg/darwin_amd64/GameAppMgr/sceneCell.a" />
+      <change beforePath="$PROJECT_DIR$/AuthApp/AuthApp.iml" afterPath="$PROJECT_DIR$/agent/agent.iml" />
+      <change beforePath="$PROJECT_DIR$/AuthApp/src/account/account.go" afterPath="$PROJECT_DIR$/auth/src/account/account.go" />
+      <change beforePath="$PROJECT_DIR$/AuthApp/src/authApp/authApp_suite_test.go" afterPath="$PROJECT_DIR$/auth/src/auth/authApp_suite_test.go" />
+      <change beforePath="$PROJECT_DIR$/AuthApp/src/authApp/authApp_test.go" afterPath="$PROJECT_DIR$/auth/src/auth/authApp_test.go" />
+      <change beforePath="$PROJECT_DIR$/AuthApp/src/authApp/auth_app.go" afterPath="$PROJECT_DIR$/auth/src/auth/auth.go" />
+      <change beforePath="$PROJECT_DIR$/ConnectApp/ConnectApp.iml" afterPath="$PROJECT_DIR$/auth/auth.iml" />
+      <change beforePath="$PROJECT_DIR$/ConnectApp/docs/Design.md" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/ConnectApp/src/connectApp/connect_app.go" afterPath="$PROJECT_DIR$/agent/src/agent/agent.go" />
+      <change beforePath="$PROJECT_DIR$/ConnectApp/src/connection/connect_app_service.go" afterPath="$PROJECT_DIR$/agent/src/connection/proxy.go" />
+      <change beforePath="$PROJECT_DIR$/ConnectApp/src/connection/connection.go" afterPath="$PROJECT_DIR$/agent/src/connection/connection.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/.bundle/config" afterPath="$PROJECT_DIR$/game/.bundle/config" />
+      <change beforePath="$PROJECT_DIR$/GameApp/.gitignore" afterPath="$PROJECT_DIR$/game/.gitignore" />
+      <change beforePath="$PROJECT_DIR$/GameApp/.ruby-version" afterPath="$PROJECT_DIR$/game/.ruby-version" />
+      <change beforePath="$PROJECT_DIR$/GameApp/.vim.custom" afterPath="$PROJECT_DIR$/game/.vim.custom" />
+      <change beforePath="$PROJECT_DIR$/GameApp/GameApp.iml" afterPath="$PROJECT_DIR$/game/game.iml" />
+      <change beforePath="$PROJECT_DIR$/GameApp/Gemfile" afterPath="$PROJECT_DIR$/game/Gemfile" />
+      <change beforePath="$PROJECT_DIR$/GameApp/Gemfile.lock" afterPath="$PROJECT_DIR$/game/Gemfile.lock" />
+      <change beforePath="$PROJECT_DIR$/GameApp/Makefile" afterPath="$PROJECT_DIR$/game/Makefile" />
+      <change beforePath="$PROJECT_DIR$/GameApp/Rakefile" afterPath="$PROJECT_DIR$/game/Rakefile" />
+      <change beforePath="$PROJECT_DIR$/GameApp/db/config.yml" afterPath="$PROJECT_DIR$/game/db/config.yml" />
+      <change beforePath="$PROJECT_DIR$/GameApp/db/migrate/20180422014107_create_equip.rb" afterPath="$PROJECT_DIR$/game/db/migrate/20180422014107_create_equip.rb" />
+      <change beforePath="$PROJECT_DIR$/GameApp/db/migrate/20180422014227_create_user.rb" afterPath="$PROJECT_DIR$/game/db/migrate/20180422014227_create_user.rb" />
+      <change beforePath="$PROJECT_DIR$/GameApp/db/schema.rb" afterPath="$PROJECT_DIR$/game/db/schema.rb" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/app/consts/consts.go" afterPath="$PROJECT_DIR$/game/src/app/consts/consts.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/app/consts/structs.go" afterPath="$PROJECT_DIR$/game/src/app/consts/structs.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/app/consts/tables.go" afterPath="$PROJECT_DIR$/game/src/app/consts/tables.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/app/controllers/equips_controller.go" afterPath="$PROJECT_DIR$/game/src/app/controllers/equips_controller.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/app/models/equip.go" afterPath="$PROJECT_DIR$/game/src/app/models/equip.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/app/models/user.go" afterPath="$PROJECT_DIR$/game/src/app/models/user.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/config/protocol.yml" afterPath="$PROJECT_DIR$/game/src/config/protocol.yml" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/config/routes.yml" afterPath="$PROJECT_DIR$/game/src/config/routes.yml" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gameApp/game_app.go" afterPath="$PROJECT_DIR$/game/src/game/game.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/game_data/config_equip.go" afterPath="$PROJECT_DIR$/game/src/game_data/config_equip.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/game_data/config_forge.go" afterPath="$PROJECT_DIR$/game/src/game_data/config_forge.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/github.com/coopernurse/gorp" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/github.com/garyburd/redigo" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/github.com/go-gorp/gorp" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/github.com/go-sql-driver/mysql" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/github.com/ryszard/goskiplist" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/app.go" afterPath="$PROJECT_DIR$/game/src/gslib/app.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/baseModel/base_model.go" afterPath="$PROJECT_DIR$/game/src/gslib/base_model/base_model.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/buffer.go" afterPath="$PROJECT_DIR$/game/src/gslib/buffer.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/consts.go" afterPath="$PROJECT_DIR$/game/src/gslib/consts.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/leaderboard/leaderboard.go" afterPath="$PROJECT_DIR$/game/src/gslib/leaderboard/leaderboard.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/player/game_app_service.go" afterPath="$PROJECT_DIR$/game/src/gslib/player/proxy.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/player/player.go" afterPath="$PROJECT_DIR$/game/src/gslib/player/player.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/player/playerManager.go" afterPath="$PROJECT_DIR$/game/src/gslib/player/player_manager.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/routes/routes.go" afterPath="$PROJECT_DIR$/game/src/gslib/routes/routes.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/sceneMgr/sceneMgr.go" afterPath="$PROJECT_DIR$/game/src/gslib/scene_mgr/scene_mgr.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/sys.go" afterPath="$PROJECT_DIR$/game/src/gslib/sys.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/timertask/timertask.go" afterPath="$PROJECT_DIR$/game/src/gslib/timertask/timertask.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/utils/coding.go" afterPath="$PROJECT_DIR$/game/src/gslib/utils/coding.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/utils/dynamic.go" afterPath="$PROJECT_DIR$/game/src/gslib/utils/dynamic.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/utils/load_test.beam" afterPath="$PROJECT_DIR$/game/src/gslib/utils/load_test.beam" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/utils/load_test.erl" afterPath="$PROJECT_DIR$/game/src/gslib/utils/load_test.erl" />
+      <change beforePath="$PROJECT_DIR$/GameApp/src/gslib/utils/timeout.go" afterPath="$PROJECT_DIR$/game/src/gslib/utils/timeout.go" />
+      <change beforePath="$PROJECT_DIR$/GameApp/tasks/generate_tables.rake" afterPath="$PROJECT_DIR$/game/tasks/generate_tables.rake" />
+      <change beforePath="$PROJECT_DIR$/GameApp/tools/gen_protocol" afterPath="$PROJECT_DIR$/game/tools/gen_protocol" />
+      <change beforePath="$PROJECT_DIR$/GameApp/tools/gen_routes" afterPath="$PROJECT_DIR$/game/tools/gen_routes" />
+      <change beforePath="$PROJECT_DIR$/GosLib/GosLib.iml" afterPath="$PROJECT_DIR$/goslib/goslib.iml" />
+      <change beforePath="$PROJECT_DIR$/GosLib/Makefile" afterPath="$PROJECT_DIR$/goslib/Makefile" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/gosRpcProto/connectApp.pb.go" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.pb.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/gosRpcProto/connectApp.proto" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.proto" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/gosRpcProto/connectToGame.pb.go" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.pb.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/gosRpcProto/connectToGame.proto" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.proto" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/gosRpcProto/gameApp.pb.go" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/gameApp.pb.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/gosRpcProto/gameApp.proto" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/gameApp.proto" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/gosconf/gosconf.go" afterPath="$PROJECT_DIR$/goslib/src/gosconf/gosconf.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/broadcast/broadcast.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/broadcast/broadcast.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/cmap/cmap.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/cmap/cmap.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/gen_server/gen_server.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/gen_server/gen_server.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/logger/logger.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/logger/logger.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/memStore/memStore.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/packet/pack.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/packet/pack.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/packet/packet.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/packet/packet.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/redisDB/redisDB.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/redisdb/redisdb.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/secure/crypto.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/secure/crypto.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/secure/secure.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/secure/secure.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/secure/token.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/secure/token.go" />
+      <change beforePath="$PROJECT_DIR$/GosLib/src/goslib/sessionMgr/session.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/session_mgr/session.go" />
+      <change beforePath="$PROJECT_DIR$/Makefile" afterPath="$PROJECT_DIR$/Makefile" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/WorldApp.iml" afterPath="$PROJECT_DIR$/world/world.iml" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/ConnectAppMgr/connectApp/connectApp.go" afterPath="$PROJECT_DIR$/world/src/agent_mgr/agent_dispatcher.go" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/ConnectAppMgr/connectAppMgr.go" afterPath="$PROJECT_DIR$/world/src/agent_mgr/agent_mgr.go" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/GameAppMgr/commonConst/commonConst.go" afterPath="$PROJECT_DIR$/world/src/game_mgr/common_const.go" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameApp/gameApp.go" afterPath="$PROJECT_DIR$/world/src/game_mgr/game_dispatcher.go" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameAppMgr.go" afterPath="$PROJECT_DIR$/world/src/game_mgr/game_mgr.go" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameCell/gameCell.go" afterPath="$PROJECT_DIR$/world/src/game_mgr/game_cell.go" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/GameAppMgr/sceneCell/sceneCell.go" afterPath="$PROJECT_DIR$/world/src/game_mgr/scene_cell.go" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/RootMgr/rootMgr.go" afterPath="$PROJECT_DIR$/world/src/root_mgr/root_mgr.go" />
+      <change beforePath="$PROJECT_DIR$/WorldApp/src/worldApp/world_app.go" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/agent/bin/ConnectApp" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/auth/bin/AuthApp" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/build_gos.sh" afterPath="$PROJECT_DIR$/build_gos.sh" />
+      <change beforePath="$PROJECT_DIR$/dep_install.sh" afterPath="$PROJECT_DIR$/dep_install.sh" />
+      <change beforePath="$PROJECT_DIR$/gos-auth-app" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/world/bin/WorldApp" afterPath="" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -33,79 +119,31 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="connect_app.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ConnectApp/src/connectApp/connect_app.go">
+      <file leaf-file-name="dep_install.sh" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/dep_install.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="20" column="13" lean-forward="false" selection-start-line="20" selection-start-column="13" selection-end-line="20" selection-end-column="13" />
+            <state relative-caret-position="390">
+              <caret line="26" column="39" lean-forward="false" selection-start-line="26" selection-start-column="39" selection-end-line="26" selection-end-column="39" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sceneMgr.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/sceneMgr/sceneMgr.go">
+      <file leaf-file-name="leaderboard.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/game/src/gslib/leaderboard/leaderboard.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="25" column="0" lean-forward="false" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+            <state relative-caret-position="150">
+              <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="connection.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ConnectApp/src/connection/connection.go">
+      <file leaf-file-name="redisdb.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/goslib/src/goslib/redisdb/redisdb.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="705">
-              <caret line="59" column="18" lean-forward="false" selection-start-line="59" selection-start-column="18" selection-end-line="59" selection-end-column="18" />
-              <folding>
-                <element signature="e#20#168#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="connect_app_service.go" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/ConnectApp/src/connection/connect_app_service.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="329">
-              <caret line="110" column="4" lean-forward="false" selection-start-line="110" selection-start-column="4" selection-end-line="110" selection-end-column="4" />
-              <folding>
-                <element signature="e#20#230#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="game_app_service.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/player/game_app_service.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="630">
-              <caret line="53" column="0" lean-forward="false" selection-start-line="53" selection-start-column="0" selection-end-line="53" selection-end-column="0" />
-              <folding>
-                <element signature="e#16#183#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="player.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/player/player.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="405">
-              <caret line="42" column="8" lean-forward="false" selection-start-line="42" selection-start-column="8" selection-end-line="42" selection-end-column="8" />
-              <folding>
-                <element signature="e#16#235#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="metadata.go" pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/metadata/metadata.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="690">
-              <caret line="51" column="11" lean-forward="false" selection-start-line="51" selection-start-column="11" selection-end-line="51" selection-end-column="11" />
+            <state relative-caret-position="255">
+              <caret line="19" column="9" lean-forward="false" selection-start-line="19" selection-start-column="9" selection-end-line="19" selection-end-column="9" />
               <folding />
             </state>
           </provider>
@@ -122,10 +160,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>dial</find>
-      <find>def</find>
-      <find>recover</find>
-      <find>os.Exit</find>
       <find>os.Exit(1)</find>
       <find>log.Fatalf</find>
       <find>caught panic in play</find>
@@ -151,6 +185,11 @@
       <find>handlerequest</find>
       <find>connected</find>
       <find>sendtoclient failed</find>
+      <find>FIXME</find>
+      <find>goslib/redisDB</find>
+      <find>memStore</find>
+      <find>gameapp</find>
+      <find>memstore</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -170,11 +209,11 @@
   <component name="GoLibraries">
     <option name="urls">
       <list>
-        <option value="file://$PROJECT_DIR$/ConnectApp" />
-        <option value="file://$PROJECT_DIR$/AuthApp" />
-        <option value="file://$PROJECT_DIR$/WorldApp" />
-        <option value="file://$PROJECT_DIR$/GameApp" />
         <option value="file://$PROJECT_DIR$/GosLib" />
+        <option value="file://$PROJECT_DIR$/agent" />
+        <option value="file://$PROJECT_DIR$/auth" />
+        <option value="file://$PROJECT_DIR$/world" />
+        <option value="file://$PROJECT_DIR$/game" />
       </list>
     </option>
   </component>
@@ -186,57 +225,57 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/GameApp/src/server/gameAgent/gameAgent.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/agentPlayerProxy/agentPlayerProxy.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/gameAgent/gameAgent.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/base_model.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/buffer.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/baseModel/base_model.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/app/models/equip.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/app/register/callbacks/broadcast_callback.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/app/models/user.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/app/register/data_loader.go" />
-        <option value="$PROJECT_DIR$/GameApp/tasks/generate_tables.rake" />
-        <option value="$PROJECT_DIR$/GosLib/src/gosRpcProto/connectApp.proto" />
-        <option value="$PROJECT_DIR$/GosLib/src/gosRpcProto/gameApp.proto" />
-        <option value="$PROJECT_DIR$/ConnectApp/src/connectApp/connect_app.go" />
-        <option value="$PROJECT_DIR$/WorldApp/src/ConnectAppMgr/connectAppMgr.go" />
-        <option value="$PROJECT_DIR$/GosLib/src/goslib/secure/crypto.go" />
-        <option value="$PROJECT_DIR$/GosLib/src/goslib/secure/token.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/config/protocol.yml" />
-        <option value="$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameAppMgr.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/sceneMgr/sceneMgr.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/server/main.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/app/register/callbacks/sceneLoadCallback.go" />
-        <option value="$PROJECT_DIR$/WorldApp/src/RootMgr/rootMgr.go" />
-        <option value="$PROJECT_DIR$/GameApp/tools/gen_protocol" />
-        <option value="$PROJECT_DIR$/GameApp/src/app/register/register_routes.go" />
-        <option value="$PROJECT_DIR$/GameApp/tools/gen_routes" />
-        <option value="$PROJECT_DIR$/GosLib/src/goslib/redisDB/redisDB.go" />
-        <option value="$PROJECT_DIR$/WorldApp/src/worldApp/world_app.go" />
-        <option value="$PROJECT_DIR$/AuthApp/src/authApp/auth_app.go" />
-        <option value="$PROJECT_DIR$/AuthApp/src/account/account.go" />
-        <option value="$PROJECT_DIR$/WorldApp/src/GameAppMgr/sceneCell/sceneCell.go" />
-        <option value="$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameApp/gameApp.go" />
-        <option value="$PROJECT_DIR$/WorldApp/src/ConnectAppMgr/connectApp/connectApp.go" />
-        <option value="$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameCell/gameCell.go" />
-        <option value="$PROJECT_DIR$/GosLib/src/gosconf/gosconf.go" />
-        <option value="$PROJECT_DIR$/ConnectApp/src/connection/agentSender.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/playerManager/playerManager.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/player/playerManager.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/app.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gameApp/game_app.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/app/controllers/equips_controller.go" />
-        <option value="$PROJECT_DIR$/GosLib/src/goslib/gen_server/gen_server.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/player/gameAgentSender.go" />
-        <option value="$PROJECT_DIR$/GosLib/src/goslib/sessionMgr/session.go" />
-        <option value="$PROJECT_DIR$/ConnectApp/src/connection/agentReceiver.go" />
-        <option value="$PROJECT_DIR$/GosLib/src/gosRpcProto/connectToGame.proto" />
-        <option value="$PROJECT_DIR$/ConnectApp/src/connection/agent.go" />
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/player/gameAgent.go" />
         <option value="$PROJECT_DIR$/ConnectApp/src/connection/connection.go" />
         <option value="$PROJECT_DIR$/GameApp/src/gslib/player/player.go" />
         <option value="$PROJECT_DIR$/ConnectApp/src/connection/connect_app_service.go" />
+        <option value="$PROJECT_DIR$/WorldApp/src/GameAppMgr/sceneCell/sceneCell.go" />
+        <option value="$PROJECT_DIR$/GosLib/src/gosconf/gosconf.go" />
+        <option value="$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameApp/gameApp.go" />
+        <option value="$PROJECT_DIR$/GameApp/src/gslib/scene_mgr/scene_mgr.go" />
+        <option value="$PROJECT_DIR$/goslib/src/goslib/sessionMgr/session.go" />
+        <option value="$PROJECT_DIR$/goslib/src/gosconf/gosconf.go" />
+        <option value="$PROJECT_DIR$/connect_app/src/connection/connection.go" />
+        <option value="$PROJECT_DIR$/connect_app/src/connect_app/connect_app.go" />
+        <option value="$PROJECT_DIR$/agent/src/connection/proxy.go" />
+        <option value="$PROJECT_DIR$/agent/src/connection/connection.go" />
+        <option value="$PROJECT_DIR$/agent/src/agent.go" />
+        <option value="$PROJECT_DIR$/auth_app/src/auth_app.go" />
+        <option value="$PROJECT_DIR$/auth_app/src/account/account.go" />
+        <option value="$PROJECT_DIR$/auth_app/src/auth.go" />
+        <option value="$PROJECT_DIR$/auth_app/src/authApp_suite_test.go" />
+        <option value="$PROJECT_DIR$/auth_app/src/authApp_test.go" />
+        <option value="$PROJECT_DIR$/auth/src/authApp_test.go" />
+        <option value="$PROJECT_DIR$/game/src/game_app.go" />
+        <option value="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.proto" />
+        <option value="$PROJECT_DIR$/world_app/src/world_app.go" />
+        <option value="$PROJECT_DIR$/world/src/connect_app_mgr/connect_app.go" />
+        <option value="$PROJECT_DIR$/world/src/agent_mgr/connect_app.go" />
+        <option value="$PROJECT_DIR$/world/src/game_mgr/game_app.go" />
+        <option value="$PROJECT_DIR$/world/src/game_mgr/common_const.go" />
+        <option value="$PROJECT_DIR$/world/src/game_mgr/game_cell.go" />
+        <option value="$PROJECT_DIR$/world/src/game_mgr/scene_cell.go" />
+        <option value="$PROJECT_DIR$/world/src/game_mgr/game_dispatcher.go" />
+        <option value="$PROJECT_DIR$/world/src/game_mgr/game_mgr.go" />
+        <option value="$PROJECT_DIR$/world/src/agent_mgr/agent_dispatcher.go" />
+        <option value="$PROJECT_DIR$/world/src/agent_mgr/agent_mgr.go" />
+        <option value="$PROJECT_DIR$/world/src/world.go" />
+        <option value="$PROJECT_DIR$/agent/src/agent/connection.go" />
+        <option value="$PROJECT_DIR$/agent/src/agent/proxy.go" />
+        <option value="$PROJECT_DIR$/game/src/gslib/player/player.go" />
+        <option value="$PROJECT_DIR$/game/src/gslib/player/proxy.go" />
+        <option value="$PROJECT_DIR$/game/src/gslib/app.go" />
+        <option value="$PROJECT_DIR$/game/src/gslib/base_model/base_model.go" />
+        <option value="$PROJECT_DIR$/game/tasks/generate_tables.rake" />
+        <option value="$PROJECT_DIR$/auth/src/auth/authApp_suite_test.go" />
+        <option value="$PROJECT_DIR$/auth/src/auth.go" />
+        <option value="$PROJECT_DIR$/auth/src/auth/auth.go" />
+        <option value="$PROJECT_DIR$/build_gos.sh" />
+        <option value="$PROJECT_DIR$/game/src/game/game.go" />
+        <option value="$PROJECT_DIR$/world/src/world/world.go" />
+        <option value="$PROJECT_DIR$/agent/src/agent/agent.go" />
+        <option value="$PROJECT_DIR$/goslib/src/goslib/redisdb/redisdb.go" />
+        <option value="$PROJECT_DIR$/game/src/gslib/leaderboard/leaderboard.go" />
+        <option value="$PROJECT_DIR$/dep_install.sh" />
       </list>
     </option>
   </component>
@@ -291,157 +330,55 @@
           <expand>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ConnectApp" type="462c0819:PsiDirectoryNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ConnectApp" type="462c0819:PsiDirectoryNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ConnectApp" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="connectApp" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ConnectApp" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="connection" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="GameApp" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="GameApp" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="GameApp" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="api" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="GameApp" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="gameApp" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="GameApp" type="462c0819:PsiDirectoryNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="gslib" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="GameApp" type="462c0819:PsiDirectoryNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="gslib" type="462c0819:PsiDirectoryNode" />
-              <item name="player" type="462c0819:PsiDirectoryNode" />
+              <item name="leaderboard" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="WorldApp" type="462c0819:PsiDirectoryNode" />
+              <item name="goslib" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="WorldApp" type="462c0819:PsiDirectoryNode" />
+              <item name="goslib" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="WorldApp" type="462c0819:PsiDirectoryNode" />
+              <item name="goslib" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="worldApp" type="462c0819:PsiDirectoryNode" />
+              <item name="goslib" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;AuthApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;AuthApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
+              <item name="goslib" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;AuthApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="google.golang.org" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;AuthApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="google.golang.org" type="462c0819:PsiDirectoryNode" />
-              <item name="grpc" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;AuthApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="google.golang.org" type="462c0819:PsiDirectoryNode" />
-              <item name="grpc" type="462c0819:PsiDirectoryNode" />
-              <item name="examples" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;AuthApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="google.golang.org" type="462c0819:PsiDirectoryNode" />
-              <item name="grpc" type="462c0819:PsiDirectoryNode" />
-              <item name="examples" type="462c0819:PsiDirectoryNode" />
-              <item name="route_guide" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;AuthApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="google.golang.org" type="462c0819:PsiDirectoryNode" />
-              <item name="grpc" type="462c0819:PsiDirectoryNode" />
-              <item name="examples" type="462c0819:PsiDirectoryNode" />
-              <item name="route_guide" type="462c0819:PsiDirectoryNode" />
-              <item name="client" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;AuthApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="google.golang.org" type="462c0819:PsiDirectoryNode" />
-              <item name="grpc" type="462c0819:PsiDirectoryNode" />
-              <item name="examples" type="462c0819:PsiDirectoryNode" />
-              <item name="route_guide" type="462c0819:PsiDirectoryNode" />
-              <item name="server" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;ConnectApp&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
+              <item name="goslib" type="462c0819:PsiDirectoryNode" />
+              <item name="redisdb" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
       <pane id="PackagesPane" />
-      <pane id="Scope" />
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -463,11 +400,11 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/GameApp/src/gslib/player" />
-      <recent name="$PROJECT_DIR$/GameApp/src/gslib/playerManager" />
-      <recent name="$PROJECT_DIR$/ConnectApp/src/connection" />
-      <recent name="$PROJECT_DIR$/GosLib/src" />
-      <recent name="$PROJECT_DIR$/GosLib/src/gosconf" />
+      <recent name="$PROJECT_DIR$/world/src/world" />
+      <recent name="$PROJECT_DIR$/agent/src/connection" />
+      <recent name="$PROJECT_DIR$/agent/src/agent" />
+      <recent name="$PROJECT_DIR$/game/src/game" />
+      <recent name="$PROJECT_DIR$/auth/src/auth" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/AuthApp/src/connectAppProto" />
@@ -476,7 +413,6 @@
   <component name="RubyModuleManagerSettings">
     <option name="blackListedRootsPaths">
       <list>
-        <option value="$PROJECT_DIR$/gslib" />
         <option value="$PROJECT_DIR$" />
       </list>
     </option>
@@ -493,7 +429,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Go Build.gosRunGameApp">
+  <component name="RunManager" selected="Go Build.go build world.go">
     <configuration default="true" type="Applet" factoryName="Applet">
       <option name="HTML_USED" value="false" />
       <option name="WIDTH" value="400" />
@@ -515,41 +451,80 @@
       <module name="" />
       <envs />
     </configuration>
-    <configuration name="gosRunAuthApp" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
-      <module name="AuthApp" />
+    <configuration name="go build agent.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
+      <module name="agent" />
       <working_directory value="$PROJECT_DIR$" />
       <go_parameters value="-i" />
       <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/AuthApp/src/authApp/auth_app.go" />
+      <filePath value="$PROJECT_DIR$/agent/src/agent.go" />
       <directory value="$PROJECT_DIR$" />
-      <output_directory value="$PROJECT_DIR$/bin" />
     </configuration>
-    <configuration name="gosRunConnectApp" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
-      <module name="ConnectApp" />
+    <configuration name="go build auth_app.go" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="auth_app" />
       <working_directory value="$PROJECT_DIR$" />
       <go_parameters value="-i" />
       <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/ConnectApp/src/connectApp/connect_app.go" />
+      <filePath value="$PROJECT_DIR$/auth_app/src/auth_app/auth_app.go" />
       <directory value="$PROJECT_DIR$" />
       <output_directory value="$PROJECT_DIR$/bin" />
     </configuration>
-    <configuration name="gosRunGameApp" type="GoApplicationRunConfiguration" factoryName="Go Application">
-      <module name="GameApp" />
-      <working_directory value="$PROJECT_DIR$/" />
-      <go_parameters value="-i" />
-      <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/GameApp/src/gameApp/game_app.go" />
-      <directory value="$PROJECT_DIR$/" />
-      <output_directory value="$PROJECT_DIR$/bin" />
-    </configuration>
-    <configuration name="gosRunWorldApp" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
-      <module name="WorldApp" />
+    <configuration name="go build auth.go (1)" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
+      <module name="auth" />
       <working_directory value="$PROJECT_DIR$" />
       <go_parameters value="-i" />
       <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/WorldApp/src/worldApp/world_app.go" />
+      <filePath value="$PROJECT_DIR$/auth/src/auth.go" />
+      <directory value="$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="go build auth.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
+      <module name="auth_app" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/auth_app/src/auth.go" />
+      <directory value="$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="go build connect_app.go" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="connect_app" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/connect_app/src/connect_app/connect_app.go" />
       <directory value="$PROJECT_DIR$" />
       <output_directory value="$PROJECT_DIR$/bin" />
+    </configuration>
+    <configuration name="go build game_app.go" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="game_app" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/game_app/src/game_app/game_app.go" />
+      <directory value="$PROJECT_DIR$" />
+      <output_directory value="$PROJECT_DIR$/bin" />
+    </configuration>
+    <configuration name="go build game.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
+      <module name="game" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/game/src/game.go" />
+      <directory value="$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="go build world_app.go" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="world_app" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/world_app/src/world_app/world_app.go" />
+      <directory value="$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="go build world.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
+      <module name="world" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/world/src/world.go" />
+      <directory value="$PROJECT_DIR$" />
     </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
       <module name="gos" />
@@ -557,14 +532,6 @@
       <go_parameters value="-i" />
       <framework value="gotest" />
       <kind value="DIRECTORY" />
-    </configuration>
-    <configuration name="authApp_suite_test.go" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true">
-      <module name="AuthApp" />
-      <working_directory value="$PROJECT_DIR$/AuthApp/src/authApp" />
-      <go_parameters value="-i" />
-      <framework value="gotest" />
-      <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/AuthApp/src/authApp/authApp_suite_test.go" />
     </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
@@ -638,19 +605,24 @@
       <option name="PROGRAM_PARAMETERS" />
       <predefined_log_file id="idea.log" enabled="true" />
     </configuration>
-    <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Go Build.gosRunGameApp" />
-      <item index="1" class="java.lang.String" itemvalue="Go Build.gosRunAuthApp" />
-      <item index="2" class="java.lang.String" itemvalue="Go Build.gosRunConnectApp" />
-      <item index="3" class="java.lang.String" itemvalue="Go Build.gosRunWorldApp" />
-      <item index="4" class="java.lang.String" itemvalue="Go Test.authApp_suite_test.go" />
+    <list size="9">
+      <item index="0" class="java.lang.String" itemvalue="Go Build.go build world_app.go" />
+      <item index="1" class="java.lang.String" itemvalue="Go Build.go build game_app.go" />
+      <item index="2" class="java.lang.String" itemvalue="Go Build.go build connect_app.go" />
+      <item index="3" class="java.lang.String" itemvalue="Go Build.go build auth_app.go" />
+      <item index="4" class="java.lang.String" itemvalue="Go Build.go build agent.go" />
+      <item index="5" class="java.lang.String" itemvalue="Go Build.go build auth.go" />
+      <item index="6" class="java.lang.String" itemvalue="Go Build.go build auth.go (1)" />
+      <item index="7" class="java.lang.String" itemvalue="Go Build.go build world.go" />
+      <item index="8" class="java.lang.String" itemvalue="Go Build.go build game.go" />
     </list>
     <recent_temporary>
-      <list size="4">
-        <item index="0" class="java.lang.String" itemvalue="Go Build.gosRunConnectApp" />
-        <item index="1" class="java.lang.String" itemvalue="Go Build.gosRunWorldApp" />
-        <item index="2" class="java.lang.String" itemvalue="Go Build.gosRunAuthApp" />
-        <item index="3" class="java.lang.String" itemvalue="Go Test.authApp_suite_test.go" />
+      <list size="5">
+        <item index="0" class="java.lang.String" itemvalue="Go Build.go build world.go" />
+        <item index="1" class="java.lang.String" itemvalue="Go Build.go build game.go" />
+        <item index="2" class="java.lang.String" itemvalue="Go Build.go build auth.go (1)" />
+        <item index="3" class="java.lang.String" itemvalue="Go Build.go build agent.go" />
+        <item index="4" class="java.lang.String" itemvalue="Go Build.go build auth.go" />
       </list>
     </recent_temporary>
   </component>
@@ -674,7 +646,9 @@
       <workItem from="1524135389831" duration="331000" />
       <workItem from="1524138241550" duration="101120000" />
       <workItem from="1524533388593" duration="27424000" />
-      <workItem from="1524722995769" duration="297000" />
+      <workItem from="1524722995769" duration="1726000" />
+      <workItem from="1524726511351" duration="8919000" />
+      <workItem from="1524736540031" duration="2169000" />
     </task>
     <servers />
   </component>
@@ -711,7 +685,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="185485000" />
+    <option name="totallyTimeSpent" value="198002000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="838" extended-state="6" />
@@ -724,7 +698,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32898173" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32767624" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32724902" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32898173" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22430556" sideWeight="0.49477807" order="0" side_tool="false" content_ui="combo" />
@@ -786,239 +760,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$USER_HOME$/.go/src/github.com/go-redis/redis/script.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="40">
-          <caret line="9" column="5" lean-forward="false" selection-start-line="9" selection-start-column="5" selection-end-line="9" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.go/src/github.com/go-redis/redis/redis.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
-          <caret line="355" column="9" lean-forward="false" selection-start-line="355" selection-start-column="9" selection-end-line="355" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/Cellar/go/1.9.4/libexec/src/log/log.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="163">
-          <caret line="310" column="5" lean-forward="false" selection-start-line="310" selection-start-column="5" selection-end-line="310" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/grpclog/grpclog.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="314">
-          <caret line="95" column="12" lean-forward="true" selection-start-line="95" selection-start-column="12" selection-end-line="95" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/Cellar/go/1.9.4/libexec/src/builtin/builtin.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="329">
-          <caret line="236" column="5" lean-forward="false" selection-start-line="236" selection-start-column="5" selection-end-line="236" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/goslib/redisDB/redisDB.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" column="23" lean-forward="false" selection-start-line="6" selection-start-column="23" selection-end-line="6" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ConnectApp/src/connectApp/connect_app.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="20" column="13" lean-forward="false" selection-start-line="20" selection-start-column="13" selection-end-line="20" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/goslib/secure/token.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="17" column="12" lean-forward="false" selection-start-line="17" selection-start-column="12" selection-end-line="17" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/WorldApp/src/worldApp/world_app.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="1" lean-forward="true" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/WorldApp/src/RootMgr/rootMgr.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="17" column="13" lean-forward="false" selection-start-line="17" selection-start-column="13" selection-end-line="17" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/utils/load_test.erl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1194">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/api/protocol.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="5" lean-forward="false" selection-start-line="3" selection-start-column="5" selection-end-line="3" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/goslib/packet/packet.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="163">
-          <caret line="210" column="17" lean-forward="false" selection-start-line="210" selection-start-column="17" selection-end-line="210" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/api/decoder.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="156">
-          <caret line="11" column="5" lean-forward="false" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AuthApp/src/authApp/auth_app.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="164" column="40" lean-forward="false" selection-start-line="164" selection-start-column="40" selection-end-line="164" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/WorldApp/src/GameAppMgr/commonConst/commonConst.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="23" column="5" lean-forward="false" selection-start-line="23" selection-start-column="5" selection-end-line="23" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/gosRpcProto/connectApp.pb.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="163">
-          <caret line="46" column="4" lean-forward="false" selection-start-line="46" selection-start-column="4" selection-end-line="46" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AuthApp/src/account/account.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="148" column="0" lean-forward="false" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.go/src/github.com/go-redis/redis/commands.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="163">
-          <caret line="1133" column="18" lean-forward="false" selection-start-line="1133" selection-start-column="18" selection-end-line="1133" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameAppMgr.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="274">
-          <caret line="38" column="25" lean-forward="false" selection-start-line="38" selection-start-column="25" selection-end-line="38" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/WorldApp/src/ConnectAppMgr/connectApp/connectApp.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="53" column="4" lean-forward="false" selection-start-line="53" selection-start-column="4" selection-end-line="53" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameCell/gameCell.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="18" column="33" lean-forward="false" selection-start-line="18" selection-start-column="33" selection-end-line="18" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/examples/route_guide/server/server.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-68">
-          <caret line="208" column="5" lean-forward="false" selection-start-line="208" selection-start-column="5" selection-end-line="208" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/examples/route_guide/routeguide/route_guide.pb.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="310">
-          <caret line="241" column="4" lean-forward="false" selection-start-line="241" selection-start-column="4" selection-end-line="241" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/stream.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="242">
-          <caret line="77" column="4" lean-forward="false" selection-start-line="77" selection-start-column="4" selection-end-line="77" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/examples/route_guide/client/client.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="97">
-          <caret line="122" column="6" lean-forward="true" selection-start-line="122" selection-start-column="6" selection-end-line="122" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/player/playerManager.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="5" lean-forward="false" selection-start-line="14" selection-start-column="5" selection-end-line="14" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/app.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="0" lean-forward="false" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/gameApp/game_app.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="22" column="22" lean-forward="false" selection-start-line="22" selection-start-column="22" selection-end-line="22" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/api/encoder.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="34" column="5" lean-forward="false" selection-start-line="34" selection-start-column="5" selection-end-line="34" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/api/api_map.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" column="30" lean-forward="false" selection-start-line="22" selection-start-column="30" selection-end-line="22" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/app/controllers/equips_controller.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="19" column="9" lean-forward="false" selection-start-line="19" selection-start-column="9" selection-end-line="19" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/goslib/gen_server/gen_server.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="164">
-          <caret line="85" column="31" lean-forward="false" selection-start-line="85" selection-start-column="31" selection-end-line="85" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/call.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="247">
@@ -1026,7 +767,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/gosRpcProto/connectToGame.pb.go">
+    <entry file="file://$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.pb.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="331">
           <caret line="195" column="19" lean-forward="true" selection-start-line="195" selection-start-column="19" selection-end-line="195" selection-end-column="19" />
@@ -1045,14 +786,7 @@
     <entry file="file://$PROJECT_DIR$/ConnectApp/src/connection/agentReceiver.go" />
     <entry file="file://$PROJECT_DIR$/ConnectApp/src/connection/agentSender.go" />
     <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/player/gameAgentSender.go" />
-    <entry file="file://$PROJECT_DIR$/GosLib/src/goslib/sessionMgr/session.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="15" column="0" lean-forward="false" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/gosRpcProto/connectToGame.proto">
+    <entry file="file://$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.proto">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="120">
           <caret line="8" column="0" lean-forward="false" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
@@ -1066,79 +800,323 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/metadata/metadata.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="690">
-          <caret line="51" column="11" lean-forward="false" selection-start-line="51" selection-start-column="11" selection-end-line="51" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/player/game_app_service.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="630">
-          <caret line="53" column="0" lean-forward="false" selection-start-line="53" selection-start-column="0" selection-end-line="53" selection-end-column="0" />
-          <folding>
-            <element signature="e#16#183#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/goslib/memStore/memStore.go">
+    <entry file="file://$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="163">
           <caret line="142" column="0" lean-forward="false" selection-start-line="142" selection-start-column="0" selection-end-line="142" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GameApp/src/gslib/player/player.go">
+    <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/metadata/metadata.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="42" column="8" lean-forward="false" selection-start-line="42" selection-start-column="8" selection-end-line="42" selection-end-column="8" />
+        <state relative-caret-position="-1725">
+          <caret line="51" column="11" lean-forward="false" selection-start-line="51" selection-start-column="11" selection-end-line="51" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/scene_mgr/scene_mgr.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="25" column="0" lean-forward="false" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/player/player_manager.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="14" column="5" lean-forward="false" selection-start-line="14" selection-start-column="5" selection-end-line="14" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/goslib/src/goslib/session_mgr/session.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1110">
+          <caret line="77" column="4" lean-forward="false" selection-start-line="77" selection-start-column="4" selection-end-line="77" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/goslib/src/gosconf/gosconf.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="8" column="38" lean-forward="false" selection-start-line="8" selection-start-column="38" selection-end-line="8" selection-end-column="38" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/connect_app/docs/Design.md" />
+    <entry file="file://$PROJECT_DIR$/game/src/github.com/ryszard/goskiplist/skiplist/skiplist.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/register/callbacks/scene_load_callback.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/auth/src/account/account.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="15" column="4" lean-forward="false" selection-start-line="15" selection-start-column="4" selection-end-line="15" selection-end-column="4" />
           <folding>
-            <element signature="e#16#235#0" expanded="true" />
+            <element signature="e#17#165#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ConnectApp/src/connection/connection.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="59" column="18" lean-forward="false" selection-start-line="59" selection-start-column="18" selection-end-line="59" selection-end-column="18" />
-          <folding>
-            <element signature="e#20#168#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/WorldApp/src/GameAppMgr/gameApp/gameApp.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="61" column="48" lean-forward="false" selection-start-line="61" selection-start-column="48" selection-end-line="61" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/WorldApp/src/GameAppMgr/sceneCell/sceneCell.go">
+    <entry file="file://$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.proto">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
-          <caret line="12" column="54" lean-forward="false" selection-start-line="12" selection-start-column="54" selection-end-line="12" selection-end-column="54" />
+          <caret line="6" column="33" lean-forward="false" selection-start-line="6" selection-start-column="33" selection-end-line="6" selection-end-column="33" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GosLib/src/gosconf/gosconf.go">
+    <entry file="file://$USER_HOME$/.go/src/google.golang.org/grpc/server.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="645">
-          <caret line="77" column="19" lean-forward="false" selection-start-line="77" selection-start-column="5" selection-end-line="77" selection-end-column="20" />
+        <state relative-caret-position="-3294">
+          <caret line="332" column="5" lean-forward="false" selection-start-line="332" selection-start-column="5" selection-end-line="332" selection-end-column="5" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ConnectApp/src/connection/connect_app_service.go">
+    <entry file="file://$PROJECT_DIR$/world/src/agent_mgr/agent_mgr.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="329">
-          <caret line="110" column="4" lean-forward="false" selection-start-line="110" selection-start-column="4" selection-end-line="110" selection-end-column="4" />
+        <state relative-caret-position="510">
+          <caret line="34" column="4" lean-forward="false" selection-start-line="34" selection-start-column="4" selection-end-line="34" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/world/src/agent_mgr/agent_dispatcher.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="34" column="24" lean-forward="false" selection-start-line="34" selection-start-column="24" selection-end-line="34" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/world/src/game_mgr/common_const.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="34" column="12" lean-forward="true" selection-start-line="34" selection-start-column="12" selection-end-line="34" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/world/src/game_mgr/game_cell.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="11" column="6" lean-forward="false" selection-start-line="11" selection-start-column="6" selection-end-line="11" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/world/src/game_mgr/game_dispatcher.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="71">
+          <caret line="11" column="5" lean-forward="false" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/world/src/game_mgr/game_mgr.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="16" column="16" lean-forward="false" selection-start-line="16" selection-start-column="16" selection-end-line="16" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/world/src/game_mgr/scene_cell.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="4" column="18" lean-forward="false" selection-start-line="4" selection-start-column="18" selection-end-line="4" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/world/src/root_mgr/root_mgr.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/player/player.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="208">
+          <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/player/proxy.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="20" lean-forward="false" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/app.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="15" lean-forward="false" selection-start-line="5" selection-start-column="15" selection-end-line="5" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/base_model/base_model.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" column="15" lean-forward="false" selection-start-line="3" selection-start-column="15" selection-end-line="3" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/tools/gen_protocol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="22" lean-forward="false" selection-start-line="4" selection-start-column="22" selection-end-line="4" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/tools/gen_routes">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="22" lean-forward="false" selection-start-line="4" selection-start-column="22" selection-end-line="4" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/register/data_loader.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="19" lean-forward="false" selection-start-line="8" selection-start-column="19" selection-end-line="8" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/tasks/generate_tables.rake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="88" column="14" lean-forward="false" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sessions.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="0">
+            <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+            <folding />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/agent/src/connection/connection.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="18" column="9" lean-forward="false" selection-start-line="18" selection-start-column="9" selection-end-line="18" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/agent/src/connection/proxy.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="73">
+          <caret line="5" column="9" lean-forward="false" selection-start-line="5" selection-start-column="9" selection-end-line="5" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/auth/src/auth/auth.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="1" lean-forward="false" selection-start-line="7" selection-start-column="1" selection-end-line="7" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/auth/src/auth/authApp_suite_test.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#20#230#0" expanded="true" />
+            <element signature="e#14#92#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/auth/src/auth/authApp_test.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="21" column="27" lean-forward="false" selection-start-line="21" selection-start-column="27" selection-end-line="21" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/world/src/world/world.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build_gos.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="14" lean-forward="false" selection-start-line="9" selection-start-column="14" selection-end-line="9" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/agent/src/agent/agent.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/game/game.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="15" column="0" lean-forward="false" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/goslib/src/goslib/redisdb/redisdb.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="19" column="9" lean-forward="false" selection-start-line="19" selection-start-column="9" selection-end-line="19" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/leaderboard/leaderboard.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dep_install.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="26" column="39" lean-forward="false" selection-start-line="26" selection-start-column="39" selection-end-line="26" selection-end-column="39" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1194,7 +1172,7 @@
       </state>
       <state key="ModuleStructureConfigurable.UI">
         <settings>
-          <last-edited>WorldApp</last-edited>
+          <last-edited>GameApp</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
