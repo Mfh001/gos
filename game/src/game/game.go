@@ -33,8 +33,10 @@ func main() {
 	gslib.Run()
 	// Start scene manager
 	scene_mgr.StartSceneMgr()
-	// Start Player goroutine manager
+
+	player.StartPlayerRPC()
 	player.StartPlayerManager()
+
 	// Start listen agent stream
 	player.StartRpcStream()
 	// connect to Game manager
@@ -67,6 +69,7 @@ func connectGameMgr() {
 	}
 
 	uuid := utils.GenId([]string{host, player.StreamRpcListenPort})
+	player.CurrentGameAppId = uuid
 	gameInfo := &pb.ReportGameRequest{
 		Uuid: uuid,
 		Host: host,

@@ -1,4 +1,4 @@
-package game_mgr
+package scene_utils
 
 import (
 	"goslib/redisdb"
@@ -7,10 +7,25 @@ import (
 	"gosconf"
 )
 
-func LoadScenes() ([]*SceneCell, map[string]*SceneCell) {
-	mapScenes := make(map[string]*SceneCell)
+type Scene struct {
+	Uuid string
+	GameAppId string
+	SceneType string
+	SceneConfigId string
+	Ccu int
+	CcuMax int
+}
+
+type SceneConf struct {
+	ConfId string
+	SceneType string
+	CcuMax int
+}
+
+func LoadScenes() ([]*Scene, map[string]*Scene) {
+	mapScenes := make(map[string]*Scene)
 	ids, _ := redisdb.Instance().SMembers(gosconf.RK_SCENE_IDS).Result()
-	scenes := make([]*SceneCell, 0)
+	scenes := make([]*Scene, 0)
 	for i := 0; i < len(ids); i++ {
 		id := ids[i]
 		if id == "" {
@@ -25,7 +40,7 @@ func LoadScenes() ([]*SceneCell, map[string]*SceneCell) {
 	return scenes, mapScenes
 }
 
-func FindScene(sceneId string) (*SceneCell, error) {
+func FindScene(sceneId string) (*Scene, error) {
 	sceneMap, err := redisdb.Instance().HGetAll(sceneId).Result()
 	if err != nil {
 		logger.ERR("findScene: ", sceneId, " failed: ", err)
@@ -57,7 +72,7 @@ func FindSceneConf(confId string) (*SceneConf, error) {
 }
 
 
-func CreateDefaultServerScene(serverId string, conf *SceneConf) (*SceneCell, error) {
+func CreateDefaultServerScene(serverId string, conf *SceneConf) (*Scene, error) {
 	params := make(map[string]interface{})
 	params["uuid"] = serverId
 	params["gameAppId"] = ""
@@ -72,32 +87,29 @@ func CreateDefaultServerScene(serverId string, conf *SceneConf) (*SceneCell, err
 		return nil, err
 	}
 	redisdb.Instance().SAdd(gosconf.RK_SCENE_IDS, serverId)
-	return &SceneCell{
+	return &Scene{
 		Uuid: serverId,
 		GameAppId: "",
 		SceneType: conf.SceneType,
 		SceneConfigId: conf.ConfId,
 		Ccu: 0,
 		CcuMax: conf.CcuMax,
-		ServedServers: make([]string, 0),
 	}, nil
 }
 
-func parseScene(valueMap map[string]string) *SceneCell {
+func parseScene(valueMap map[string]string) *Scene {
 	if valueMap["uuid"] == "" {
 		return nil
 	}
 	ccu, _ := strconv.Atoi(valueMap["ccu"])
 	ccuMax, _ := strconv.Atoi(valueMap["ccuMax"])
-	servedServers := make([]string, 0)
-	return &SceneCell{
+	return &Scene{
 		Uuid: valueMap["uuid"],
 		GameAppId: valueMap["gameAppId"],
 		SceneType: valueMap["sceneType"],
 		SceneConfigId: valueMap["sceneConfigId"],
 		Ccu: ccu,
 		CcuMax: ccuMax,
-		ServedServers: servedServers,
 	}
 }
 

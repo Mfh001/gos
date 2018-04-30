@@ -19,6 +19,8 @@ It has these top-level messages:
 	RegisterReply
 	DeploySceneRequest
 	DeploySceneReply
+	RequestPlayerRequest
+	RequestPlayerReply
 	DispatchGameRequest
 	DispatchGameReply
 	ReportGameRequest

@@ -78,14 +78,14 @@ type Rpc struct {
 var RPC_FOR_CONNECT_APP_MGR = &Rpc{
 	ListenNet:"tcp4",
 	ListenAddr:":50051",
-	DialAddress:"localhost:50051",
+	DialAddress:"127.0.0.1:50051",
 	DialOptions:[]grpc.DialOption{grpc.WithInsecure()},
 }
 
 var RPC_FOR_GAME_APP_MGR = &Rpc{
 	ListenNet:"tcp4",
 	ListenAddr:":50052",
-	DialAddress:"localhost:50052",
+	DialAddress:"127.0.0.1:50052",
 	DialOptions:[]grpc.DialOption{grpc.WithInsecure()},
 }
 

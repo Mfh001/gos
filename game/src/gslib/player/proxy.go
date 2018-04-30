@@ -52,12 +52,21 @@ func (s *StreamServer) DeployScene(ctx context.Context, in *pb.DeploySceneReques
 	return &pb.DeploySceneReply{Success: success}, nil
 }
 
+func (s *StreamServer) RequestPlayer(ctx context.Context, in *pb.RequestPlayerRequest) (*pb.RequestPlayerReply, error) {
+	rpcRsp, err := HandleRPCCall(in.GetAccountId(), in.GetData())
+	if err != nil {
+		return nil, err
+	}
+	return &pb.RequestPlayerReply{
+		Data: rpcRsp,
+	}, nil
+}
+
 func (s *StreamServer) startReceiver(stream pb.RouteConnectGame_AgentStreamServer) error {
 	logger.INFO("gameAgent startReceiver")
 	headers, _ := metadata.FromIncomingContext(stream.Context())
-	accountId := headers["session"][0]
+	accountId := headers["accountId"][0]
 	accountConnectMap.Store(accountId, stream)
-
 	PlayerConnected(accountId, stream)
 	atomic.AddInt32(&onlinePlayers, 1)
 
@@ -75,7 +84,7 @@ func (s *StreamServer) startReceiver(stream pb.RouteConnectGame_AgentStreamServe
 			logger.ERR("GameAgent err: ", err)
 			break
 		}
-		logger.INFO("AgentStream received: ", in.GetAccountId(), " data: ", len(in.GetData()))
+		logger.INFO("AgentStream received: ", accountId, " data: ", len(in.GetData()))
 		HandleRequest(accountId, in.GetData())
 	}
 
@@ -85,3 +94,4 @@ func (s *StreamServer) startReceiver(stream pb.RouteConnectGame_AgentStreamServe
 
 	return err
 }
+

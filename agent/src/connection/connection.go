@@ -10,7 +10,7 @@ import (
 	"api"
 	"errors"
 	"sync"
-	"goslib/session_mgr"
+	"goslib/session_utils"
 	pb "gos_rpc_proto"
 	"gosconf"
 	"sync/atomic"
@@ -21,7 +21,7 @@ type Connection struct {
 	authed bool
 	conn net.Conn
 	processed int64
-	session *session_mgr.Session
+	session *session_utils.Session
 	stream pb.RouteConnectGame_AgentStreamClient
 }
 
@@ -94,12 +94,12 @@ func (self *Connection)handleRequest() {
 
 func (self *Connection)setupProxy() error {
 	sessionMap.Store(self.session.AccountId, self.session)
-	err := ChooseGameServer(self.session)
+	gameAppId, err := ChooseGameServer(self.session)
 	if err != nil {
 		logger.ERR("DispatchToGameApp failed: ", err)
 		return err
 	}
-	self.stream, err = ConnectGameServer(self.session.GameAppId, self.session.AccountId, self.conn)
+	self.stream, err = ConnectGameServer(gameAppId, self.session.AccountId, self.conn)
 	if err != nil {
 		logger.ERR("StartConnToGameStream failed: ", err)
 		return err
@@ -166,7 +166,7 @@ func (self *Connection)authConn(data []byte) (bool, error){
 }
 
 func (self *Connection)validateSession(params *api.SessionAuthParams) (bool, error) {
-	session, err := session_mgr.Find(params.AccountId)
+	session, err := session_utils.Find(params.AccountId)
 	if err != nil {
 		return false, err
 	}

@@ -1,4 +1,4 @@
-package session_mgr
+package session_utils
 
 import (
 	"goslib/redisdb"

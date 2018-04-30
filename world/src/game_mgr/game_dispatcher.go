@@ -8,7 +8,11 @@ import (
 	"gosconf"
 	"github.com/kataras/iris/core/errors"
 	"sync"
+	. "goslib/scene_utils"
+	. "goslib/game_utils"
 )
+
+const DISPATCH_SERVER = "GameAppDispatcher"
 
 func startGameDispatcher() {
 	gen_server.Start(DISPATCH_SERVER, new(Dispatcher))
@@ -63,12 +67,10 @@ func reportGameInfo(uuid string, host string, port string, ccu int32) {
 type Dispatcher struct {
 	defaultServerSceneConf *SceneConf
 
-	apps map[string]*GameCell
+	apps map[string]*Game
 
-	scenes []*SceneCell
-	mapScenes map[string]*SceneCell
-
-	appMapScenes map[string][]string
+	scenes []*Scene
+	mapScenes map[string]*Scene
 
 	printTimer *time.Timer
 }
@@ -86,11 +88,16 @@ func (self *Dispatcher) startGameCheckTimer() {
 }
 
 func (self *Dispatcher) Init(args []interface{}) (err error) {
-	self.apps = make(map[string]*GameCell)
-	self.scenes, self.mapScenes = LoadScenes()
+	self.apps = make(map[string]*Game)
+	LoadAll(self.apps)
+
+	for _, scene := range self.mapScenes {
+		if _, ok := self.apps[scene.Uuid]; !ok {
+			self.dispatchScene(scene)
+		}
+	}
 
 	self.InitDefaultServerScene()
-	self.appMapScenes = make(map[string][]string)
 
 	self.startPrintTimer()
 	self.startGameCheckTimer()
@@ -140,7 +147,7 @@ func isGameAlive(now int64, activeAt int64) bool {
 }
 
 func (self *Dispatcher) addGame(info *GameInfo) {
-	app := &GameCell{
+	app := &Game{
 		Uuid: info.uuid,
 		Host: info.host,
 		Port: info.port,
@@ -149,10 +156,20 @@ func (self *Dispatcher) addGame(info *GameInfo) {
 		ActiveAt: time.Now().Unix(),
 	}
 	self.apps[app.Uuid] = app
+	redisdb.Instance().SAdd(gosconf.RK_GAME_APP_IDS, app.Uuid)
+	app.Save()
 }
 
 func (self *Dispatcher) delGame(uuid string) {
+	if app, ok := self.apps[uuid]; ok {
+		app.Del()
+	}
 	delete(self.apps, uuid)
+	for _, scene := range self.mapScenes {
+		if scene.GameAppId == uuid {
+			self.dispatchScene(scene)
+		}
+	}
 }
 
 func (self *Dispatcher) HandleCall(args []interface{}) (interface{}, error) {
@@ -173,7 +190,7 @@ func (self *Dispatcher) Terminate(reason string) (err error) {
 func (self *Dispatcher)InitDefaultServerScene() {
 	sceneConf, err := FindSceneConf(gosconf.RK_DEFAULT_SERVER_SCENE_CONF_ID)
 	if err != nil {
-		logger.ERR("Init Default Server SceneCell failed!")
+		logger.ERR("Init Default Server Scene failed!")
 	}
 	self.defaultServerSceneConf = sceneConf
 }
@@ -184,8 +201,8 @@ func (self *Dispatcher)InitDefaultServerScene() {
  *	如果sceneId不为空，根据serverId和sceneId将玩家分配到对应游戏服务
  */
 func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId string) (*DispatchInfo, error) {
-	var dispatchApp *GameCell
-	var dispatchScene *SceneCell
+	var dispatchApp *Game
+	var dispatchScene *Scene
 	var err error
 	logger.INFO("doDispatch accountId: ", accountId, " serverId: ", serverId, " sceneId: ", sceneId)
 	if sceneId == "" {
@@ -209,7 +226,7 @@ func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId st
 	}, nil
 }
 
-func (self *Dispatcher)dispatchByServerId(serverId string) (*GameCell, *SceneCell, error) {
+func (self *Dispatcher)dispatchByServerId(serverId string) (*Game, *Scene, error) {
 	// Lookup scene
 	sceneIns, ok := self.mapScenes[serverId]
 
@@ -219,7 +236,6 @@ func (self *Dispatcher)dispatchByServerId(serverId string) (*GameCell, *SceneCel
 			return nil, nil, err
 		}
 		self.mapScenes[serverId] = sceneIns
-		self.scenes = append(self.scenes, sceneIns)
 		return self.dispatchedInfo(sceneIns)
 	}
 
@@ -227,7 +243,7 @@ func (self *Dispatcher)dispatchByServerId(serverId string) (*GameCell, *SceneCel
 	return self.dispatchedInfo(sceneIns)
 }
 
-func (self *Dispatcher)dispatchBySceneId(sceneId string) (*GameCell, *SceneCell, error) {
+func (self *Dispatcher)dispatchBySceneId(sceneId string) (*Game, *Scene, error) {
 	// Lookup scene
 	sceneIns, ok := self.mapScenes[sceneId]
 	if !ok {
@@ -237,7 +253,7 @@ func (self *Dispatcher)dispatchBySceneId(sceneId string) (*GameCell, *SceneCell,
 	return self.dispatchedInfo(sceneIns)
 }
 
-func (self *Dispatcher)dispatchedInfo(sceneIns *SceneCell) (*GameCell, *SceneCell, error) {
+func (self *Dispatcher)dispatchedInfo(sceneIns *Scene) (*Game, *Scene, error) {
 	err := self.makeSureSceneDispatched(sceneIns)
 	if err != nil {
 		return nil, nil, err
@@ -251,9 +267,10 @@ func (self *Dispatcher)dispatchedInfo(sceneIns *SceneCell) (*GameCell, *SceneCel
 	return gameApp, sceneIns, nil
 }
 
-func (self *Dispatcher)makeSureSceneDispatched(scene *SceneCell) error {
+func (self *Dispatcher)makeSureSceneDispatched(scene *Scene) error {
 	// Dispath scene
-	if scene.GameAppId == "" {
+	_, ok := self.apps[scene.GameAppId]
+	if scene.GameAppId == "" || !ok {
 		err := self.dispatchScene(scene)
 		if err != nil {
 			logger.ERR("makeSureSceneDispatched: ", scene.Uuid, " failed: ", err)
@@ -264,8 +281,8 @@ func (self *Dispatcher)makeSureSceneDispatched(scene *SceneCell) error {
 }
 
 // Dispatch scene to specific gameApp
-func (self *Dispatcher)dispatchScene(scene *SceneCell) error {
-	var minPresureApp *GameCell
+func (self *Dispatcher)dispatchScene(scene *Scene) error {
+	var minPresureApp *Game
 
 	// Dispatch to min presure app
 	for _, app := range self.apps {
@@ -273,9 +290,10 @@ func (self *Dispatcher)dispatchScene(scene *SceneCell) error {
 	}
 
 	if minPresureApp == nil {
-		return errors.New("No working GameCell")
+		return errors.New("No working Game")
 	}
 
+	minPresureApp.Ccu = minPresureApp.Ccu + int32(scene.CcuMax)
 	scene.GameAppId = minPresureApp.Uuid
 	//sceneCell.DeploySceneToGameApp(scene)
 
@@ -286,7 +304,7 @@ func (self *Dispatcher)dispatchScene(scene *SceneCell) error {
 	return nil
 }
 
-func chooseLessPresure(appA *GameCell, appB *GameCell, weightB float32) *GameCell {
+func chooseLessPresure(appA *Game, appB *Game, weightB float32) *Game {
 	if appA == nil {
 		return appB
 	}

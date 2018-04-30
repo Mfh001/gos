@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"strconv"
 	"goslib/logger"
-	"goslib/session_mgr"
+	"goslib/session_utils"
 	"goslib/secure"
+	"gosconf"
 )
 
 var ConnectRpcClient pb.DispatcherClient
@@ -104,8 +105,8 @@ func (self *Account)ChangePassword(newPassword string) {
  * RPC
  * request ConnectAppMgr dispatch connectApp for user connecting
  */
-func (self *Account)Dispatch() (string, string, *session_mgr.Session, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+func (self *Account)Dispatch() (string, string, *session_utils.Session, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
 
 	reply, err := ConnectRpcClient.DispatchPlayer(ctx, &pb.DispatchRequest{
@@ -124,10 +125,10 @@ func (self *Account)Dispatch() (string, string, *session_mgr.Session, error) {
 	return reply.GetConnectAppHost(), reply.GetConnectAppPort(), session, nil
 }
 
-func (self *Account)updateSession(reply *pb.DispatchReply) (*session_mgr.Session, error) {
-	var session *session_mgr.Session
+func (self *Account)updateSession(reply *pb.DispatchReply) (*session_utils.Session, error) {
+	var session *session_utils.Session
 	var err error
-	session, err = session_mgr.Find(self.Uuid)
+	session, err = session_utils.Find(self.Uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +146,8 @@ func (self *Account)updateSession(reply *pb.DispatchReply) (*session_mgr.Session
 	return session, err
 }
 
-func (self *Account)createSession() (*session_mgr.Session, error) {
-	return session_mgr.Create(map[string]string{
+func (self *Account)createSession() (*session_utils.Session, error) {
+	return session_utils.Create(map[string]string{
 		"accountId": self.Uuid,
 		"serverId": self.GroupId,
 		"sceneId": "",
