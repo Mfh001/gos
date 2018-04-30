@@ -6,6 +6,7 @@ import (
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	"reflect"
+	"goslib/logger"
 )
 
 type Filter func(elem interface{}) bool
@@ -39,7 +40,7 @@ const (
 var sharedDBInstance *gorp.DbMap
 
 func InitDB() {
-	db, err := sql.Open("mysql", "root:@/game_server_development")
+	db, err := sql.Open("mysql", "root:@/gos_server_development")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -140,7 +141,8 @@ func (e *MemStore) Count(namespaces []string) int {
 func (e *MemStore) Persist(namespaces []string) {
 	trans, err := e.Db.Begin()
 	if err != nil {
-		panic(err.Error())
+		logger.ERR("Persist Begin failed: ", err)
+		return
 	}
 	for tableName, tableCtx := range e.getCtx(namespaces) {
 		statusMap, ok := e.tableStatus(tableName)
@@ -150,7 +152,8 @@ func (e *MemStore) Persist(namespaces []string) {
 	}
 	err = trans.Commit()
 	if err != nil {
-		panic(err.Error())
+		logger.ERR("Persist Commit failed: ", err)
+		return
 	}
 	e.cleanStatus()
 }
@@ -255,3 +258,10 @@ func executeSql(trans *gorp.Transaction, tableName string, status TableStatus, t
 		}
 	}
 }
+
+//func updateRec(tableName string, Rec interface{}) {
+//	if tableName == "users" {
+//		user := Rec.(*models.UserModel).Data
+//		return fmt.Sprintf("update ")
+//	}
+//}

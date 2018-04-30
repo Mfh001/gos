@@ -2,34 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="337311cf-085e-4000-b2d7-4bfaee1526f0" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/goslib/src/goslib/utils/utils.go" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/agent/src/agent/agent.go" afterPath="$PROJECT_DIR$/agent/src/agent/agent.go" />
-      <change beforePath="$PROJECT_DIR$/agent/src/connection/connection.go" afterPath="$PROJECT_DIR$/agent/src/connection/connection.go" />
-      <change beforePath="$PROJECT_DIR$/agent/src/connection/proxy.go" afterPath="$PROJECT_DIR$/agent/src/connection/proxy.go" />
-      <change beforePath="$PROJECT_DIR$/game/src/game/game.go" afterPath="$PROJECT_DIR$/game/src/game/game.go" />
+      <change beforePath="$PROJECT_DIR$/game/src/gslib/app.go" afterPath="$PROJECT_DIR$/game/src/gslib/app.go" />
       <change beforePath="$PROJECT_DIR$/game/src/gslib/player/player.go" afterPath="$PROJECT_DIR$/game/src/gslib/player/player.go" />
-      <change beforePath="$PROJECT_DIR$/game/src/gslib/player/player_manager.go" afterPath="$PROJECT_DIR$/game/src/gslib/player/player_manager.go" />
-      <change beforePath="$PROJECT_DIR$/game/src/gslib/player/proxy.go" afterPath="$PROJECT_DIR$/game/src/gslib/player/proxy.go" />
-      <change beforePath="$PROJECT_DIR$/game/src/gslib/scene_mgr/scene_mgr.go" afterPath="$PROJECT_DIR$/game/src/gslib/scene_mgr/scene_mgr.go" />
-      <change beforePath="$PROJECT_DIR$/game/src/gslib/timertask/timertask.go" afterPath="$PROJECT_DIR$/game/src/gslib/timertask/timertask.go" />
       <change beforePath="$PROJECT_DIR$/game/src/gslib/utils/load_test.beam" afterPath="$PROJECT_DIR$/game/src/gslib/utils/load_test.beam" />
       <change beforePath="$PROJECT_DIR$/game/src/gslib/utils/load_test.erl" afterPath="$PROJECT_DIR$/game/src/gslib/utils/load_test.erl" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.pb.go" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.pb.go" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.proto" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.proto" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.pb.go" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.pb.go" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.proto" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.proto" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/gameApp.pb.go" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/gameApp.pb.go" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/gameApp.proto" afterPath="$PROJECT_DIR$/goslib/src/gos_rpc_proto/gameApp.proto" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/gosconf/gosconf.go" afterPath="$PROJECT_DIR$/goslib/src/gosconf/gosconf.go" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/goslib/broadcast/broadcast.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/broadcast/broadcast.go" />
-      <change beforePath="$PROJECT_DIR$/goslib/src/goslib/gen_server/gen_server.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/gen_server/gen_server.go" />
-      <change beforePath="$PROJECT_DIR$/world/src/agent_mgr/agent_dispatcher.go" afterPath="$PROJECT_DIR$/world/src/agent_mgr/agent_dispatcher.go" />
-      <change beforePath="$PROJECT_DIR$/world/src/agent_mgr/agent_mgr.go" afterPath="$PROJECT_DIR$/world/src/agent_mgr/agent_mgr.go" />
-      <change beforePath="$PROJECT_DIR$/world/src/game_mgr/common_const.go" afterPath="$PROJECT_DIR$/world/src/game_mgr/common_const.go" />
-      <change beforePath="$PROJECT_DIR$/world/src/game_mgr/game_cell.go" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/world/src/game_mgr/game_dispatcher.go" afterPath="$PROJECT_DIR$/world/src/game_mgr/game_dispatcher.go" />
-      <change beforePath="$PROJECT_DIR$/world/src/game_mgr/game_mgr.go" afterPath="$PROJECT_DIR$/world/src/game_mgr/game_mgr.go" />
+      <change beforePath="$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go" afterPath="$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -49,77 +27,40 @@
       <file leaf-file-name="memstore.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="498">
-              <caret line="250" column="52" lean-forward="true" selection-start-line="250" selection-start-column="52" selection-end-line="250" selection-end-column="52" />
+            <state relative-caret-position="135">
+              <caret line="63" column="19" lean-forward="false" selection-start-line="63" selection-start-column="19" selection-end-line="63" selection-end-column="19" />
               <folding>
-                <element signature="e#18#125#0" expanded="true" />
+                <element signature="e#18#142#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_loader.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/game/src/app/register/data_loader.go">
+      <file leaf-file-name="register_routes.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/game/src/app/register/register_routes.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="12" column="5" lean-forward="false" selection-start-line="12" selection-start-column="5" selection-end-line="12" selection-end-column="5" />
-              <folding>
-                <element signature="e#50#147#0" expanded="true" />
-                <marker date="1524736443567" expanded="true" signature="868:936" ph="{...}" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="game_dispatcher.go" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/world/src/game_mgr/game_dispatcher.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="690">
-              <caret line="130" column="0" lean-forward="false" selection-start-line="130" selection-start-column="0" selection-end-line="130" selection-end-column="0" />
+            <state relative-caret-position="135">
+              <caret line="14" column="26" lean-forward="false" selection-start-line="14" selection-start-column="26" selection-end-line="14" selection-end-column="26" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="agent.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agent/src/agent/agent.go">
+      <file leaf-file-name="tables.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/game/src/app/consts/tables.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="211">
-              <caret line="27" column="53" lean-forward="false" selection-start-line="27" selection-start-column="53" selection-end-line="27" selection-end-column="53" />
-              <folding>
-                <element signature="e#14#183#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="game.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/game/src/game/game.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="795">
-              <caret line="53" column="31" lean-forward="false" selection-start-line="53" selection-start-column="31" selection-end-line="53" selection-end-column="31" />
-              <folding>
-                <element signature="e#14#258#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="app.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/game/src/gslib/app.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="60">
-              <caret line="11" column="5" lean-forward="false" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
+            <state relative-caret-position="210">
+              <caret line="14" column="4" lean-forward="false" selection-start-line="14" selection-start-column="4" selection-end-line="14" selection-end-column="4" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="load_test.erl" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/game/src/gslib/utils/load_test.erl">
+      <file leaf-file-name="player.go" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/game/src/gslib/player/player.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
-              <caret line="88" column="23" lean-forward="false" selection-start-line="88" selection-start-column="23" selection-end-line="88" selection-end-column="23" />
+            <state relative-caret-position="192">
+              <caret line="209" column="25" lean-forward="false" selection-start-line="209" selection-start-column="25" selection-end-line="209" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -136,11 +77,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>context</find>
-      <find>RemoveGameApp</find>
-      <find>EquipLoadParams</find>
-      <find>not found!</find>
-      <find>fake_agent:</find>
       <find>timeou</find>
       <find>sendmsg</find>
       <find>handlerequest</find>
@@ -166,6 +102,11 @@
       <find>2d4af695ca21fc54c089e3a22d10201d</find>
       <find>del</find>
       <find>insert</find>
+      <find>gos_server_development</find>
+      <find>persist</find>
+      <find>PersistData</find>
+      <find>loaddta</find>
+      <find>targetPlayerId</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -190,7 +131,6 @@
         <option value="file://$PROJECT_DIR$/auth" />
         <option value="file://$PROJECT_DIR$/world" />
         <option value="file://$PROJECT_DIR$/game" />
-        <option value="file://$PROJECT_DIR$/vendor" />
       </list>
     </option>
     <option name="useGoPathFromSystemEnvironment" value="false" />
@@ -203,9 +143,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/GameApp/src/gslib/scene_mgr/scene_mgr.go" />
-        <option value="$PROJECT_DIR$/goslib/src/goslib/sessionMgr/session.go" />
-        <option value="$PROJECT_DIR$/connect_app/src/connection/connection.go" />
         <option value="$PROJECT_DIR$/connect_app/src/connect_app/connect_app.go" />
         <option value="$PROJECT_DIR$/agent/src/agent.go" />
         <option value="$PROJECT_DIR$/auth_app/src/auth_app.go" />
@@ -223,7 +160,6 @@
         <option value="$PROJECT_DIR$/world/src/world.go" />
         <option value="$PROJECT_DIR$/agent/src/agent/connection.go" />
         <option value="$PROJECT_DIR$/agent/src/agent/proxy.go" />
-        <option value="$PROJECT_DIR$/game/src/gslib/app.go" />
         <option value="$PROJECT_DIR$/game/src/gslib/base_model/base_model.go" />
         <option value="$PROJECT_DIR$/game/tasks/generate_tables.rake" />
         <option value="$PROJECT_DIR$/auth/src/auth/authApp_suite_test.go" />
@@ -234,12 +170,10 @@
         <option value="$PROJECT_DIR$/goslib/src/goslib/redisdb/redisdb.go" />
         <option value="$PROJECT_DIR$/game/src/gslib/leaderboard/leaderboard.go" />
         <option value="$PROJECT_DIR$/dep_install.sh" />
-        <option value="$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go" />
         <option value="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectToGame.proto" />
         <option value="$PROJECT_DIR$/agent/src/connection/proxy.go" />
         <option value="$PROJECT_DIR$/goslib/src/goslib/utils/utils.go" />
         <option value="$PROJECT_DIR$/world/src/game_mgr/game_cell.go" />
-        <option value="$PROJECT_DIR$/game/src/gslib/player/player.go" />
         <option value="$PROJECT_DIR$/goslib/src/goslib/gen_server/gen_server.go" />
         <option value="$PROJECT_DIR$/goslib/src/gos_rpc_proto/connectApp.proto" />
         <option value="$PROJECT_DIR$/goslib/src/gos_rpc_proto/gameApp.proto" />
@@ -250,10 +184,16 @@
         <option value="$PROJECT_DIR$/agent/src/connection/connection.go" />
         <option value="$PROJECT_DIR$/game/src/gslib/player/proxy.go" />
         <option value="$PROJECT_DIR$/agent/src/agent/agent.go" />
-        <option value="$PROJECT_DIR$/game/src/gslib/utils/load_test.erl" />
         <option value="$PROJECT_DIR$/world/src/agent_mgr/agent_dispatcher.go" />
         <option value="$PROJECT_DIR$/game/src/game/game.go" />
         <option value="$PROJECT_DIR$/world/src/game_mgr/game_dispatcher.go" />
+        <option value="$PROJECT_DIR$/game/src/gslib/app.go" />
+        <option value="$PROJECT_DIR$/game/src/gslib/utils/load_test.erl" />
+        <option value="$PROJECT_DIR$/game/src/gslib/player/player.go" />
+        <option value="$PROJECT_DIR$/game/src/app/models/equip_model.go" />
+        <option value="$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go" />
+        <option value="$PROJECT_DIR$/game/src/app/models/equip.go" />
+        <option value="$PROJECT_DIR$/game/src/app/controllers/equips_controller.go" />
       </list>
     </option>
   </component>
@@ -311,7 +251,32 @@
           <expand>
             <path>
               <item name="gos" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="controllers" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="gos" type="b2602c69:ProjectViewProjectNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="models" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -530,7 +495,7 @@
       <workItem from="1524722995769" duration="1726000" />
       <workItem from="1524726511351" duration="8919000" />
       <workItem from="1524736540031" duration="4688000" />
-      <workItem from="1524812460991" duration="25117000" />
+      <workItem from="1524812460991" duration="31184000" />
     </task>
     <servers />
   </component>
@@ -567,19 +532,21 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="225638000" />
+    <option name="totallyTimeSpent" value="231705000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="839" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cargo" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32898173" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32464147" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32464147" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32898173" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22430556" sideWeight="0.49477807" order="0" side_tool="false" content_ui="combo" />
@@ -595,7 +562,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Database Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="true" content_ui="tabs" />
     </layout>
@@ -641,77 +607,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/game/src/gslib/base_model/base_model.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="15" lean-forward="false" selection-start-line="3" selection-start-column="15" selection-end-line="3" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/game/tools/gen_protocol">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="4" column="22" lean-forward="false" selection-start-line="4" selection-start-column="22" selection-end-line="4" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/game/tools/gen_routes">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="4" column="22" lean-forward="false" selection-start-line="4" selection-start-column="22" selection-end-line="4" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/game/tasks/generate_tables.rake">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="88" column="14" lean-forward="false" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sessions.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="0">
-            <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-            <folding />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/auth/src/auth/auth.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="1" lean-forward="false" selection-start-line="7" selection-start-column="1" selection-end-line="7" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/auth/src/auth/authApp_suite_test.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#14#92#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/auth/src/auth/authApp_test.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
@@ -802,16 +697,6 @@
         <state relative-caret-position="165">
           <caret line="11" column="0" lean-forward="false" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/game/src/gslib/player/player.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="484">
-          <caret line="49" column="23" lean-forward="false" selection-start-line="49" selection-start-column="23" selection-end-line="49" selection-end-column="23" />
-          <folding>
-            <element signature="e#16#239#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -928,7 +813,7 @@
         <state relative-caret-position="547">
           <caret line="92" column="4" lean-forward="false" selection-start-line="92" selection-start-column="4" selection-end-line="92" selection-end-column="4" />
           <folding>
-            <element signature="e#17#61#0" expanded="true" />
+            <element signature="e#17#61#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -964,7 +849,7 @@
         <state relative-caret-position="427">
           <caret line="149" column="25" lean-forward="false" selection-start-line="149" selection-start-column="25" selection-end-line="149" selection-end-column="25" />
           <folding>
-            <element signature="e#19#133#0" expanded="true" />
+            <element signature="e#19#133#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -977,43 +862,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="498">
-          <caret line="250" column="52" lean-forward="true" selection-start-line="250" selection-start-column="52" selection-end-line="250" selection-end-column="52" />
-          <folding>
-            <element signature="e#18#125#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/game/src/app/register/data_loader.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="12" column="5" lean-forward="false" selection-start-line="12" selection-start-column="5" selection-end-line="12" selection-end-column="5" />
-          <folding>
-            <element signature="e#50#147#0" expanded="true" />
-            <marker date="1524736443567" expanded="true" signature="868:936" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/game/src/app/register/register_routes.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="11" column="5" lean-forward="false" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/game/src/gslib/utils/load_test.erl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="88" column="23" lean-forward="false" selection-start-line="88" selection-start-column="23" selection-end-line="88" selection-end-column="23" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/game/src/gslib/leaderboard/leaderboard.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-2701">
@@ -1022,18 +870,50 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/game/src/gslib/app.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="11" column="5" lean-forward="false" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/game/src/gslib/scene_mgr/scene_mgr.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
           <caret line="20" column="5" lean-forward="false" selection-start-line="20" selection-start-column="5" selection-end-line="20" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/db/config.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/Cellar/go/1.9.4/libexec/src/database/sql/sql.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-334">
+          <caret line="2788" column="14" lean-forward="false" selection-start-line="2788" selection-start-column="14" selection-end-line="2788" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vendor/src/github.com/go-gorp/gorp/gorp.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/utils/load_test.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="278">
+          <caret line="93" column="31" lean-forward="false" selection-start-line="93" selection-start-column="31" selection-end-line="93" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/app.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="25" column="0" lean-forward="false" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1053,15 +933,106 @@
         <state relative-caret-position="211">
           <caret line="27" column="53" lean-forward="false" selection-start-line="27" selection-start-column="53" selection-end-line="27" selection-end-column="53" />
           <folding>
-            <element signature="e#14#183#0" expanded="true" />
+            <element signature="e#14#183#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/world/src/game_mgr/game_dispatcher.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="690">
-          <caret line="130" column="0" lean-forward="false" selection-start-line="130" selection-start-column="0" selection-end-line="130" selection-end-column="0" />
+        <state relative-caret-position="352">
+          <caret line="97" column="0" lean-forward="false" selection-start-line="97" selection-start-column="0" selection-end-line="97" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/consts/tables.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="4" lean-forward="false" selection-start-line="14" selection-start-column="4" selection-end-line="14" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/models/equip_model.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/register/register_routes.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="14" column="26" lean-forward="false" selection-start-line="14" selection-start-column="26" selection-end-line="14" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/controllers/equips_controller.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-69">
+          <caret line="15" column="41" lean-forward="true" selection-start-line="15" selection-start-column="41" selection-end-line="15" selection-end-column="41" />
+          <folding>
+            <element signature="e#21#119#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/models/equip.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="23" lean-forward="false" selection-start-line="9" selection-start-column="23" selection-end-line="9" selection-end-column="23" />
+          <folding>
+            <element signature="e#16#69#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/models/user.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+          <folding>
+            <element signature="e#16#62#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/app/register/data_loader.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="18" column="73" lean-forward="false" selection-start-line="18" selection-start-column="73" selection-end-line="18" selection-end-column="73" />
+          <folding>
+            <element signature="e#50#147#0" expanded="true" />
+            <marker date="1524736443567" expanded="true" signature="868:936" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/base_model/base_model.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="7" column="5" lean-forward="false" selection-start-line="7" selection-start-column="5" selection-end-line="7" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/goslib/src/goslib/memstore/memstore.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="63" column="19" lean-forward="false" selection-start-line="63" selection-start-column="19" selection-end-line="63" selection-end-column="19" />
+          <folding>
+            <element signature="e#18#142#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game/src/gslib/player/player.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="209" column="25" lean-forward="false" selection-start-line="209" selection-start-column="25" selection-end-line="209" selection-end-column="25" />
           <folding />
         </state>
       </provider>
@@ -1118,7 +1089,7 @@
       </state>
       <state key="ModuleStructureConfigurable.UI">
         <settings>
-          <last-edited>GameApp</last-edited>
+          <last-edited>goslib</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>

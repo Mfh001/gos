@@ -95,8 +95,7 @@ func (self *Player) HandleCast(args []interface{}) {
 	} else if method_name == "handleAsyncWrap" {
 		self.handleAsyncWrap(args[0].(func()))
 	} else if method_name == "PersistData" {
-		// FIXME
-		//self.Store.Persist([]string{"models"})
+		self.Store.Persist([]string{"models"})
 		self.startPersistTimer()
 	} else if method_name == "removeConn" {
 		//self.Conn = nil

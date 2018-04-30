@@ -10,11 +10,11 @@ import (
 )
 
 func Run() {
-	defer func() {
-		if x := recover(); x != nil {
-			fmt.Println("caught panic in main()", x)
-		}
-	}()
+	//defer func() {
+	//	if x := recover(); x != nil {
+	//		fmt.Println("caught panic in main()", x)
+	//	}
+	//}()
 
 	go SysRoutine()
 

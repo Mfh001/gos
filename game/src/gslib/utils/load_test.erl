@@ -86,7 +86,7 @@ bench(N, I) ->
     bench(N, I, undefined).
 
 bench(N, I, Session) ->
-    Sock = connect(59138),
+    Sock = connect(62369),
     Udid = "tt",
     StartTimeStamp = os:timestamp(),
 
