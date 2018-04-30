@@ -3,7 +3,6 @@ package connection
 import (
 	"google.golang.org/grpc"
 	pb "gos_rpc_proto"
-	"time"
 	"context"
 	"goslib/logger"
 	"goslib/gen_server"
@@ -37,7 +36,7 @@ func StartProxyManager() {
 
 // Request GameAppMgr to dispatch GameApp for session
 func ChooseGameServer(session *session_mgr.Session) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
 
 	reply, err := GameMgrRpcClient.DispatchGame(ctx, &pb.DispatchGameRequest{
@@ -115,14 +114,14 @@ func (self *ProxyManager) Init(args []interface{}) (err error) {
 func (self *ProxyManager) HandleCast(args []interface{}) {
 }
 
-func (self *ProxyManager) HandleCall(args []interface{}) interface{} {
+func (self *ProxyManager) HandleCall(args []interface{}) (interface{}, error) {
 	handle := args[0].(string)
 	if handle == "ConnectGameApp" {
 		gameAppId := args[1].(string)
 		addr := args[2].(string)
 		self.doConnectGameApp(gameAppId, addr)
 	}
-	return nil
+	return nil, nil
 }
 
 func (self *ProxyManager) Terminate(reason string) (err error) {

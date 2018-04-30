@@ -13,6 +13,7 @@ import (
 	"goslib/session_mgr"
 	pb "gos_rpc_proto"
 	"gosconf"
+	"sync/atomic"
 )
 
 type Connection struct {
@@ -24,12 +25,16 @@ type Connection struct {
 	stream pb.RouteConnectGame_AgentStreamClient
 }
 
-var sessionMap *sync.Map
-var connectionMap *sync.Map
+var sessionMap = &sync.Map{}
+var connectionMap = &sync.Map{}
+var onlinePlayers int32
 var connId = 0
 
+func OnlinePlayers() int32 {
+	return onlinePlayers
+}
+
 func Handle(_conn net.Conn) {
-	sessionMap = new(sync.Map)
 	instance := &Connection{
 		id: connId,
 		authed: false,
@@ -38,6 +43,7 @@ func Handle(_conn net.Conn) {
 	}
 	connectionMap.Store(instance.id, instance)
 	connId++
+	atomic.AddInt32(&onlinePlayers, 1)
 	go instance.handleRequest()
 }
 
@@ -75,6 +81,13 @@ func (self *Connection)handleRequest() {
 			if err = self.setupProxy(); err != nil {
 				break
 			}
+		}
+	}
+	atomic.AddInt32(&onlinePlayers, -1)
+	if self.stream != nil {
+		err := self.stream.CloseSend()
+		if err != nil {
+			logger.ERR("Connection close stream failed: ", err)
 		}
 	}
 }

@@ -34,8 +34,8 @@ func (self *Broadcast) HandleCast(args []interface{}) {
 	}
 }
 
-func (self *Broadcast) HandleCall(args []interface{}) interface{} {
-	return nil
+func (self *Broadcast) HandleCall(args []interface{}) (interface{}, error) {
+	return nil, nil
 }
 
 func (self *Broadcast) Terminate(reason string) (err error) {

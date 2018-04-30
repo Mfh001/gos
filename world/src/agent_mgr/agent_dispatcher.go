@@ -1,22 +1,21 @@
 package agent_mgr
 
 import (
-	"goslib/redisdb"
-	"strconv"
 	"goslib/gen_server"
 	"goslib/logger"
 	"time"
-	"strings"
+	"gosconf"
+	"github.com/kataras/iris/core/errors"
+	"sync"
 )
 
 type connectApp struct {
 	Uuid string
-	Name string
 	Host string
 	Port string
-	Ccu  int
-	CcuMax int
-	Status int
+	Ccu  int32
+	CcuMax int32
+	ActiveAt int64
 }
 
 type DispatchCache struct {
@@ -24,33 +23,33 @@ type DispatchCache struct {
 	activeAt int64
 }
 
-const (
-	SERVER_STATUS_WORKING = iota
-	SERVER_STATUS_MAINTAIN
-)
-
-const CONNECT_APP_IDS_KEY = "__CONNECT_APP_IDS_KEY"
 const SERVER = "ConnectAppDispatcher"
+var agentInfos = &sync.Map{}
+type AgentInfo struct {
+	uuid string
+	host string
+	port string
+	ccu int32
+	activeAt int64
+}
 
 func startAgentDispatcher() {
-	SetupForTest()
 	gen_server.Start(SERVER, new(Dispatcher))
 }
 
-func SetupForTest() {
-	for i := 0; i < 10; i++  {
-		num := strconv.Itoa(i)
-		uuid := "fake_agent:" + num
-		value := make(map[string]interface{})
-		value["uuid"] = uuid
-		value["name"] = "agent:" + num
-		value["host"] = "127.0.0.1"
-		value["port"] = "400" + num
-		value["ccu"] = 0
-		value["ccuMax"] = 100
-		value["status"] = SERVER_STATUS_WORKING
-		redisdb.Instance().HMSet(uuid, value)
-		redisdb.Instance().SAdd(CONNECT_APP_IDS_KEY, uuid)
+func handleReportAgentInfo(uuid string, host string, port string, ccu int32) {
+	if agentInfo, ok := agentInfos.Load(uuid); ok {
+		agentInfo.(*AgentInfo).ccu = ccu
+		agentInfo.(*AgentInfo).activeAt = time.Now().Unix()
+	} else {
+		agentInfo = &AgentInfo{
+			uuid: uuid,
+			host: host,
+			port: port,
+			ccu: ccu,
+			activeAt: time.Now().Unix(),
+		}
+		agentInfos.Store(uuid, agentInfo)
 	}
 }
 
@@ -75,91 +74,115 @@ func dispatchAgent(accountId string, groupId string) (appId string, host string,
    GenServer Callbacks
 */
 type Dispatcher struct {
-	apps []*connectApp
-	mapApps map[string]*connectApp
+	apps          map[string]*connectApp
 	dispatchCache map[string]*DispatchCache
-	appMapGroups map[string][]string
-	groupMapApps map[string][]string
+	appMapGroups  map[string][]string
+	groupMapApps  map[string][]string
 
 	printTimer *time.Timer
+	agentCheckTimer *time.Timer
 }
 
 func (self *Dispatcher) startPrintTimer() {
 	self.printTimer = time.AfterFunc(5*time.Second, func() {
 		gen_server.Cast(SERVER, "printStatus")
 	})
+	self.agentCheckTimer = time.AfterFunc(5*time.Second, func() {
+		gen_server.Cast(SERVER, "agentCheck")
+	})
+}
+
+func (self *Dispatcher) startAgentCheckTimer() {
+	self.agentCheckTimer = time.AfterFunc(5*time.Second, func() {
+		gen_server.Cast(SERVER, "agentCheck")
+	})
 }
 
 func (self *Dispatcher) Init(args []interface{}) (err error) {
-	self.LoadApps()
+	self.apps = make(map[string]*connectApp)
 	self.dispatchCache = make(map[string]*DispatchCache)
 	self.appMapGroups = make(map[string][]string)
 	self.groupMapApps = make(map[string][]string)
 
 	self.startPrintTimer()
+	self.startAgentCheckTimer()
 	return nil
 }
 
 func (self *Dispatcher) HandleCast(args []interface{}) {
 	handle := args[0].(string)
 	if handle == "printStatus" {
-		logger.WARN("=============Load Balance===================")
 		for _, app := range self.apps {
-			logger.INFO(app.Uuid, " ccu: ", app.Ccu)
+			logger.INFO("Agent uuid: ", app.Uuid, " address: ", app.Host, ":", app.Port, " ccu: ", app.Ccu)
 		}
-		logger.WARN("=============App Groups===================")
-		for appId, groupIds := range self.appMapGroups {
-			logger.INFO(appId, " groupIds: ", strings.Join(groupIds, ","))
-		}
-		logger.WARN("=============Group Apps===================")
-		for groupId, appIds := range self.groupMapApps {
-			logger.INFO(groupId, " appIds: ", strings.Join(appIds, ","))
-		}
+		//logger.WARN("=============App Groups===================")
+		//for appId, groupIds := range self.appMapGroups {
+		//	logger.INFO(appId, " groupIds: ", strings.Join(groupIds, ","))
+		//}
+		//logger.WARN("=============Group Apps===================")
+		//for groupId, appIds := range self.groupMapApps {
+		//	logger.INFO(groupId, " appIds: ", strings.Join(appIds, ","))
+		//}
 		self.startPrintTimer()
+	} else if handle == "agentCheck" {
+		now := time.Now().Unix()
+		var needDelIds = make([]string, 0)
+		agentInfos.Range(func(key, value interface{}) bool {
+			agentInfo := value.(*AgentInfo)
+			if isAgentAlive(now, agentInfo.activeAt) {
+				if agent, ok := self.apps[agentInfo.uuid]; ok {
+					agent.Ccu = agentInfo.ccu
+					agent.ActiveAt = now
+				} else {
+					logger.WARN("addAgent: ", agentInfo.uuid)
+					self.addAgent(agentInfo)
+				}
+			} else {
+				logger.WARN("delAgent: ", agentInfo.uuid)
+				needDelIds = append(needDelIds, agentInfo.uuid)
+				self.delAgent(agentInfo.uuid)
+			}
+			return true
+		})
+		for _, needDelId := range needDelIds {
+			agentInfos.Delete(needDelId)
+		}
+		self.startAgentCheckTimer()
 	}
 }
 
-func (self *Dispatcher) HandleCall(args []interface{}) interface{} {
+func isAgentAlive(now int64, activeAt int64) bool {
+	return activeAt + gosconf.SERVICE_DEAD_DURATION > now
+}
+
+func (self *Dispatcher) addAgent(info *AgentInfo)  {
+	agent := &connectApp{
+		Uuid: info.uuid,
+		Host: info.host,
+		Port: info.port,
+		Ccu: 0,
+		CcuMax: gosconf.AGENT_CCU_MAX,
+		ActiveAt: time.Now().Unix(),
+	}
+	self.apps[agent.Uuid] = agent
+}
+
+func (self *Dispatcher) delAgent(uuid string)  {
+	delete(self.apps, uuid)
+}
+
+func (self *Dispatcher) HandleCall(args []interface{}) (interface{}, error) {
 	handle := args[0].(string)
 	if handle == "Dispatch" {
 		accountId := args[1].(string)
 		groupId := args[2].(string)
 		return self.doDispatch(accountId, groupId)
 	}
-	return nil
+	return nil, nil
 }
 
 func (self *Dispatcher) Terminate(reason string) (err error) {
 	return nil
-}
-
-func (self *Dispatcher)LoadApps() {
-	self.mapApps = make(map[string]*connectApp)
-	ids, _ := redisdb.Instance().SMembers(CONNECT_APP_IDS_KEY).Result()
-	self.apps = make([]*connectApp, 0)
-	for i := 0; i < len(ids); i++ {
-		id := ids[i]
-		valueMap, _ := redisdb.Instance().HGetAll(id).Result()
-		app := parseConnectApp(valueMap)
-		self.apps = append(self.apps, app)
-		self.mapApps[app.Uuid] = app
-	}
-	logger.INFO("idSize: ", len(ids), " appSize: ", len(self.apps))
-}
-
-func parseConnectApp(valueMap map[string]string) *connectApp {
-	ccu, _ := strconv.Atoi(valueMap["ccu"])
-	ccuMax, _ := strconv.Atoi(valueMap["ccuMax"])
-	status, _ := strconv.Atoi(valueMap["status"])
-	return &connectApp{
-		valueMap["uuid"],
-		valueMap["name"],
-		valueMap["host"],
-		valueMap["port"],
-		ccu,
-		ccuMax,
-		status,
-	}
 }
 
 /*
@@ -167,11 +190,15 @@ func parseConnectApp(valueMap map[string]string) *connectApp {
  *	如果groupId不为空，优先将相同服玩家分配到相同代理，如果没有空间则寻找最空闲代理，建立分部
  *	如果groupId为空，直接分配到空闲服务器，没有空闲服务器就分配到负载最低的服务器
  */
-func (self *Dispatcher) doDispatch(accountId string, groupId string) *connectApp {
+func (self *Dispatcher) doDispatch(accountId string, groupId string) (*connectApp, error) {
 	if cache, ok := self.dispatchCache[accountId]; ok {
-		if self.matchDispatch(accountId, groupId, cache.app) {
-			cache.activeAt = time.Now().Unix()
-			return cache.app
+		if cache == nil {
+			delete(self.dispatchCache, accountId)
+		} else {
+			if self.matchDispatch(accountId, groupId, cache.app) {
+				cache.activeAt = time.Now().Unix()
+				return cache.app, nil
+			}
 		}
 	}
 
@@ -184,6 +211,10 @@ func (self *Dispatcher) doDispatch(accountId string, groupId string) *connectApp
 		self.appendGroupIdToApp(dispatchApp.Uuid, groupId)
 	}
 
+	if dispatchApp == nil {
+		return nil, errors.New("No working agent found!")
+	}
+
 	dispatchApp.Ccu++
 
 	self.dispatchCache[accountId] = &DispatchCache{
@@ -191,7 +222,7 @@ func (self *Dispatcher) doDispatch(accountId string, groupId string) *connectApp
 		time.Now().Unix(),
 	}
 
-	return dispatchApp
+	return dispatchApp, nil
 }
 
 func (self *Dispatcher)appendAppIdToGroup(appId string, groupId string) {
@@ -227,9 +258,6 @@ func (self *Dispatcher)appendGroupIdToApp(appId string, groupId string) {
 func (self *Dispatcher)dispatchByAccountId(accountId string) *connectApp {
 	var minPressureApp *connectApp
 	for _, app := range self.apps {
-		if app.Status != SERVER_STATUS_WORKING {
-			continue
-		}
 		if app.Ccu < app.CcuMax {
 			return app
 		}
@@ -247,10 +275,7 @@ func (self *Dispatcher)dispatchByGroupId(accountId string, groupId string) *conn
 	// Dispatch to old group
 	if ok {
 		for _, appId := range appIds  {
-			app := self.mapApps[appId]
-			if app.Status != SERVER_STATUS_WORKING {
-				continue
-			}
+			app := self.apps[appId]
 			if app.Ccu < app.CcuMax {
 				return app
 			}
@@ -260,9 +285,6 @@ func (self *Dispatcher)dispatchByGroupId(accountId string, groupId string) *conn
 
 	// Dispatch to min presure app
 	for _, app := range self.apps {
-		if app.Status != SERVER_STATUS_WORKING {
-			continue
-		}
 		minPresureApp = chooseLessPresure(minPresureApp, app, 0)
 	}
 
@@ -275,9 +297,6 @@ func (self *Dispatcher)dispatchByGroupId(accountId string, groupId string) *conn
  *  2.is same group
  */
 func (self *Dispatcher)matchDispatch(accountId string, groupId string, targetApp *connectApp) bool {
-	if targetApp.Status != SERVER_STATUS_WORKING {
-		return false
-	}
 	if groupId == ""{
 		return self.matchDispatchByAccountId(accountId, targetApp)
 	} else {
@@ -296,7 +315,7 @@ func (self *Dispatcher)matchDispatchByGroupId(groupId string, targetApp *connect
 	}
 
 	for _, appId := range appIds  {
-		app := self.mapApps[appId]
+		app := self.apps[appId]
 		if app.Uuid == targetApp.Uuid {
 			return true
 		}

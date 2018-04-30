@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package connectApp;
-option go_package = "gosRPcProto";
+option go_package = "gos_rpc_proto";
 
 service RouteConnectGame {
     // A Bidirectional streaming RPC.

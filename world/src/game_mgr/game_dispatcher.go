@@ -5,12 +5,12 @@ import (
 	"goslib/gen_server"
 	"goslib/logger"
 	"time"
-	"strings"
 	"gosconf"
+	"github.com/kataras/iris/core/errors"
+	"sync"
 )
 
 func startGameDispatcher() {
-	SetupForTest()
 	gen_server.Start(DISPATCH_SERVER, new(Dispatcher))
 }
 
@@ -20,6 +20,16 @@ type DispatchInfo struct {
 	AppPort string
 	SceneId string
 }
+
+type GameInfo struct {
+	uuid string
+	host string
+	port string
+	ccu int32
+	activeAt int64
+}
+
+var gameInfos = &sync.Map{}
 
 func dispatchGame(accountId string, serverId string, sceneId string) (*DispatchInfo, error) {
 	result, err := gen_server.Call(DISPATCH_SERVER, "Dispatch", accountId, serverId, sceneId)
@@ -31,14 +41,29 @@ func dispatchGame(accountId string, serverId string, sceneId string) (*DispatchI
 	return info, nil
 }
 
+func reportGameInfo(uuid string, host string, port string, ccu int32) {
+	if gameInfo, ok := gameInfos.Load(uuid); ok {
+		gameInfo.(*GameInfo).ccu = ccu
+		gameInfo.(*GameInfo).activeAt = time.Now().Unix()
+	} else {
+		gameInfo := &GameInfo{
+			uuid: uuid,
+			host: host,
+			port: port,
+			ccu: ccu,
+			activeAt: time.Now().Unix(),
+		}
+		gameInfos.Store(uuid, gameInfo)
+	}
+}
+
 /*
    GenServer Callbacks
 */
 type Dispatcher struct {
 	defaultServerSceneConf *SceneConf
 
-	apps []*GameCell
-	mapApps map[string]*GameCell
+	apps map[string]*GameCell
 
 	scenes []*SceneCell
 	mapScenes map[string]*SceneCell
@@ -54,33 +79,83 @@ func (self *Dispatcher) startPrintTimer() {
 	})
 }
 
+func (self *Dispatcher) startGameCheckTimer() {
+	self.printTimer = time.AfterFunc(5*time.Second, func() {
+		gen_server.Cast(DISPATCH_SERVER, "gameCheck")
+	})
+}
+
 func (self *Dispatcher) Init(args []interface{}) (err error) {
-	self.apps, self.mapApps = LoadApps()
+	self.apps = make(map[string]*GameCell)
 	self.scenes, self.mapScenes = LoadScenes()
 
 	self.InitDefaultServerScene()
 	self.appMapScenes = make(map[string][]string)
 
 	self.startPrintTimer()
+	self.startGameCheckTimer()
 	return nil
 }
 
 func (self *Dispatcher) HandleCast(args []interface{}) {
 	handle := args[0].(string)
 	if handle == "printStatus" {
-		logger.WARN("=============Load Balance===================")
 		for _, app := range self.apps {
-			logger.INFO(app.Uuid, " ccu: ", app.Ccu)
+			logger.INFO("Game uuid: ", app.Uuid, " address: ", app.Host, ":", app.Port, " ccu: ", app.Ccu)
 		}
-		logger.WARN("=============App Served Scenes===================")
-		for appId, groupIds := range self.appMapScenes {
-			logger.INFO(appId, " groupIds: ", strings.Join(groupIds, ","))
-		}
+		//logger.WARN("=============App Served Scenes===================")
+		//for appId, groupIds := range self.appMapScenes {
+		//	logger.INFO(appId, " groupIds: ", strings.Join(groupIds, ","))
+		//}
 		self.startPrintTimer()
+	} else if handle == "gameCheck" {
+		var needDelIds = make([]string, 0)
+		gameInfos.Range(func(key, value interface{}) bool {
+			gameInfo := value.(*GameInfo)
+			now := time.Now().Unix()
+			if isGameAlive(now, gameInfo.activeAt) {
+				if game, ok := self.apps[gameInfo.uuid]; ok {
+					game.Ccu = gameInfo.ccu
+					game.ActiveAt = now
+				} else {
+					logger.WARN("addGame: ", gameInfo.uuid)
+					self.addGame(gameInfo)
+				}
+			} else {
+				logger.WARN("delGame: ", gameInfo.uuid)
+				needDelIds = append(needDelIds, gameInfo.uuid)
+				self.delGame(gameInfo.uuid)
+			}
+			return true
+		})
+		for _, needDelId := range needDelIds {
+			gameInfos.Delete(needDelId)
+		}
+		self.startGameCheckTimer()
 	}
 }
 
-func (self *Dispatcher) HandleCall(args []interface{}) interface{} {
+func isGameAlive(now int64, activeAt int64) bool {
+	return activeAt + gosconf.SERVICE_DEAD_DURATION > now
+}
+
+func (self *Dispatcher) addGame(info *GameInfo) {
+	app := &GameCell{
+		Uuid: info.uuid,
+		Host: info.host,
+		Port: info.port,
+		Ccu: 0,
+		CcuMax: gosconf.GAME_CCU_MAX,
+		ActiveAt: time.Now().Unix(),
+	}
+	self.apps[app.Uuid] = app
+}
+
+func (self *Dispatcher) delGame(uuid string) {
+	delete(self.apps, uuid)
+}
+
+func (self *Dispatcher) HandleCall(args []interface{}) (interface{}, error) {
 	handle := args[0].(string)
 	if handle == "Dispatch" {
 		accountId := args[1].(string)
@@ -88,7 +163,7 @@ func (self *Dispatcher) HandleCall(args []interface{}) interface{} {
 		sceneId := args[3].(string)
 		return self.doDispatch(accountId, serverId, sceneId)
 	}
-	return nil
+	return nil, nil
 }
 
 func (self *Dispatcher) Terminate(reason string) (err error) {
@@ -108,7 +183,7 @@ func (self *Dispatcher)InitDefaultServerScene() {
  *  如果sceneId为空，根据serverId将玩家分配到对应游戏服务
  *	如果sceneId不为空，根据serverId和sceneId将玩家分配到对应游戏服务
  */
-func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId string) *DispatchInfo {
+func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId string) (*DispatchInfo, error) {
 	var dispatchApp *GameCell
 	var dispatchScene *SceneCell
 	var err error
@@ -121,7 +196,7 @@ func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId st
 
 	if err != nil {
 		logger.ERR("Dispatch Game Failed: ", err)
-		return nil
+		return nil, err
 	}
 
 	dispatchApp.Ccu++
@@ -131,7 +206,7 @@ func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId st
 		AppHost: dispatchApp.Host,
 		AppPort: dispatchApp.Port,
 		SceneId: dispatchScene.Uuid,
-	}
+	}, nil
 }
 
 func (self *Dispatcher)dispatchByServerId(serverId string) (*GameCell, *SceneCell, error) {
@@ -168,7 +243,7 @@ func (self *Dispatcher)dispatchedInfo(sceneIns *SceneCell) (*GameCell, *SceneCel
 		return nil, nil, err
 	}
 
-	gameApp, ok := self.mapApps[sceneIns.GameAppId]
+	gameApp, ok := self.apps[sceneIns.GameAppId]
 	if !ok {
 		return nil, nil, nil
 	}
@@ -194,10 +269,11 @@ func (self *Dispatcher)dispatchScene(scene *SceneCell) error {
 
 	// Dispatch to min presure app
 	for _, app := range self.apps {
-		if app.Status != SERVER_STATUS_WORKING {
-			continue
-		}
 		minPresureApp = chooseLessPresure(minPresureApp, app, 0)
+	}
+
+	if minPresureApp == nil {
+		return errors.New("No working GameCell")
 	}
 
 	scene.GameAppId = minPresureApp.Uuid

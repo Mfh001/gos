@@ -109,12 +109,12 @@ func (self *Player) HandleCast(args []interface{}) {
 	}
 }
 
-func (self *Player) HandleCall(args []interface{}) interface{} {
+func (self *Player) HandleCall(args []interface{}) (interface{}, error) {
 	method_name := args[0].(string)
 	if method_name == "handleWrap" {
-		return self.handleWrap(args[1].(func() interface{}))
+		return self.handleWrap(args[1].(func() interface{})), nil
 	}
-	return nil
+	return nil, nil
 }
 
 func (self *Player) Terminate(reason string) (err error) {

@@ -43,8 +43,8 @@ func (t *Timertask) Init(args []interface{}) (err error) {
 	t.Conn = conn
 }
 
-func (t *TimerTask) HandleCall(args []interface{}) interface{} {
-	return handleCallAndCast(args)
+func (t *TimerTask) HandleCall(args []interface{}) (interface{}, error) {
+	return handleCallAndCast(args), nil
 }
 
 func (t *TimerTask) HandleCast(args []interface{}) {

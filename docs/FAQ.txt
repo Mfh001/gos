@@ -1,0 +1,115 @@
+1.为什么连接管理与游戏服分离？
+  业务分离
+    1.尽量少的暴露服务器公网接口
+    2.让连接服务维持长连接，便于游戏服的动态调整（增减），以及玩家在服务间的迁移
+
+  便于广播
+    1.连接服务器由于业务单一，可以维持更多的在线用户，便于广播
+
+2.玩家在连接服务上的分配规则？
+  分配规则：
+    1.玩家按照GroupId聚合到尽量少的连接服务器上
+  设计思路：
+    1.相同Group内进行全局广播时，减少集群内部RPC消息量
+
+3.玩家在游戏服务上的分配规则？
+  1.根据游戏场景分布玩家
+    MMO/SLG/RPG-场景：区服地图、跨服战地图
+    MOBA/RTS/棋牌-场景: 区服大厅、对战房间
+
+    内部处理逻辑：
+      GameCellMgr根据玩家SceneId分配到对应GameCell的Scene
+
+    结构梳理
+      Hardware:(物理机)
+        uuid
+        Zone
+        NetIP
+        LocalIP
+
+      GameCell:(游戏服务)
+        uuid
+        HardwareId
+        SpaceMax
+        SpaceCurrent
+        ServedScenes: [SceneId1, SceneId2, ...]
+
+      Scene:(游戏场景)
+        uuid
+        GameCellId
+        SceneType
+        SceneConfigId
+        RequiredCCUSpace
+        ServedServers: [ServerId1, ServerId2, ...]
+        注：通过ServerId、SceneType、SceneConfigId搜索Scene获取SceneId
+
+      Player:(玩家)
+        uuid
+        ServerId
+        SceneId
+
+      Hardware : GameCell => 1 : N
+      GameCell : Scene    => 1 : N
+      Scene    : Player   => 1 : N
+
+4.冷热数据如何管理？
+  4.1 热数据类型有哪些？
+    玩家热数据
+      比如：玩家角色相关信息、个人信息
+      玩家热数据随着玩家在服务间的迁移而迁移
+
+    场景热数据
+      比如：场景相关的信息
+
+    世界热数据
+      比如：排行榜、服务拓扑图
+
+    注：
+      1.玩家、场景热数据由玩家当前所在场景管理
+      2.世界热数据由Redis托管
+
+  4.2 冷热数据管理概述
+    HotData <-> WarmDataManager <-> RDS
+
+    HotData：玩家、场景、世界热数据
+      职责：
+        1.热数据加载与定时回写，以及玩家下线回写
+
+    WarmDataManager
+      职责：
+        1.响应数据查询请求，等待写入完毕，从缓存检测，无缓存则读取RDS
+        2.响应数据写入请求，加入写入队列
+      设计：
+        1.尽量缓存热数据，给热数据缓存设置内存上限
+        2.使用LRU算法配合缓存上限
+      
+    RDS：冷数据存储
+      关于RDS的选择，首先根据在线玩家数量和玩家热数据持久化频率做预估，假设游戏有10w在线玩家，每个玩家平均隔5分钟进行一次数据存储，那么平均 TPS = 10w / 300s = 333
+
+5.广播如何管理？
+  广播类型总结
+    聊天消息、场景事件、区服事件
+  主动订阅自己感兴趣的事件
+
+6.定时任务管理？
+  根据玩家SceneId，在对应场景处理
+
+7.区服Services
+  区服聊天
+  联盟聊天
+  区服排行榜
+  公会
+
+8.服务器间通信
+  RPC：
+    技术选型：GRPC
+    延迟不敏感、交互频率不高的场景
+    例如：查看其它玩家的信息、汇报排行榜信息
+
+  TCP：
+    延迟敏感，交互频繁的场景
+    例如：连接服务与游戏服务间的通信
+
+备注：服务和服务器有何差异？
+  服务器：指一台物理机器或一台云服务器
+  服务：指服务器上运行的一个服务，服务器: 服务: 线程 => 1 : N : M

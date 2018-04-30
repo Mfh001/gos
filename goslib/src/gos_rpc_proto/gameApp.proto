@@ -4,10 +4,11 @@
 syntax = "proto3";
 
 package connectApp;
-option go_package = "gosRPcProto";
+option go_package = "gos_rpc_proto";
 
 service GameDispatcher {
     rpc DispatchGame(DispatchGameRequest) returns (DispatchGameReply) {}
+    rpc ReportGameInfo(ReportGameRequest) returns (ReportGameReply) {}
 }
 
 message DispatchGameRequest {
@@ -21,4 +22,15 @@ message DispatchGameReply {
     string gameAppHost = 2;
     string gameAppPort = 3;
     string sceneId = 4;
+}
+
+message ReportGameRequest {
+    string uuid = 1;
+    string host = 2;
+    string port = 3;
+    int32  ccu  = 4;
+}
+
+message ReportGameReply {
+    bool success = 1;
 }

@@ -5,8 +5,15 @@ import (
 	"time"
 )
 
+const IS_DEBUG = true
+
 const (
 	TCP_READ_TIMEOUT = 60 * time.Second
+	HEARTBEAT = 5 * time.Second
+	SERVICE_DEAD_DURATION = 16
+	RPC_REQUEST_TIMEOUT = 5 * time.Second
+	AGENT_CCU_MAX = 20000
+	GAME_CCU_MAX = 5000
 )
 
 /*
@@ -48,11 +55,13 @@ TCP Servers
 type TCP struct {
 	Network string
 	Address string
+	Port string
 }
 
 var TCP_SERVER_CONNECT_APP = &TCP{
-	"tcp",
-	":4000",
+	Network: "tcp",
+	Address: ":4000",
+	Port: "4000",
 }
 
 /*
@@ -61,28 +70,30 @@ Rpc Servers
 type Rpc struct {
 	ListenNet string // must be "tcp", "tcp4", "tcp6", "unix" or "unixpacket"
 	ListenAddr string
+	ListenPort string
 	DialAddress string
 	DialOptions []grpc.DialOption
 }
 
 var RPC_FOR_CONNECT_APP_MGR = &Rpc{
-	"tcp4",
-	":50051",
-	"localhost:50051",
-	[]grpc.DialOption{grpc.WithInsecure()},
+	ListenNet:"tcp4",
+	ListenAddr:":50051",
+	DialAddress:"localhost:50051",
+	DialOptions:[]grpc.DialOption{grpc.WithInsecure()},
 }
 
 var RPC_FOR_GAME_APP_MGR = &Rpc{
-	"tcp4",
-	":50052",
-	"localhost:50052",
-	[]grpc.DialOption{grpc.WithInsecure()},
+	ListenNet:"tcp4",
+	ListenAddr:":50052",
+	DialAddress:"localhost:50052",
+	DialOptions:[]grpc.DialOption{grpc.WithInsecure()},
 }
 
 // Dial addresses are dynamic dispatched by GameAppMgr
 var RPC_FOR_GAME_APP_STREAM = &Rpc{
-	"tcp4",
-	"localhost:50053",
-	"",
-	[]grpc.DialOption{grpc.WithInsecure()},
+	ListenNet:"tcp4",
+	ListenAddr:"127.0.0.1:50053",
+	ListenPort: "50053",
+	DialAddress:"",
+	DialOptions:[]grpc.DialOption{grpc.WithInsecure()},
 }

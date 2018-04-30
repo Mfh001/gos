@@ -19,6 +19,11 @@ type SignPacket struct {
 	reason string
 }
 
+type ResponsePacket struct {
+	result interface{}
+	err error
+}
+
 type GenServer struct {
 	name         string
 	callback     GenServerBehavior
@@ -30,7 +35,7 @@ type GenServer struct {
 type GenServerBehavior interface {
 	Init(args []interface{}) (err error)
 	HandleCast(args []interface{})
-	HandleCall(args []interface{}) interface{}
+	HandleCall(args []interface{}) (interface{}, error)
 	Terminate(reason string) (err error)
 }
 
@@ -89,20 +94,21 @@ func Stop(server_name, reason string) {
 	}
 }
 
-func Call(server_name string, args ...interface{}) (result interface{}, err error) {
+func Call(server_name string, args ...interface{}) (interface{}, error) {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		response_channel := make(chan interface{})
+		response_channel := make(chan *ResponsePacket)
 		defer func() {
 			close(response_channel)
 		}()
 		args = append(args, response_channel)
 		gen_server.call_channel <- args
-		result = <-response_channel
+		packet := <-response_channel
+		return packet.result, packet.err
 	} else {
 		fmt.Println(server_name, " not found!")
-		err = errors.New("Server not found!")
+		err := errors.New("Server not found!")
+		return nil, err
 	}
-	return result, err
 }
 
 func Cast(server_name string, args ...interface{}) {
@@ -130,8 +136,11 @@ func loop(gen_server *GenServer) {
 				// utils.INFO("handle_call: ", args)
 				size := len(args)
 				response_channel := args[size-1]
-				result := gen_server.callback.HandleCall(args[0 : size-1])
-				response_channel.(chan interface{}) <- result
+				result, err := gen_server.callback.HandleCall(args[0 : size-1])
+				response_channel.(chan *ResponsePacket) <- &ResponsePacket{
+					result: result,
+					err: err,
+				}
 			}
 		case sign_packet, ok := <-gen_server.sign_channel:
 			if ok {

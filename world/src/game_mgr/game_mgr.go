@@ -36,6 +36,9 @@ func startGameAppMgrRPC() {
 // DispatchPlayer implements connectAppProto.DispatchPlayer
 func (s *gameAppMgr) DispatchGame(ctx context.Context, in *pb.DispatchGameRequest) (*pb.DispatchGameReply, error) {
 	info, err := dispatchGame(in.AccountId, in.ServerId, in.SceneId)
+	if err != nil {
+		return  nil, err
+	}
 
 	return  &pb.DispatchGameReply{
 		GameAppId: info.AppId,
@@ -43,4 +46,11 @@ func (s *gameAppMgr) DispatchGame(ctx context.Context, in *pb.DispatchGameReques
 		GameAppPort: info.AppPort,
 		SceneId: info.SceneId,
 	}, err
+}
+
+func (s *gameAppMgr) ReportGameInfo(ctx context.Context, in *pb.ReportGameRequest) (*pb.ReportGameReply, error) {
+	reportGameInfo(in.Uuid, in.Host, in.Port, in.Ccu)
+	return &pb.ReportGameReply{
+		Success: true,
+	}, nil
 }

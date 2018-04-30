@@ -2,13 +2,11 @@ package game_mgr
 
 type GameCell struct {
 	Uuid string
-	Name string
 	Host string
 	Port string
-	Ccu  int
-	CcuMax int
-	Status int
-	ServedScenes []string
+	Ccu  int32
+	CcuMax int32
+	ActiveAt int64
 }
 
 type SceneCell struct {

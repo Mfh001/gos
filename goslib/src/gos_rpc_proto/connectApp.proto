@@ -8,6 +8,7 @@ option go_package = "gos_rpc_proto";
 
 service Dispatcher {
     rpc DispatchPlayer(DispatchRequest) returns (DispatchReply) {}
+    rpc ReportAgentInfo(AgentInfo) returns (OkReply) {}
 }
 
 message DispatchRequest {
@@ -19,4 +20,15 @@ message DispatchReply {
     string connectAppId = 1;
     string connectAppHost = 2;
     string connectAppPort = 3;
+}
+
+message AgentInfo {
+    string uuid = 1;
+    string host = 2;
+    string port = 3;
+    int32  ccu  = 4;
+}
+
+message OkReply {
+    bool success = 1;
 }

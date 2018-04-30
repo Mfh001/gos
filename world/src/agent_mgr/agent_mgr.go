@@ -45,3 +45,8 @@ func (s *connectAppMgr) DispatchPlayer(ctx context.Context, in *pb.DispatchReque
 		ConnectAppPort: port,
 	}, err
 }
+
+func (s *connectAppMgr) ReportAgentInfo(ctx context.Context, in *pb.AgentInfo) (*pb.OkReply, error) {
+	handleReportAgentInfo(in.Uuid, in.Host, in.Port, in.Ccu)
+	return &pb.OkReply{Success: true}, nil
+}

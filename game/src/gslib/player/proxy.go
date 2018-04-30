@@ -11,19 +11,27 @@ import (
 	"sync"
 	"gslib/scene_mgr"
 	"google.golang.org/grpc/metadata"
+	"sync/atomic"
+	"strconv"
 )
 
 type StreamServer struct {
 	ConnectAppId string
 }
 
-var accountConnectMap *sync.Map
+var accountConnectMap = sync.Map{}
+var onlinePlayers int32
 
+func OnlinePlayers() int32 {
+	return onlinePlayers
+}
+
+var StreamRpcListenPort string
 func StartRpcStream() {
-	accountConnectMap = &sync.Map{}
 	conf := gosconf.RPC_FOR_GAME_APP_STREAM
-	logger.INFO("GameAgent lis: ", conf.ListenNet, " addr: ", conf.ListenAddr)
-	lis, err := net.Listen(conf.ListenNet, conf.ListenAddr)
+	lis, err := net.Listen(conf.ListenNet, "127.0.0.1:")
+	StreamRpcListenPort = strconv.Itoa(lis.Addr().(*net.TCPAddr).Port)
+	logger.INFO("GameAgent lis: ", conf.ListenNet, " addr: ", StreamRpcListenPort)
 	if err != nil {
 		logger.ERR("failed to listen: ", err)
 	}
@@ -31,7 +39,7 @@ func StartRpcStream() {
 	grpcServer := grpc.NewServer()
 	pb.RegisterRouteConnectGameServer(grpcServer, &StreamServer{""})
 	logger.INFO("GameApp started!")
-	grpcServer.Serve(lis)
+	go grpcServer.Serve(lis)
 }
 
 // Per stream for per goroutine
@@ -51,6 +59,7 @@ func (s *StreamServer) startReceiver(stream pb.RouteConnectGame_AgentStreamServe
 	accountConnectMap.Store(accountId, stream)
 
 	PlayerConnected(accountId, stream)
+	atomic.AddInt32(&onlinePlayers, 1)
 
 	// Receiving client msg
 	var err error
@@ -72,6 +81,7 @@ func (s *StreamServer) startReceiver(stream pb.RouteConnectGame_AgentStreamServe
 
 	accountConnectMap.Delete(accountId)
 	PlayerDisconnected(accountId)
+	atomic.AddInt32(&onlinePlayers, -1)
 
 	return err
 }

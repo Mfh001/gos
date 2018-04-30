@@ -27,7 +27,7 @@ func (self *PlayerManager) Init(args []interface{}) (err error) {
 func (self *PlayerManager) HandleCast(args []interface{}) {
 }
 
-func (self *PlayerManager) HandleCall(args []interface{}) interface{} {
+func (self *PlayerManager) HandleCall(args []interface{}) (interface{}, error) {
 	handle := args[0].(string)
 	if handle == "StartPlayer" {
 		accountId := args[1].(string)
@@ -35,7 +35,7 @@ func (self *PlayerManager) HandleCall(args []interface{}) interface{} {
 			gen_server.Start(accountId, new(Player), accountId)
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (self *PlayerManager) Terminate(reason string) (err error) {

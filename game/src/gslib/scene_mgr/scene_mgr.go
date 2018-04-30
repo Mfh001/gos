@@ -37,15 +37,15 @@ func (self *SceneMgr) Init(args []interface{}) (err error) {
 func (self *SceneMgr) HandleCast(args []interface{}) {
 }
 
-func (self *SceneMgr) HandleCall(args []interface{}) interface{} {
+func (self *SceneMgr) HandleCall(args []interface{}) (interface{}, error) {
 	handle := args[0].(string)
 	if handle == "LoadScene" {
 		sceneId := args[1].(string)
 		doLoadScene(sceneId)
 		loadedScenes.Store(sceneId, true)
-		return true
+		return true, nil
 	}
-	return nil
+	return nil, nil
 }
 
 func (self *SceneMgr) Terminate(reason string) (err error) {
