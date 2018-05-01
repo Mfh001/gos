@@ -113,7 +113,8 @@ func (self *Dispatcher) HandleCast(args []interface{}) {
 	handle := args[0].(string)
 	if handle == "printStatus" {
 		for _, app := range self.apps {
-			logger.INFO("Agent uuid: ", app.Uuid, " address: ", app.Host, ":", app.Port, " ccu: ", app.Ccu)
+			activeAt := time.Unix(app.ActiveAt, 0)
+			logger.INFO("Agent uuid: ", app.Uuid, " address: ", app.Host, ":", app.Port, " ccu: ", app.Ccu, " activeAt: ", activeAt)
 		}
 		//logger.WARN("=============App Groups===================")
 		//for appId, groupIds := range self.appMapGroups {

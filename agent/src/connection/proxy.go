@@ -49,6 +49,7 @@ func ChooseGameServer(session *session_utils.Session) (string, error) {
 		return "", err
 	}
 
+	logger.INFO("ChooseGameServer: ", reply.GetSceneId())
 	session.SceneId = reply.GetSceneId()
 	session.GameAppId = reply.GetGameAppId()
 	session.Save()

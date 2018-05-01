@@ -55,13 +55,11 @@ TCP Servers
 type TCP struct {
 	Network string
 	Address string
-	Port string
 }
 
 var TCP_SERVER_CONNECT_APP = &TCP{
 	Network: "tcp",
-	Address: ":4000",
-	Port: "4000",
+	Address: "127.0.0.1:4000",
 }
 
 /*

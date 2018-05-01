@@ -25,7 +25,7 @@ func main() {
 
 	// Listen incomming tcp connections
 	tcpConf := gosconf.TCP_SERVER_CONNECT_APP
-	l, err := net.Listen(tcpConf.Network, "127.0.0.1:")
+	l, err := net.Listen(tcpConf.Network, tcpConf.Address)
 	if err != nil {
 		logger.ERR("Connection listen failed: ", err)
 	}

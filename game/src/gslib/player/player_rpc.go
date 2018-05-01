@@ -41,6 +41,7 @@ func internalRequestPlayer(targetPlayerId string, encode_method string, params i
 func crossRequestPlayer(session *session_utils.Session, encode_method string, msg interface{}) (interface{}, error) {
 	client, err := getClient(session.SceneId)
 	if err != nil {
+		delClient(session.SceneId)
 		return nil, err
 	}
 
@@ -51,7 +52,7 @@ func crossRequestPlayer(session *session_utils.Session, encode_method string, ms
 	reply, err := client.RequestPlayer(ctx, &pb.RequestPlayerRequest{session.AccountId, data})
 	if err != nil {
 		logger.ERR("RequestPlayer failed: ", err)
-		delClient(session.GameAppId)
+		delClient(session.SceneId)
 		return nil, err
 	}
 
@@ -64,6 +65,7 @@ func getClient(sceneId string) (pb.RouteConnectGameClient, error) {
 	}
 	client, err := gen_server.Call(SERVER, "connectScene", sceneId)
 	if err != nil {
+		logger.ERR("connectScene failed: ", err)
 		return nil, err
 	}
 	return client.(pb.RouteConnectGameClient), nil

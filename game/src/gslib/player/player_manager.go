@@ -5,6 +5,8 @@ import (
 	"goslib/session_utils"
 	"goslib/logger"
 	"github.com/kataras/iris/core/errors"
+	"goslib/scene_utils"
+	"fmt"
 )
 
 const SERVER = "__player_manager_server__"
@@ -25,13 +27,23 @@ func StartPlayer(accountId string) error {
 		logger.ERR("StartPlayer failed: ", err)
 		return err
 	}
-	if session.GameAppId == CurrentGameAppId {
-		_, err = gen_server.Call(SERVER, "StartPlayer", accountId)
+	scene, err := scene_utils.FindScene(session.SceneId)
+	if err != nil {
+		logger.ERR("StartPlayer failed: ", err)
 		return err
-	} else {
-		logger.ERR("StartPlayer failed: player not belongs to this server!")
-		return errors.New("player not belongs to this server!")
 	}
+	if scene == nil {
+		err = errors.New(fmt.Sprintf("scene: %s not found", session.SceneId))
+		logger.ERR("StartPlayer failed: ", err)
+		return err
+	}
+	if scene.GameAppId != CurrentGameAppId {
+		err = errors.New("player not belongs to this server!")
+		logger.ERR("StartPlayer failed: ", err)
+		return err
+	}
+	_, err = gen_server.Call(SERVER, "StartPlayer", accountId)
+	return err
 }
 
 func (self *PlayerManager) Init(args []interface{}) (err error) {

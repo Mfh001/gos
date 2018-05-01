@@ -166,7 +166,7 @@ func Encode(encode_method string, v interface{}) *packet.Packet {
     protocol := NameToId[encode_method]
     buffer := packet.Writer()
     buffer.WriteUint16(protocol)
-	  encode_handlers[encode_method](buffer, v)
+    encode_handlers[encode_method](buffer, v)
     return buffer
 }
 }

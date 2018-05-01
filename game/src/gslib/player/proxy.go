@@ -29,7 +29,7 @@ func OnlinePlayers() int32 {
 var StreamRpcListenPort string
 func StartRpcStream() {
 	conf := gosconf.RPC_FOR_GAME_APP_STREAM
-	lis, err := net.Listen(conf.ListenNet, "127.0.0.1:")
+	lis, err := net.Listen(conf.ListenNet, conf.ListenAddr)
 	StreamRpcListenPort = strconv.Itoa(lis.Addr().(*net.TCPAddr).Port)
 	logger.INFO("GameAgent lis: ", conf.ListenNet, " addr: ", StreamRpcListenPort)
 	if err != nil {
@@ -65,7 +65,8 @@ func (s *StreamServer) RequestPlayer(ctx context.Context, in *pb.RequestPlayerRe
 func (s *StreamServer) startReceiver(stream pb.RouteConnectGame_AgentStreamServer) error {
 	logger.INFO("gameAgent startReceiver")
 	headers, _ := metadata.FromIncomingContext(stream.Context())
-	accountId := headers["accountId"][0]
+	logger.INFO(headers)
+	accountId := headers["accountid"][0]
 	accountConnectMap.Store(accountId, stream)
 	PlayerConnected(accountId, stream)
 	atomic.AddInt32(&onlinePlayers, 1)

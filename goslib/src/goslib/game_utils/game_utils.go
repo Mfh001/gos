@@ -29,7 +29,7 @@ func Find(uuid string) (*Game, error) {
 	return parseObject(valueMap), nil
 }
 
-func LoadAll(apps map[string]*Game) error {
+func LoadGames(apps map[string]*Game) error {
 	ids, err := redisdb.Instance().SMembers(gosconf.RK_GAME_APP_IDS).Result()
 	if err != nil {
 		logger.ERR("Redis load games failed: ", err)
@@ -57,6 +57,7 @@ func Create(params map[string]string) (*Game, error) {
 
 func (self *Game) Save() error {
 	params := make(map[string]interface{})
+	params["uuid"] = self.Uuid
 	params["host"] = self.Host
 	params["port"] = self.Port
 	params["ccu"] = self.Ccu

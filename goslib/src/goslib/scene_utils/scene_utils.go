@@ -22,10 +22,8 @@ type SceneConf struct {
 	CcuMax int
 }
 
-func LoadScenes() ([]*Scene, map[string]*Scene) {
-	mapScenes := make(map[string]*Scene)
+func LoadScenes(mapScenes map[string]*Scene) {
 	ids, _ := redisdb.Instance().SMembers(gosconf.RK_SCENE_IDS).Result()
-	scenes := make([]*Scene, 0)
 	for i := 0; i < len(ids); i++ {
 		id := ids[i]
 		if id == "" {
@@ -33,11 +31,9 @@ func LoadScenes() ([]*Scene, map[string]*Scene) {
 		}
 		valueMap, _ := redisdb.Instance().HGetAll(id).Result()
 		app := parseScene(valueMap)
-		scenes = append(scenes, app)
 		mapScenes[app.Uuid] = app
 	}
-	logger.INFO("idSize: ", len(ids), " appSize: ", len(scenes))
-	return scenes, mapScenes
+	logger.INFO("idSize: ", len(ids), " appSize: ", len(mapScenes))
 }
 
 func FindScene(sceneId string) (*Scene, error) {
@@ -74,7 +70,7 @@ func FindSceneConf(confId string) (*SceneConf, error) {
 
 func CreateDefaultServerScene(serverId string, conf *SceneConf) (*Scene, error) {
 	params := make(map[string]interface{})
-	params["uuid"] = serverId
+	params["uuid"] = "server_scene:" + serverId
 	params["gameAppId"] = ""
 	params["sceneType"] = conf.SceneType
 	params["sceneConfigId"] = conf.ConfId

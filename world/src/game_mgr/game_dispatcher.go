@@ -69,8 +69,7 @@ type Dispatcher struct {
 
 	apps map[string]*Game
 
-	scenes []*Scene
-	mapScenes map[string]*Scene
+	scenes map[string]*Scene
 
 	printTimer *time.Timer
 }
@@ -89,9 +88,20 @@ func (self *Dispatcher) startGameCheckTimer() {
 
 func (self *Dispatcher) Init(args []interface{}) (err error) {
 	self.apps = make(map[string]*Game)
-	LoadAll(self.apps)
+	LoadGames(self.apps)
+	for uuid, app := range self.apps {
+		gameInfos.Store(uuid, &GameInfo{
+			uuid: uuid,
+			host: app.Host,
+			port: app.Port,
+			ccu: app.Ccu,
+			activeAt: app.ActiveAt,
+		})
+	}
 
-	for _, scene := range self.mapScenes {
+	self.scenes = make(map[string]*Scene)
+	LoadScenes(self.scenes)
+	for _, scene := range self.scenes {
 		if _, ok := self.apps[scene.Uuid]; !ok {
 			self.dispatchScene(scene)
 		}
@@ -108,7 +118,8 @@ func (self *Dispatcher) HandleCast(args []interface{}) {
 	handle := args[0].(string)
 	if handle == "printStatus" {
 		for _, app := range self.apps {
-			logger.INFO("Game uuid: ", app.Uuid, " address: ", app.Host, ":", app.Port, " ccu: ", app.Ccu)
+			activeAt := time.Unix(app.ActiveAt, 0)
+			logger.INFO("Game uuid: ", app.Uuid, " address: ", app.Host, ":", app.Port, " ccu: ", app.Ccu, " activeAt: ", activeAt)
 		}
 		//logger.WARN("=============App Served Scenes===================")
 		//for appId, groupIds := range self.appMapScenes {
@@ -162,10 +173,11 @@ func (self *Dispatcher) addGame(info *GameInfo) {
 
 func (self *Dispatcher) delGame(uuid string) {
 	if app, ok := self.apps[uuid]; ok {
+		redisdb.Instance().SRem(gosconf.RK_GAME_APP_IDS, app.Uuid)
 		app.Del()
 	}
 	delete(self.apps, uuid)
-	for _, scene := range self.mapScenes {
+	for _, scene := range self.scenes {
 		if scene.GameAppId == uuid {
 			self.dispatchScene(scene)
 		}
@@ -228,14 +240,14 @@ func (self *Dispatcher) doDispatch(accountId string, serverId string, sceneId st
 
 func (self *Dispatcher)dispatchByServerId(serverId string) (*Game, *Scene, error) {
 	// Lookup scene
-	sceneIns, ok := self.mapScenes[serverId]
+	sceneIns, ok := self.scenes[serverId]
 
 	if !ok {
 		sceneIns, err := CreateDefaultServerScene(serverId, self.defaultServerSceneConf)
 		if err != nil {
 			return nil, nil, err
 		}
-		self.mapScenes[serverId] = sceneIns
+		self.scenes[serverId] = sceneIns
 		return self.dispatchedInfo(sceneIns)
 	}
 
@@ -245,7 +257,7 @@ func (self *Dispatcher)dispatchByServerId(serverId string) (*Game, *Scene, error
 
 func (self *Dispatcher)dispatchBySceneId(sceneId string) (*Game, *Scene, error) {
 	// Lookup scene
-	sceneIns, ok := self.mapScenes[sceneId]
+	sceneIns, ok := self.scenes[sceneId]
 	if !ok {
 		return nil, nil, nil
 	}
