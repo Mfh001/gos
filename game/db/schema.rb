@@ -10,20 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_04_22_014227) do
+ActiveRecord::Schema.define(version: 2018_05_02_060707) do
 
   create_table "equips", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
-    t.string "equips"
     t.string "uuid"
     t.string "user_id"
     t.integer "level"
     t.integer "conf_id"
     t.string "evolves"
+    t.string "equips"
     t.integer "exp"
   end
 
-  create_table "users", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
-    t.string "users"
+  create_table "schema_persistances", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.string "uuid"
+    t.integer "version"
+  end
+
+  create_table "users", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.string "uuid"
     t.integer "level"
     t.integer "exp"

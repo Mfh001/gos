@@ -1,7 +1,6 @@
 class CreateEquip < ActiveRecord::Migration[5.2]
   def change
     create_table :equips, id: false do |t|
-      t.string :equips
       t.string :uuid
       t.string :user_id
       t.integer :level

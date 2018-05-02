@@ -2,10 +2,11 @@ package memstore
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
-	"reflect"
+	. "goslib/base_model"
+	"strings"
+	"time"
 	"goslib/logger"
 )
 
@@ -21,21 +22,13 @@ type dataLoader func(modelName string, ets *MemStore)
 var dataLoaderMap = map[string]dataLoader{}
 
 type MemStore struct {
+	playerId string
 	store Store
 	storeStatus StoreStatus
+	dataLoaded map[string]bool
 	Db    *gorp.DbMap
 	Ctx   interface{}
 }
-
-/*
- * Memory data status
- */
-const (
-	STATUS_ORIGIN = 1
-	STATUS_CREATE = 2
-	STATUS_UPDATE = 3
-	STATUS_DELETE = 4
-)
 
 var sharedDBInstance *gorp.DbMap
 
@@ -44,17 +37,19 @@ func InitDB() {
 	if err != nil {
 		panic(err.Error())
 	}
-	sharedDBInstance = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
+	sharedDBInstance = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8"}}
 }
 
 func GetSharedDBInstance() *gorp.DbMap {
 	return sharedDBInstance
 }
 
-func New(ctx interface{}) *MemStore {
+func New(playerId string, ctx interface{}) *MemStore {
 	e := &MemStore{
+		playerId: playerId,
 		store: make(Store),
 		storeStatus: make(StoreStatus),
+		dataLoaded: make(map[string]bool),
 		Db:    GetSharedDBInstance(),
 		Ctx:   ctx,
 	}
@@ -65,19 +60,24 @@ func RegisterDataLoader(modelName string, loader dataLoader) {
 	dataLoaderMap[modelName] = loader
 }
 
-func (e *MemStore) LoadData(modelName, playerId string) {
-	handler, ok := dataLoaderMap[modelName]
-	if ok {
-		handler(playerId, e)
+func (e *MemStore) EnsureDataLoaded(modelName string) {
+	if loaded, ok := e.dataLoaded[modelName]; !ok || !loaded {
+		handler, ok := dataLoaderMap[modelName]
+		if ok {
+			handler(e.playerId, e)
+		}
 	}
 }
 
 func (e *MemStore) Load(namespaces []string, key string, value interface{}) {
 	ctx := e.makeCtx(namespaces)
 	ctx[key] = value
+	e.UpdateStatus(namespaces[len(namespaces) - 1], key, STATUS_ORIGIN)
+	e.dataLoaded[namespaces[len(namespaces) - 1]] = true
 }
 
 func (e *MemStore) Get(namespaces []string, key string) interface{} {
+	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		return ctx[key]
 	} else {
@@ -86,6 +86,7 @@ func (e *MemStore) Get(namespaces []string, key string) interface{} {
 }
 
 func (e *MemStore) Set(namespaces []string, key string, value interface{}) {
+	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
 	ctx := e.makeCtx(namespaces)
 	if ctx[key] == nil {
 		e.UpdateStatus(namespaces[len(namespaces) - 1], key, STATUS_CREATE)
@@ -96,6 +97,7 @@ func (e *MemStore) Set(namespaces []string, key string, value interface{}) {
 }
 
 func (e *MemStore) Del(namespaces []string, key string) {
+	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		e.UpdateStatus(namespaces[len(namespaces) - 1], key, STATUS_DELETE)
 		delete(ctx, key)
@@ -103,6 +105,7 @@ func (e *MemStore) Del(namespaces []string, key string) {
 }
 
 func (e *MemStore) Find(namespaces []string, filter Filter) interface{} {
+	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		for _, v := range ctx {
 			if filter(v) {
@@ -114,6 +117,7 @@ func (e *MemStore) Find(namespaces []string, filter Filter) interface{} {
 }
 
 func (e *MemStore) Select(namespaces []string, filter Filter) interface{} {
+	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
 	var elems []interface{}
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		for _, v := range ctx {
@@ -127,6 +131,7 @@ func (e *MemStore) Select(namespaces []string, filter Filter) interface{} {
 }
 
 func (e *MemStore) Count(namespaces []string) int {
+	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		return len(ctx)
 	} else {
@@ -139,20 +144,16 @@ func (e *MemStore) Count(namespaces []string) int {
  * Example: Persist([]string{"models"})
  */
 func (e *MemStore) Persist(namespaces []string) {
-	trans, err := e.Db.Begin()
-	if err != nil {
-		logger.ERR("Persist Begin failed: ", err)
-		return
-	}
+	sqls := make([]string, 0)
 	for tableName, tableCtx := range e.getCtx(namespaces) {
 		statusMap, ok := e.tableStatus(tableName)
 		if ok {
-			executeSql(trans, tableName, statusMap, tableCtx.(Store))
+			genTableSqls(sqls, statusMap, tableCtx.(Store))
 		}
 	}
-	err = trans.Commit()
+	err := AddPersistTask(e.playerId, time.Now().Unix(), strings.Join(sqls, ";"))
 	if err != nil {
-		logger.ERR("Persist Commit failed: ", err)
+		logger.ERR("AddPersitTask failed, player: ", e.playerId, " err: ", err)
 		return
 	}
 	e.cleanStatus()
@@ -236,32 +237,9 @@ func (e *MemStore) cleanStatus() {
 	e.storeStatus = make(StoreStatus)
 }
 
-func executeSql(trans *gorp.Transaction, tableName string, status TableStatus, tableCtx Store) {
-	for k, v := range status {
-		switch v {
-		case STATUS_UPDATE:
-			fmt.Println("STATUS_UPDATE: ", reflect.ValueOf(tableCtx[k]).Elem().FieldByName("Data").Interface())
-			_, err := trans.Update(reflect.ValueOf(tableCtx[k]).Elem().FieldByName("Data").Interface())
-			if err != nil {
-				panic(err.Error())
-			}
-		case STATUS_DELETE:
-			_, err := trans.Exec(fmt.Sprintf("DELETE FROM `%s` WHERE `uuid`='%s'", tableName, k))
-			if err != nil {
-				panic(err.Error())
-			}
-		case STATUS_CREATE:
-			err := trans.Insert(reflect.ValueOf(tableCtx[k]).Elem().FieldByName("Data").Interface())
-			if err != nil {
-				panic(err.Error())
-			}
-		}
+func genTableSqls(sqls []string, statusMap TableStatus, tableCtx Store) {
+	for uuid, status := range statusMap {
+		model := tableCtx[uuid].(ModelInterface)
+		sqls = append(sqls, model.SqlForRec(status))
 	}
 }
-
-//func updateRec(tableName string, Rec interface{}) {
-//	if tableName == "users" {
-//		user := Rec.(*models.UserModel).Data
-//		return fmt.Sprintf("update ")
-//	}
-//}

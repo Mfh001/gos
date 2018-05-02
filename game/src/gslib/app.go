@@ -24,6 +24,7 @@ func Run() {
 
 	// Init DB Connections
 	memstore.InitDB()
+	memstore.StartDBPersister()
 	tables.RegisterTables(memstore.GetSharedDBInstance())
 
 	// Start broadcast server

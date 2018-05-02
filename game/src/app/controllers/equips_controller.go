@@ -2,10 +2,7 @@ package controllers
 
 import (
 	. "api"
-	//. "app/consts"
-	// . "app/models"
 	"gslib/player"
-	//"fmt"
 	"goslib/logger"
 )
 
@@ -15,7 +12,7 @@ type EquipsController struct {
 
 func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}) {
 	//player := self.Ctx
-	//player.Store.LoadData("equips", "54BC69792B897814D763403B")
+	//player.Store.EnsureDataLoaded("equips", "54BC69792B897814D763403B")
 	//equipId := "54BC69792B897814D7634040"
 	//equipModel := player.Store.Get([]string{"models", "equips"}, equipId).(*EquipModel)
 	//equipModel.Load("hahah")
@@ -33,7 +30,6 @@ func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}
 	//
 	//fmt.Println("equipModel: ", equipModel)
 	//fmt.Println("new level: ", equipModel.Data.Uuid)
-
 	logger.INFO("EquipsController Load!")
 	return "EquipLoadResponse", &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }

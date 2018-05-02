@@ -95,7 +95,7 @@ func (self *Dispatcher) Init(args []interface{}) (err error) {
 			host: app.Host,
 			port: app.Port,
 			ccu: app.Ccu,
-			activeAt: app.ActiveAt,
+			activeAt: time.Now().Unix(),
 		})
 	}
 

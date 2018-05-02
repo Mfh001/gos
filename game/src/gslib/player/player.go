@@ -15,6 +15,7 @@ import (
 	"goslib/session_utils"
 	"gslib/scene_mgr"
 	pb "gos_rpc_proto"
+	"github.com/kataras/iris/core/errors"
 )
 
 type Player struct {
@@ -91,7 +92,7 @@ func (self *Player) Init(args []interface{}) (err error) {
 	name := args[0].(string)
 	fmt.Println("Player: ", name, " started!")
 	self.PlayerId = name
-	self.Store = memstore.New(self)
+	self.Store = memstore.New(name, self)
 	self.lastActive = time.Now().Unix()
 	self.startActiveCheck()
 	self.startPersistTimer()
@@ -151,7 +152,10 @@ func (self *Player) Terminate(reason string) (err error) {
 	fmt.Println("callback Termiante!")
 	self.activeTimer.Stop()
 	self.persistTimer.Stop()
-	self.Store.Persist([]string{self.PlayerId})
+	self.Store.Persist([]string{"models"})
+	if ok := memstore.EnsurePersisted(self.PlayerId); !ok {
+		return errors.New("Persist player data failed!")
+	}
 	return nil
 }
 
