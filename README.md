@@ -1,13 +1,13 @@
-#简介
+# 简介
 《GOS》是一款基于Go语言的分布式游戏服务器框架，高可用、动态伸缩、在线扩容，可应用于市面上绝大多数游戏类型：SLG、RPG、ARPG、MMO、MOBA。
 
-##结构图
+## 结构图
 ![Architecture](Architecture.png)
 
-##单点消除
+## 单点消除
 ![SinglePoints](SinglePoints.png)
   
-##结构详解
+## 结构详解
   * AuthService
     
     验证服务，提供账户注册、玩家登陆，以及为玩家获取连接服务(AgentCell)信息的功能。
@@ -37,7 +37,7 @@
     Redis集群，主要用于集群配置信息保存，玩家Session缓存；Redis集群可以自己根据Redis官网搭建，同时也推荐大家使用云服务，简单快捷稳定，费用不高。
   
 
-##基础工具集
+## 基础工具集
   * 分布式服务健康监测
   * GenServer：类似于Erlang的gen_server，封装了Groutine的基本启动、查找、消息同步/异步发送
   * 协议生成器：根据YAML生成客户端与服务器的通信协议
@@ -45,7 +45,7 @@
   * 热数据管理：按需加载玩家数据，并定时持久化至MySQL
   * MySQL管理：基于Rails的ActiveRecord进行migration管理，并生成Go的ORM文件
 
-##Quick Start
+## Quick Start
 ```bash
 git checkout https://github.com/mafei198/gos.git
 make dep_install
@@ -54,7 +54,7 @@ make build
 make start_all
 ```
 
-##TODO
+## TODO
   * 云服务器管理器
   * 定时任务管理器
   * 游戏配置文件生成器
