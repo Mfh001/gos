@@ -1,3 +1,6 @@
+dep_install:
+	sh dep_install.sh
+
 setup:
 	cd goslib && protoc -I src/gos_rpc_proto --go_out=plugins=grpc:src/gos_rpc_proto src/gos_rpc_proto/*.proto
 	cd game && ./tools/gen_routes
@@ -7,8 +10,12 @@ setup:
 build:
 	sh build_gos.sh
 
-dep_install:
-	sh dep_install.sh
+start_all:
+	mkdir -p logs
+	nohup ./auth/bin/auth > logs/auth.log &
+	nohup ./agent/bin/agent > logs/agent.log &
+	nohup ./game/bin/game > logs/game.log &
+	nohup ./world/bin/world > logs/world.log &
 
 rpc_proto:
 	cd goslib && protoc -I src/gos_rpc_proto --go_out=plugins=grpc:src/gos_rpc_proto src/gos_rpc_proto/*.proto

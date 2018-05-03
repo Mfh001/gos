@@ -22,3 +22,5 @@ world/bin/world
 /vendor
 
 .DS_Store
+*.log
+.idea
