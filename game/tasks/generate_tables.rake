@@ -86,6 +86,7 @@ import (
 	"fmt"
 	"gslib/player"
 	. "goslib/base_model"
+	"github.com/rs/xid"
 )
 type #{struct_name}Model struct {
 	Ctx *player.Player
@@ -93,10 +94,16 @@ type #{struct_name}Model struct {
 }
 
 func Find#{struct_name}(ctx *player.Player, uuid string) *#{struct_name}Model {
-	return ctx.Store.Get([]string{"models", "#{table_name}"}, uuid).(*#{struct_name}Model)
+    if model := ctx.Store.Get([]string{"models", "#{table_name}"}, uuid); model != nil {
+        return model.(*#{struct_name}Model)
+    }
+	return nil
 }
 
 func Create#{struct_name}(ctx *player.Player, data *#{struct_name}) *#{struct_name}Model {
+    if data.Uuid == "" {
+        data.Uuid = xid.New().String()
+    }
 	model := &#{struct_name}Model{
 		Ctx: ctx,
 		Data: data,
@@ -128,7 +135,7 @@ func (self *#{struct_name}Model) SqlForRec(status int8) string {
 	case STATUS_DELETE:
 		return fmt.Sprintf("DELETE FROM `#{table_name}` WHERE `uuid`='%s'", data.Uuid)
 	case STATUS_CREATE:
-        return fmt.Sprintf("INSERT INTO `#{table_name}` (#{field_names.join(", ")}) VALUES (#{field_types.join(", ")})", #{field_values.join(", ")})
+        return fmt.Sprintf("INSERT INTO `#{table_name}` (uuid, #{field_names.join(", ")}) VALUES ('%s', #{field_types.join(", ")})", data.Uuid, #{field_values.join(", ")})
 	case STATUS_UPDATE:
         return fmt.Sprintf("UPDATE `#{table_name}` SET #{field_formatters.join(", ")} WHERE `uuid`='%s'", #{field_values.join(", ")}, data.Uuid)
 	}

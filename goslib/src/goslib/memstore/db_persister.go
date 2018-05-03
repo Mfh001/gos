@@ -18,7 +18,7 @@ type SchemaPersistance struct {
 }
 
 type PersistTask struct {
-    version int
+    version int64
     sql string
 }
 
@@ -48,6 +48,7 @@ func SyncPersistAll() bool {
 }
 
 func AddPersistTask(playerId string, version int64, sql string) error {
+	logger.INFO("AddPersistTask: ", sql)
 	return gen_server.Cast(PERSISTER_SERVER, "AddPersistTask", playerId, version, sql)
 }
 
@@ -83,8 +84,8 @@ func (self *DBPersister) HandleCast(args []interface{}) {
 	handle := args[0].(string)
 	if handle == "AddPersistTask" {
 		playerId := args[1].(string)
-		version := args[1].(int)
-		sql := args[1].(string)
+		version := args[2].(int64)
+		sql := args[3].(string)
 		self.addTask(playerId, version, sql)
 	} else if handle == "tickerPersist" {
 		self.tickerPersist()
@@ -104,7 +105,7 @@ func (self *DBPersister) Terminate(reason string) (err error) {
 	return nil
 }
 
-func (self *DBPersister) addTask(playerId string, version int, sql string) {
+func (self *DBPersister) addTask(playerId string, version int64, sql string) {
 	if count, loaded := queueSummary.LoadOrStore(playerId, 1); loaded {
 		queueSummary.Store(playerId, count.(int) + 1)
 	}
@@ -115,7 +116,7 @@ func (self *DBPersister) addTask(playerId string, version int, sql string) {
 	var taskQueue TaskQueue
 	var ok bool
 	if taskQueue, ok = self.queue[playerId]; !ok {
-		taskQueue := make(TaskQueue, 1)
+		taskQueue := make(TaskQueue, 0)
 		taskQueue = append(taskQueue, task)
 		self.queue[playerId] = taskQueue
 	}
@@ -128,11 +129,10 @@ func (self *DBPersister) tickerPersist() {
 	for playerId, taskQueue := range self.queue {
 		for i := 0; i < len(taskQueue); i++ {
 			task := taskQueue[i]
-			var schema SchemaPersistance
+			var schema *SchemaPersistance
 			err := dbIns.SelectOne(&schema, "SELECT version from schema_persistances where uuid = ?", playerId)
 			if err == sql.ErrNoRows {
-				schema = SchemaPersistance{Uuid: playerId, Version: 0}
-				err := dbIns.Insert(schema)
+				_, err := dbIns.Exec("INSERT INTO `schema_persistances` (uuid,version) VALUES (?,?)", playerId, 0)
 				if err != nil {
 					logger.ERR("Insert schema_persistances failed: ", err)
 					break
@@ -142,7 +142,7 @@ func (self *DBPersister) tickerPersist() {
 					logger.ERR("Fetch schema_persistances version failed: ", err)
 					break
 				}
-				if task.version <= schema.Version {
+				if task.version <= int64(schema.Version) {
 					continue
 				}
 			}
@@ -182,7 +182,7 @@ func executePersistSQL(dbIns *gorp.DbMap, playerId string, task *PersistTask) er
 		return err
 	}
 	if err := tx.Commit();err != nil {
-		logger.ERR("ExecutePersist failed: ", err)
+		logger.ERR("ExecutePersistSQL Commit failed: ", err)
 		return err
 	}
 	return nil

@@ -7,5 +7,7 @@ class CreateUser < ActiveRecord::Migration[5.2]
       t.string :name
       t.boolean :online
     end
+
+    add_index :users, :uuid, unique: true
   end
 end

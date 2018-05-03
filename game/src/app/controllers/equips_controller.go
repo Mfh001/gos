@@ -3,7 +3,8 @@ package controllers
 import (
 	. "api"
 	"gslib/player"
-	"goslib/logger"
+	"app/models"
+	"app/consts"
 )
 
 type EquipsController struct {
@@ -11,26 +12,17 @@ type EquipsController struct {
 }
 
 func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}) {
-	//player := self.Ctx
-	//player.Store.EnsureDataLoaded("equips", "54BC69792B897814D763403B")
-	//equipId := "54BC69792B897814D7634040"
-	//equipModel := player.Store.Get([]string{"models", "equips"}, equipId).(*EquipModel)
-	//equipModel.Load("hahah")
-	//fmt.Println("old level: ", equipModel.Data.Level)
-	//
-	//equipModel.Data.Level = 0
-	//equipModel.Save()
-	//
-	//player.Store.Persist([]string{"models"})
-	//fmt.Println("new level: ", equipModel.Data.Level)
-	//
-	//player.Store.Set([]string{"models", "equips"}, "testUuid", &Equip{Uuid: "testUuid"})
-	//
-	//equipModel = player.Store.Get([]string{"models", "equips"}, "testUuid").(*EquipModel)
-	//
-	//fmt.Println("equipModel: ", equipModel)
-	//fmt.Println("new level: ", equipModel.Data.Uuid)
-	logger.INFO("EquipsController Load!")
+	user := models.CreateUser(self.Ctx, &consts.User{
+		Uuid: self.Ctx.PlayerId,
+		Level: 1,
+		Exp: 0,
+		Online: true,
+	})
+
+	user1 := models.FindUser(self.Ctx, user.GetUuid())
+	user1.Data.Level = 10
+	user1.Save()
+
 	return "EquipLoadResponse", &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }
 

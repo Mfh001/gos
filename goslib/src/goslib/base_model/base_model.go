@@ -12,6 +12,7 @@ type ModelInterface interface {
  * Memory data status
  */
 const (
+	STATUS_EMPTY  = 0
 	STATUS_ORIGIN = 1
 	STATUS_CREATE = 2
 	STATUS_UPDATE = 3

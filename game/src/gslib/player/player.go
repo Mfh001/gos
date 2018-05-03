@@ -121,7 +121,7 @@ func (self *Player) HandleCast(args []interface{}) {
 	} else if method_name == "handleRPCCast" {
 		self.handleRPCCast(args[1].([]byte))
 	} else if method_name == "handleWrap" {
-		self.handleWrap(args[1].(func() interface{}))
+		self.handleWrap(args[1].(func(player *Player) interface{}))
 	} else if method_name == "handleAsyncWrap" {
 		self.handleAsyncWrap(args[0].(func()))
 	} else if method_name == "PersistData" {
@@ -141,7 +141,7 @@ func (self *Player) HandleCast(args []interface{}) {
 func (self *Player) HandleCall(args []interface{}) (interface{}, error) {
 	methodName := args[0].(string)
 	if methodName == "handleWrap" {
-		return self.handleWrap(args[1].(func() interface{})), nil
+		return self.handleWrap(args[1].(func(player *Player) interface{})), nil
 	} else if methodName == "handleRPCCall" {
 		return self.handleRPCCall(args[1].(routes.Handler), args[2])
 	}
@@ -259,9 +259,9 @@ func (self *Player) sendToClient(data []byte) {
 	}
 }
 
-func (self *Player) handleWrap(fun func() interface{}) interface{} {
+func (self *Player) handleWrap(fun func(ctx *Player) interface{}) interface{} {
 	self.lastActive = time.Now().Unix()
-	return fun()
+	return fun(self)
 }
 
 func (self *Player) handleAsyncWrap(fun func()) {
@@ -279,7 +279,7 @@ func (self *Player) handleBroadcast(msg *broadcast.BroadcastMsg) {
    IPC Methods
 */
 
-func (self *Player) Wrap(targetPlayerId string, fun func() interface{}) (interface{}, error) {
+func (self *Player) Wrap(targetPlayerId string, fun func(ctx *Player) interface{}) (interface{}, error) {
 	if self.PlayerId == targetPlayerId {
 		return self.handleWrap(fun), nil
 	} else {

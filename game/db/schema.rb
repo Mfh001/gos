@@ -20,11 +20,13 @@ ActiveRecord::Schema.define(version: 2018_05_02_060707) do
     t.string "evolves"
     t.string "equips"
     t.integer "exp"
+    t.index ["uuid"], name: "index_equips_on_uuid", unique: true
   end
 
   create_table "schema_persistances", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.string "uuid"
     t.integer "version"
+    t.index ["uuid"], name: "index_schema_persistances_on_uuid", unique: true
   end
 
   create_table "users", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -33,6 +35,7 @@ ActiveRecord::Schema.define(version: 2018_05_02_060707) do
     t.integer "exp"
     t.string "name"
     t.boolean "online"
+    t.index ["uuid"], name: "index_users_on_uuid", unique: true
   end
 
 end

@@ -9,5 +9,7 @@ class CreateEquip < ActiveRecord::Migration[5.2]
       t.string :equips
       t.integer :exp
     end
+
+    add_index :equips, :uuid, unique: true
   end
 end

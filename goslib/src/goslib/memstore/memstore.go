@@ -5,8 +5,8 @@ import (
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	. "goslib/base_model"
-	"strings"
 	"time"
+	"strings"
 	"goslib/logger"
 )
 
@@ -14,7 +14,11 @@ type Filter func(elem interface{}) bool
 
 type Store map[string]interface{}
 
-type TableStatus map[string]int8
+type ModelStatus struct {
+	Origin int8
+	Current int8
+}
+type TableStatus map[string]*ModelStatus
 type StoreStatus map[string]TableStatus
 
 type dataLoader func(modelName string, ets *MemStore)
@@ -147,16 +151,19 @@ func (e *MemStore) Persist(namespaces []string) {
 	sqls := make([]string, 0)
 	for tableName, tableCtx := range e.getCtx(namespaces) {
 		statusMap, ok := e.tableStatus(tableName)
+		logger.INFO("tableName: ", tableName, " ok: ", ok)
 		if ok {
-			genTableSqls(sqls, statusMap, tableCtx.(Store))
+			sqls = genTableSqls(sqls, statusMap, tableCtx.(Store))
 		}
 	}
-	err := AddPersistTask(e.playerId, time.Now().Unix(), strings.Join(sqls, ";"))
-	if err != nil {
-		logger.ERR("AddPersitTask failed, player: ", e.playerId, " err: ", err)
-		return
+	if len(sqls) > 0 {
+		err := AddPersistTask(e.playerId, time.Now().Unix(), strings.Join(sqls, ";"))
+		if err != nil {
+			logger.ERR("AddPersitTask failed, player: ", e.playerId, " err: ", err)
+			return
+		}
+		e.cleanStatus()
 	}
-	e.cleanStatus()
 }
 
 func (e *MemStore) getCtx(namespaces []string) Store {
@@ -208,21 +215,26 @@ func (e *MemStore) UpdateStatus(table string, key string, status int8) {
 		tableStatus = make(TableStatus)
 		e.storeStatus[table] = tableStatus
 	}
-	tableStatus[key] = status
+	if modelStatus, ok := tableStatus[key]; ok {
+		modelStatus.Current = status
+	} else {
+		tableStatus[key] = &ModelStatus{
+			Origin: STATUS_EMPTY,
+			Current: status,
+		}
+	}
 }
 
-func (e *MemStore) getStatus(table string, key string) int8 {
+func (e *MemStore) SetOriginStatus(table string, key string) {
 	tableStatus, ok := e.storeStatus[table]
 	if !ok {
-		return STATUS_ORIGIN
+		tableStatus = make(TableStatus)
+		e.storeStatus[table] = tableStatus
 	}
-
-	status, ok := tableStatus[key]
-	if !ok {
-		return STATUS_ORIGIN
+	tableStatus[key] = &ModelStatus{
+		Origin: STATUS_ORIGIN,
+		Current: STATUS_EMPTY,
 	}
-
-	return status
 }
 
 /*
@@ -237,9 +249,34 @@ func (e *MemStore) cleanStatus() {
 	e.storeStatus = make(StoreStatus)
 }
 
-func genTableSqls(sqls []string, statusMap TableStatus, tableCtx Store) {
-	for uuid, status := range statusMap {
+func genTableSqls(sqls []string, statusMap TableStatus, tableCtx Store) []string {
+	for uuid, modelStatus := range statusMap {
 		model := tableCtx[uuid].(ModelInterface)
-		sqls = append(sqls, model.SqlForRec(status))
+		var status int8
+		if modelStatus.Origin == STATUS_ORIGIN {
+			switch modelStatus.Current {
+			case STATUS_EMPTY:
+				continue
+			case STATUS_UPDATE, STATUS_DELETE:
+				status = modelStatus.Current
+				break
+			case STATUS_CREATE:
+				panic("genTableSqls should not STATUS_CREATE!")
+			}
+		} else if modelStatus.Origin == STATUS_EMPTY {
+			switch modelStatus.Current {
+			case STATUS_DELETE:
+				continue
+			case STATUS_UPDATE, STATUS_CREATE:
+				status = STATUS_CREATE
+				break
+			case STATUS_ORIGIN, STATUS_EMPTY:
+				panic("genTableSqls should not STATUS_ORIGIN or STATUS_EMPTY!")
+			}
+		}
+		sql := model.SqlForRec(status)
+		logger.INFO("genTableSqls: ", sql)
+		sqls = append(sqls, sql)
 	}
+	return sqls
 }

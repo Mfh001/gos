@@ -25,3 +25,6 @@ go get -u github.com/ryszard/goskiplist/skiplist
 #ORM
 go get -u github.com/go-gorp/gorp
 go get -u github.com/go-sql-driver/mysql
+
+#UUID
+go get -u github.com/rs/xid

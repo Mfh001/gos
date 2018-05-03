@@ -8,6 +8,7 @@ package models
 import (
 	. "app/consts"
 	"fmt"
+	"github.com/rs/xid"
 	. "goslib/base_model"
 	"gslib/player"
 )
@@ -18,10 +19,16 @@ type UserModel struct {
 }
 
 func FindUser(ctx *player.Player, uuid string) *UserModel {
-	return ctx.Store.Get([]string{"models", "users"}, uuid).(*UserModel)
+	if model := ctx.Store.Get([]string{"models", "users"}, uuid); model != nil {
+		return model.(*UserModel)
+	}
+	return nil
 }
 
 func CreateUser(ctx *player.Player, data *User) *UserModel {
+	if data.Uuid == "" {
+		data.Uuid = xid.New().String()
+	}
 	model := &UserModel{
 		Ctx:  ctx,
 		Data: data,
@@ -53,7 +60,7 @@ func (self *UserModel) SqlForRec(status int8) string {
 	case STATUS_DELETE:
 		return fmt.Sprintf("DELETE FROM `users` WHERE `uuid`='%s'", data.Uuid)
 	case STATUS_CREATE:
-		return fmt.Sprintf("INSERT INTO `users` (level, exp, name, online) VALUES (%d, %d, '%s', %t)", data.Level, data.Exp, data.Name, data.Online)
+		return fmt.Sprintf("INSERT INTO `users` (uuid, level, exp, name, online) VALUES ('%s', %d, %d, '%s', %t)", data.Uuid, data.Level, data.Exp, data.Name, data.Online)
 	case STATUS_UPDATE:
 		return fmt.Sprintf("UPDATE `users` SET level=%d, exp=%d, name='%s', online=%t WHERE `uuid`='%s'", data.Level, data.Exp, data.Name, data.Online, data.Uuid)
 	}
