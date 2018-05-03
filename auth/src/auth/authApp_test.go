@@ -1,11 +1,11 @@
 package main
 
 import (
+	"account"
+	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"fmt"
 	"goslib/redisdb"
-	"account"
 )
 
 var _ = Describe("AuthApp", func() {

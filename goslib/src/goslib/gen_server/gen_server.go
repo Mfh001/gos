@@ -16,14 +16,14 @@ type Packet struct {
 }
 
 type SignPacket struct {
-	signal int
-	reason string
+	signal           int
+	reason           string
 	response_channel chan *ResponsePacket
 }
 
 type ResponsePacket struct {
 	result interface{}
-	err error
+	err    error
 }
 
 type GenServer struct {
@@ -91,11 +91,11 @@ func Stop(server_name, reason string) error {
 	if gen_server, exists := GetGenServer(server_name); exists {
 		response_channel := make(chan *ResponsePacket)
 		gen_server.sign_channel <- SignPacket{
-			signal: SIGN_STOP,
-			reason: reason,
+			signal:           SIGN_STOP,
+			reason:           reason,
 			response_channel: response_channel,
 		}
-		response := <- response_channel
+		response := <-response_channel
 		return response.err
 	} else {
 		fmt.Println(server_name, " not found!")
@@ -149,7 +149,7 @@ func loop(gen_server *GenServer) {
 				result, err := gen_server.callback.HandleCall(args[0 : size-1])
 				response_channel.(chan *ResponsePacket) <- &ResponsePacket{
 					result: result,
-					err: err,
+					err:    err,
 				}
 			}
 		case sign_packet, ok := <-gen_server.sign_channel:

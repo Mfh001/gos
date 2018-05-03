@@ -5,9 +5,8 @@ import (
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	. "goslib/base_model"
-	"time"
-	"strings"
 	"goslib/logger"
+	"time"
 )
 
 type Filter func(elem interface{}) bool
@@ -15,7 +14,7 @@ type Filter func(elem interface{}) bool
 type Store map[string]interface{}
 
 type ModelStatus struct {
-	Origin int8
+	Origin  int8
 	Current int8
 }
 type TableStatus map[string]*ModelStatus
@@ -26,12 +25,12 @@ type dataLoader func(modelName string, ets *MemStore)
 var dataLoaderMap = map[string]dataLoader{}
 
 type MemStore struct {
-	playerId string
-	store Store
+	playerId    string
+	store       Store
 	storeStatus StoreStatus
-	dataLoaded map[string]bool
-	Db    *gorp.DbMap
-	Ctx   interface{}
+	dataLoaded  map[string]bool
+	Db          *gorp.DbMap
+	Ctx         interface{}
 }
 
 var sharedDBInstance *gorp.DbMap
@@ -50,12 +49,12 @@ func GetSharedDBInstance() *gorp.DbMap {
 
 func New(playerId string, ctx interface{}) *MemStore {
 	e := &MemStore{
-		playerId: playerId,
-		store: make(Store),
+		playerId:    playerId,
+		store:       make(Store),
 		storeStatus: make(StoreStatus),
-		dataLoaded: make(map[string]bool),
-		Db:    GetSharedDBInstance(),
-		Ctx:   ctx,
+		dataLoaded:  make(map[string]bool),
+		Db:          GetSharedDBInstance(),
+		Ctx:         ctx,
 	}
 	return e
 }
@@ -76,12 +75,12 @@ func (e *MemStore) EnsureDataLoaded(modelName string) {
 func (e *MemStore) Load(namespaces []string, key string, value interface{}) {
 	ctx := e.makeCtx(namespaces)
 	ctx[key] = value
-	e.UpdateStatus(namespaces[len(namespaces) - 1], key, STATUS_ORIGIN)
-	e.dataLoaded[namespaces[len(namespaces) - 1]] = true
+	e.UpdateStatus(namespaces[len(namespaces)-1], key, STATUS_ORIGIN)
+	e.dataLoaded[namespaces[len(namespaces)-1]] = true
 }
 
 func (e *MemStore) Get(namespaces []string, key string) interface{} {
-	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
+	e.EnsureDataLoaded(namespaces[len(namespaces)-1])
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		return ctx[key]
 	} else {
@@ -90,26 +89,26 @@ func (e *MemStore) Get(namespaces []string, key string) interface{} {
 }
 
 func (e *MemStore) Set(namespaces []string, key string, value interface{}) {
-	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
+	e.EnsureDataLoaded(namespaces[len(namespaces)-1])
 	ctx := e.makeCtx(namespaces)
 	if ctx[key] == nil {
-		e.UpdateStatus(namespaces[len(namespaces) - 1], key, STATUS_CREATE)
+		e.UpdateStatus(namespaces[len(namespaces)-1], key, STATUS_CREATE)
 	} else {
-		e.UpdateStatus(namespaces[len(namespaces) - 1], key, STATUS_UPDATE)
+		e.UpdateStatus(namespaces[len(namespaces)-1], key, STATUS_UPDATE)
 	}
 	ctx[key] = value
 }
 
 func (e *MemStore) Del(namespaces []string, key string) {
-	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
+	e.EnsureDataLoaded(namespaces[len(namespaces)-1])
 	if ctx := e.getCtx(namespaces); ctx != nil {
-		e.UpdateStatus(namespaces[len(namespaces) - 1], key, STATUS_DELETE)
+		e.UpdateStatus(namespaces[len(namespaces)-1], key, STATUS_DELETE)
 		delete(ctx, key)
 	}
 }
 
 func (e *MemStore) Find(namespaces []string, filter Filter) interface{} {
-	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
+	e.EnsureDataLoaded(namespaces[len(namespaces)-1])
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		for _, v := range ctx {
 			if filter(v) {
@@ -121,7 +120,7 @@ func (e *MemStore) Find(namespaces []string, filter Filter) interface{} {
 }
 
 func (e *MemStore) Select(namespaces []string, filter Filter) interface{} {
-	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
+	e.EnsureDataLoaded(namespaces[len(namespaces)-1])
 	var elems []interface{}
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		for _, v := range ctx {
@@ -135,7 +134,7 @@ func (e *MemStore) Select(namespaces []string, filter Filter) interface{} {
 }
 
 func (e *MemStore) Count(namespaces []string) int {
-	e.EnsureDataLoaded(namespaces[len(namespaces) - 1])
+	e.EnsureDataLoaded(namespaces[len(namespaces)-1])
 	if ctx := e.getCtx(namespaces); ctx != nil {
 		return len(ctx)
 	} else {
@@ -157,7 +156,7 @@ func (e *MemStore) Persist(namespaces []string) {
 		}
 	}
 	if len(sqls) > 0 {
-		err := AddPersistTask(e.playerId, time.Now().Unix(), strings.Join(sqls, ";"))
+		err := AddPersistTask(e.playerId, time.Now().Unix(), sqls)
 		if err != nil {
 			logger.ERR("AddPersitTask failed, player: ", e.playerId, " err: ", err)
 			return
@@ -219,7 +218,7 @@ func (e *MemStore) UpdateStatus(table string, key string, status int8) {
 		modelStatus.Current = status
 	} else {
 		tableStatus[key] = &ModelStatus{
-			Origin: STATUS_EMPTY,
+			Origin:  STATUS_EMPTY,
 			Current: status,
 		}
 	}
@@ -232,7 +231,7 @@ func (e *MemStore) SetOriginStatus(table string, key string) {
 		e.storeStatus[table] = tableStatus
 	}
 	tableStatus[key] = &ModelStatus{
-		Origin: STATUS_ORIGIN,
+		Origin:  STATUS_ORIGIN,
 		Current: STATUS_EMPTY,
 	}
 }
@@ -274,9 +273,9 @@ func genTableSqls(sqls []string, statusMap TableStatus, tableCtx Store) []string
 				panic("genTableSqls should not STATUS_ORIGIN or STATUS_EMPTY!")
 			}
 		}
-		sql := model.SqlForRec(status)
-		logger.INFO("genTableSqls: ", sql)
-		sqls = append(sqls, sql)
+		query := model.SqlForRec(status)
+		logger.INFO("genTableSqls: ", query)
+		sqls = append(sqls, query)
 	}
 	return sqls
 }

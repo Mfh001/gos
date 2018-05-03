@@ -1,18 +1,18 @@
 package player
 
 import (
-	"gosconf"
-	"net"
-	"io"
-	"google.golang.org/grpc"
-	pb "gos_rpc_proto"
-	"goslib/logger"
 	"context"
-	"sync"
-	"gslib/scene_mgr"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"sync/atomic"
+	pb "gos_rpc_proto"
+	"gosconf"
+	"goslib/logger"
+	"gslib/scene_mgr"
+	"io"
+	"net"
 	"strconv"
+	"sync"
+	"sync/atomic"
 )
 
 type StreamServer struct {
@@ -27,6 +27,7 @@ func OnlinePlayers() int32 {
 }
 
 var StreamRpcListenPort string
+
 func StartRpcStream() {
 	conf := gosconf.RPC_FOR_GAME_APP_STREAM
 	lis, err := net.Listen(conf.ListenNet, conf.ListenAddr)
@@ -95,4 +96,3 @@ func (s *StreamServer) startReceiver(stream pb.RouteConnectGame_AgentStreamServe
 
 	return err
 }
-

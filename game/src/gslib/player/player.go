@@ -3,19 +3,19 @@ package player
 import (
 	"api"
 	"fmt"
+	"github.com/kataras/iris/core/errors"
+	pb "gos_rpc_proto"
+	"goslib/broadcast"
 	"goslib/gen_server"
 	"goslib/logger"
-	"gslib/routes"
 	"goslib/memstore"
 	"goslib/packet"
+	"goslib/session_utils"
+	"gslib"
+	"gslib/routes"
+	"gslib/scene_mgr"
 	"runtime"
 	"time"
-	"goslib/broadcast"
-	"gslib"
-	"goslib/session_utils"
-	"gslib/scene_mgr"
-	pb "gos_rpc_proto"
-	"github.com/kataras/iris/core/errors"
 )
 
 type Player struct {
@@ -31,10 +31,11 @@ type Player struct {
 
 type RPCReply struct {
 	encode_method string
-	response interface{}
+	response      interface{}
 }
 
 const EXPIRE_DURATION = 1800
+
 var BroadcastHandler func(*Player, *broadcast.BroadcastMsg) = nil
 var CurrentGameAppId string
 
@@ -239,7 +240,7 @@ func parseResponseData(data []byte) interface{} {
 	return params
 }
 
-func (self *Player)processRequest(handler routes.Handler, params interface{}) []byte {
+func (self *Player) processRequest(handler routes.Handler, params interface{}) []byte {
 	encode_method, response := handler(self, params)
 	self.processed++
 	logger.INFO("Processed: ", self.processed, " Response Data: ", response)

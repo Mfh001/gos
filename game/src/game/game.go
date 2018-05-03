@@ -3,18 +3,18 @@ package main
 import (
 	"app/register"
 	"app/register/callbacks"
+	"context"
+	"google.golang.org/grpc"
+	pb "gos_rpc_proto"
+	"gosconf"
+	"goslib/logger"
+	"goslib/redisdb"
+	"goslib/utils"
 	"gslib"
 	"gslib/leaderboard"
-	"gosconf"
-	"goslib/redisdb"
 	"gslib/player"
 	"gslib/scene_mgr"
 	"time"
-	"goslib/logger"
-	"google.golang.org/grpc"
-	"goslib/utils"
-	pb "gos_rpc_proto"
-	"context"
 )
 
 func main() {

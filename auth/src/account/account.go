@@ -2,15 +2,15 @@ package account
 
 import (
 	"context"
-	"log"
-	pb "gos_rpc_proto"
-	"goslib/redisdb"
 	"fmt"
-	"strconv"
-	"goslib/logger"
-	"goslib/session_utils"
-	"goslib/secure"
+	pb "gos_rpc_proto"
 	"gosconf"
+	"goslib/logger"
+	"goslib/redisdb"
+	"goslib/secure"
+	"goslib/session_utils"
+	"log"
+	"strconv"
 )
 
 var ConnectRpcClient pb.DispatcherClient
@@ -21,8 +21,8 @@ const (
 )
 
 type Account struct {
-	Uuid string
-	GroupId string
+	Uuid     string
+	GroupId  string
 	Category int
 	Username string
 	Password string
@@ -78,11 +78,11 @@ func Create(username string, password string) (*Account, error) {
 	fmt.Println("Create: ", val)
 
 	return &Account{
-		Uuid:username,
-		GroupId:groupId,
-		Category:ACCOUNT_NORMAL,
-		Username:username,
-		Password:password,
+		Uuid:     username,
+		GroupId:  groupId,
+		Category: ACCOUNT_NORMAL,
+		Username: username,
+		Password: password,
 	}, nil
 }
 
@@ -93,25 +93,25 @@ func Delete(username string) {
 /*
  * Check password is valid for this account
  */
-func (self *Account)Auth(password string) bool {
+func (self *Account) Auth(password string) bool {
 	return self.Password == password
 }
 
-func (self *Account)ChangePassword(newPassword string) {
+func (self *Account) ChangePassword(newPassword string) {
 }
 
 /*
  * RPC
  * request ConnectAppMgr dispatch connectApp for user connecting
  */
-func (self *Account)Dispatch() (string, string, *session_utils.Session, error) {
+func (self *Account) Dispatch() (string, string, *session_utils.Session, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
 
 	reply, err := ConnectRpcClient.DispatchPlayer(ctx, &pb.DispatchRequest{
-		AccountId:self.Uuid,
-		GroupId:self.GroupId,
-		})
+		AccountId: self.Uuid,
+		GroupId:   self.GroupId,
+	})
 	if err != nil {
 		logger.ERR("Dispatch account failed: ", err)
 		return "", "", nil, err
@@ -124,7 +124,7 @@ func (self *Account)Dispatch() (string, string, *session_utils.Session, error) {
 	return reply.GetConnectAppHost(), reply.GetConnectAppPort(), session, nil
 }
 
-func (self *Account)updateSession(reply *pb.DispatchReply) (*session_utils.Session, error) {
+func (self *Account) updateSession(reply *pb.DispatchReply) (*session_utils.Session, error) {
 	var session *session_utils.Session
 	var err error
 	session, err = session_utils.Find(self.Uuid)
@@ -145,13 +145,13 @@ func (self *Account)updateSession(reply *pb.DispatchReply) (*session_utils.Sessi
 	return session, err
 }
 
-func (self *Account)createSession() (*session_utils.Session, error) {
+func (self *Account) createSession() (*session_utils.Session, error) {
 	return session_utils.Create(map[string]string{
-		"accountId": self.Uuid,
-		"serverId": self.GroupId,
-		"sceneId": "",
+		"accountId":    self.Uuid,
+		"serverId":     self.GroupId,
+		"sceneId":      "",
 		"connectAppId": "",
-		"gameAppId": "",
-		"token": secure.SessionToken(),
+		"gameAppId":    "",
+		"token":        secure.SessionToken(),
 	})
 }

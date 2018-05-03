@@ -1,18 +1,18 @@
 package connection
 
 import (
-	"google.golang.org/grpc"
-	pb "gos_rpc_proto"
 	"context"
-	"goslib/logger"
-	"goslib/gen_server"
-	"sync"
-	"strings"
-	"goslib/session_utils"
-	"gosconf"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"net"
+	pb "gos_rpc_proto"
+	"gosconf"
+	"goslib/gen_server"
+	"goslib/logger"
+	"goslib/session_utils"
 	"io"
+	"net"
+	"strings"
+	"sync"
 )
 
 var GameMgrRpcClient pb.GameDispatcherClient
@@ -41,8 +41,8 @@ func ChooseGameServer(session *session_utils.Session) (string, error) {
 
 	reply, err := GameMgrRpcClient.DispatchGame(ctx, &pb.DispatchGameRequest{
 		AccountId: session.AccountId,
-		ServerId: session.ServerId,
-		SceneId: session.SceneId,
+		ServerId:  session.ServerId,
+		SceneId:   session.SceneId,
 	})
 	if err != nil {
 		logger.ERR("DispatchGame failed: ", err)
@@ -132,7 +132,7 @@ func (self *ProxyManager) Terminate(reason string) (err error) {
 /*
  * connect to GameApp Stream
  */
-func (self *ProxyManager)doConnectGameApp(gameAppId string, addr string) {
+func (self *ProxyManager) doConnectGameApp(gameAppId string, addr string) {
 	conf := gosconf.RPC_FOR_GAME_APP_STREAM
 	logger.INFO("ConnectGameApp: ", addr)
 	conn, err := grpc.Dial(addr, conf.DialOptions...)
@@ -150,4 +150,3 @@ func GetGameServerConn(gameAppId string) *grpc.ClientConn {
 	}
 	return conn.(*grpc.ClientConn)
 }
-

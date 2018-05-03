@@ -1,12 +1,12 @@
 package player
 
 import (
-	"goslib/gen_server"
-	"goslib/session_utils"
-	"goslib/logger"
-	"github.com/kataras/iris/core/errors"
-	"goslib/scene_utils"
 	"fmt"
+	"github.com/kataras/iris/core/errors"
+	"goslib/gen_server"
+	"goslib/logger"
+	"goslib/scene_utils"
+	"goslib/session_utils"
 )
 
 const SERVER = "__player_manager_server__"

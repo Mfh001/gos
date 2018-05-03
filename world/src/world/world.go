@@ -3,8 +3,8 @@ package main
 import (
 	"agent_mgr"
 	"game_mgr"
-	"goslib/redisdb"
 	"gosconf"
+	"goslib/redisdb"
 	//"RootMgr"
 )
 

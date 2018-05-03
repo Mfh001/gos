@@ -1,15 +1,16 @@
 package memstore
 
 import (
-	"goslib/gen_server"
-	"goslib/logger"
 	"database/sql"
 	"github.com/go-gorp/gorp"
-	"time"
+	"goslib/gen_server"
+	"goslib/logger"
 	"sync"
+	"time"
 )
 
 const PERSISTER_SERVER = "__PERSISTER_SERVER__"
+
 var queueSummary = &sync.Map{}
 
 type SchemaPersistance struct {
@@ -18,8 +19,8 @@ type SchemaPersistance struct {
 }
 
 type PersistTask struct {
-    version int64
-    sql string
+	version int64
+	sqls    []string
 }
 
 type TaskQueue []*PersistTask
@@ -29,7 +30,7 @@ type Queue map[string]TaskQueue
    GenServer Callbacks
 */
 type DBPersister struct {
-	queue Queue
+	queue         Queue
 	persistTicker *time.Ticker
 }
 
@@ -47,9 +48,9 @@ func SyncPersistAll() bool {
 	return count == 0
 }
 
-func AddPersistTask(playerId string, version int64, sql string) error {
-	logger.INFO("AddPersistTask: ", sql)
-	return gen_server.Cast(PERSISTER_SERVER, "AddPersistTask", playerId, version, sql)
+func AddPersistTask(playerId string, version int64, sqls []string) error {
+	logger.INFO("AddPersistTask: ", sqls)
+	return gen_server.Cast(PERSISTER_SERVER, "AddPersistTask", playerId, version, sqls)
 }
 
 func IsPersistFinished(playerId string) bool {
@@ -85,16 +86,16 @@ func (self *DBPersister) HandleCast(args []interface{}) {
 	if handle == "AddPersistTask" {
 		playerId := args[1].(string)
 		version := args[2].(int64)
-		sql := args[3].(string)
-		self.addTask(playerId, version, sql)
-	} else if handle == "tickerPersist" {
-		self.tickerPersist()
+		sqls := args[3].([]string)
+		self.addTask(playerId, version, sqls)
 	}
 }
 
 func (self *DBPersister) HandleCall(args []interface{}) (interface{}, error) {
 	handle := args[0].(string)
 	if handle == "SyncPersistAll" {
+		self.tickerPersist()
+	} else if handle == "tickerPersist" {
 		self.tickerPersist()
 	}
 	return nil, nil
@@ -105,13 +106,13 @@ func (self *DBPersister) Terminate(reason string) (err error) {
 	return nil
 }
 
-func (self *DBPersister) addTask(playerId string, version int64, sql string) {
+func (self *DBPersister) addTask(playerId string, version int64, sqls []string) {
 	if count, loaded := queueSummary.LoadOrStore(playerId, 1); loaded {
-		queueSummary.Store(playerId, count.(int) + 1)
+		queueSummary.Store(playerId, count.(int)+1)
 	}
 	task := &PersistTask{
 		version: version,
-		sql: sql,
+		sqls:    sqls,
 	}
 	var taskQueue TaskQueue
 	var ok bool
@@ -170,10 +171,12 @@ func executePersistSQL(dbIns *gorp.DbMap, playerId string, task *PersistTask) er
 		logger.ERR("Start transaction failed: ", err)
 		return err
 	}
-	if _, err := tx.Exec(task.sql); err != nil {
-		logger.ERR("ExecutePersist failed: ", err)
-		tx.Rollback()
-		return err
+	for _, sql := range task.sqls {
+		if _, err := tx.Exec(sql); err != nil {
+			logger.ERR("ExecutePersist failed: ", err, " sql: ", sql)
+			tx.Rollback()
+			return err
+		}
 	}
 	_, err = tx.Exec("UPDATE schema_persistances SET version = ? where uuid = ?", task.version, playerId)
 	if err != nil {
@@ -181,8 +184,9 @@ func executePersistSQL(dbIns *gorp.DbMap, playerId string, task *PersistTask) er
 		tx.Rollback()
 		return err
 	}
-	if err := tx.Commit();err != nil {
+	if err := tx.Commit(); err != nil {
 		logger.ERR("ExecutePersistSQL Commit failed: ", err)
+		tx.Rollback()
 		return err
 	}
 	return nil

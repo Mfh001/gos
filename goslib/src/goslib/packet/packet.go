@@ -1,10 +1,10 @@
 package packet
 
 import (
+	"goslib/logger"
 	"goslib/secure"
 	"math"
 	"net"
-	"goslib/logger"
 )
 
 const (
@@ -283,7 +283,7 @@ func (p *Packet) Send(conn net.Conn) {
 	}
 }
 
-func (p *Packet) GetSendData() ([]byte) {
+func (p *Packet) GetSendData() []byte {
 	writer := Writer()
 	if encrypt {
 		data := secure.Encrypt(p.Data())

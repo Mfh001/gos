@@ -1,10 +1,10 @@
 package timertask
 
 import (
+	"fmt"
 	"github.com/ryszard/goskiplist/skiplist"
 	"goslib/gen_server"
 	"net"
-	"fmt"
 )
 
 type TimerTask struct {

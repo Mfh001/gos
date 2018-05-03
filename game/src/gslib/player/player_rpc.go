@@ -1,19 +1,19 @@
 package player
 
 import (
-	"goslib/gen_server"
 	"api"
-	"sync"
-	pb "gos_rpc_proto"
-	"goslib/logger"
-	"goslib/session_utils"
-	"goslib/game_utils"
-	"gosconf"
-	"google.golang.org/grpc"
-	"fmt"
 	"context"
-	"gslib/routes"
+	"fmt"
+	"google.golang.org/grpc"
+	pb "gos_rpc_proto"
+	"gosconf"
+	"goslib/game_utils"
+	"goslib/gen_server"
+	"goslib/logger"
 	"goslib/scene_utils"
+	"goslib/session_utils"
+	"gslib/routes"
+	"sync"
 )
 
 /*
@@ -23,6 +23,7 @@ type PlayerRPC struct {
 }
 
 const PLAYER_RPC_SERVER = "__PLAYER_RPC__"
+
 var rpcClients = &sync.Map{}
 
 func StartPlayerRPC() {

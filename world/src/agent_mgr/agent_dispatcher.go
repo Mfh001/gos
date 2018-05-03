@@ -1,35 +1,37 @@
 package agent_mgr
 
 import (
+	"github.com/kataras/iris/core/errors"
+	"gosconf"
 	"goslib/gen_server"
 	"goslib/logger"
-	"time"
-	"gosconf"
-	"github.com/kataras/iris/core/errors"
 	"sync"
+	"time"
 )
 
 type connectApp struct {
-	Uuid string
-	Host string
-	Port string
-	Ccu  int32
-	CcuMax int32
+	Uuid     string
+	Host     string
+	Port     string
+	Ccu      int32
+	CcuMax   int32
 	ActiveAt int64
 }
 
 type DispatchCache struct {
-	app *connectApp
+	app      *connectApp
 	activeAt int64
 }
 
 const SERVER = "ConnectAppDispatcher"
+
 var agentInfos = &sync.Map{}
+
 type AgentInfo struct {
-	uuid string
-	host string
-	port string
-	ccu int32
+	uuid     string
+	host     string
+	port     string
+	ccu      int32
 	activeAt int64
 }
 
@@ -43,10 +45,10 @@ func handleReportAgentInfo(uuid string, host string, port string, ccu int32) {
 		agentInfo.(*AgentInfo).activeAt = time.Now().Unix()
 	} else {
 		agentInfo = &AgentInfo{
-			uuid: uuid,
-			host: host,
-			port: port,
-			ccu: ccu,
+			uuid:     uuid,
+			host:     host,
+			port:     port,
+			ccu:      ccu,
 			activeAt: time.Now().Unix(),
 		}
 		agentInfos.Store(uuid, agentInfo)
@@ -79,7 +81,7 @@ type Dispatcher struct {
 	appMapGroups  map[string][]string
 	groupMapApps  map[string][]string
 
-	printTimer *time.Timer
+	printTimer      *time.Timer
 	agentCheckTimer *time.Timer
 }
 
@@ -153,22 +155,22 @@ func (self *Dispatcher) HandleCast(args []interface{}) {
 }
 
 func isAgentAlive(now int64, activeAt int64) bool {
-	return activeAt + gosconf.SERVICE_DEAD_DURATION > now
+	return activeAt+gosconf.SERVICE_DEAD_DURATION > now
 }
 
-func (self *Dispatcher) addAgent(info *AgentInfo)  {
+func (self *Dispatcher) addAgent(info *AgentInfo) {
 	agent := &connectApp{
-		Uuid: info.uuid,
-		Host: info.host,
-		Port: info.port,
-		Ccu: 0,
-		CcuMax: gosconf.AGENT_CCU_MAX,
+		Uuid:     info.uuid,
+		Host:     info.host,
+		Port:     info.port,
+		Ccu:      0,
+		CcuMax:   gosconf.AGENT_CCU_MAX,
 		ActiveAt: time.Now().Unix(),
 	}
 	self.apps[agent.Uuid] = agent
 }
 
-func (self *Dispatcher) delAgent(uuid string)  {
+func (self *Dispatcher) delAgent(uuid string) {
 	delete(self.apps, uuid)
 }
 
@@ -226,7 +228,7 @@ func (self *Dispatcher) doDispatch(accountId string, groupId string) (*connectAp
 	return dispatchApp, nil
 }
 
-func (self *Dispatcher)appendAppIdToGroup(appId string, groupId string) {
+func (self *Dispatcher) appendAppIdToGroup(appId string, groupId string) {
 	list, ok := self.groupMapApps[groupId]
 	if !ok {
 		list = []string{appId}
@@ -241,7 +243,7 @@ func (self *Dispatcher)appendAppIdToGroup(appId string, groupId string) {
 	self.groupMapApps[groupId] = list
 }
 
-func (self *Dispatcher)appendGroupIdToApp(appId string, groupId string) {
+func (self *Dispatcher) appendGroupIdToApp(appId string, groupId string) {
 	list, ok := self.appMapGroups[appId]
 	if !ok {
 		list = []string{groupId}
@@ -256,7 +258,7 @@ func (self *Dispatcher)appendGroupIdToApp(appId string, groupId string) {
 	self.appMapGroups[appId] = list
 }
 
-func (self *Dispatcher)dispatchByAccountId(accountId string) *connectApp {
+func (self *Dispatcher) dispatchByAccountId(accountId string) *connectApp {
 	var minPressureApp *connectApp
 	for _, app := range self.apps {
 		if app.Ccu < app.CcuMax {
@@ -268,14 +270,14 @@ func (self *Dispatcher)dispatchByAccountId(accountId string) *connectApp {
 	return minPressureApp
 }
 
-func (self *Dispatcher)dispatchByGroupId(accountId string, groupId string) *connectApp {
+func (self *Dispatcher) dispatchByGroupId(accountId string, groupId string) *connectApp {
 	appIds, ok := self.groupMapApps[groupId]
 	var minPresureApp *connectApp
 	var minGroupedPresureApp *connectApp
 
 	// Dispatch to old group
 	if ok {
-		for _, appId := range appIds  {
+		for _, appId := range appIds {
 			app := self.apps[appId]
 			if app.Ccu < app.CcuMax {
 				return app
@@ -297,25 +299,25 @@ func (self *Dispatcher)dispatchByGroupId(accountId string, groupId string) *conn
  *  1.has enough space
  *  2.is same group
  */
-func (self *Dispatcher)matchDispatch(accountId string, groupId string, targetApp *connectApp) bool {
-	if groupId == ""{
+func (self *Dispatcher) matchDispatch(accountId string, groupId string, targetApp *connectApp) bool {
+	if groupId == "" {
 		return self.matchDispatchByAccountId(accountId, targetApp)
 	} else {
 		return self.matchDispatchByGroupId(groupId, targetApp)
 	}
 }
 
-func (self *Dispatcher)matchDispatchByAccountId(accountId string, targetApp *connectApp) bool {
+func (self *Dispatcher) matchDispatchByAccountId(accountId string, targetApp *connectApp) bool {
 	return targetApp.Ccu < targetApp.CcuMax
 }
 
-func (self *Dispatcher)matchDispatchByGroupId(groupId string, targetApp *connectApp) bool {
+func (self *Dispatcher) matchDispatchByGroupId(groupId string, targetApp *connectApp) bool {
 	appIds, ok := self.groupMapApps[groupId]
 	if !ok {
 		return false
 	}
 
-	for _, appId := range appIds  {
+	for _, appId := range appIds {
 		app := self.apps[appId]
 		if app.Uuid == targetApp.Uuid {
 			return true
@@ -337,7 +339,7 @@ func chooseLessPresure(appA *connectApp, appB *connectApp, weightB float32) *con
 	presureA := float32(appA.Ccu) / float32(appA.CcuMax)
 	presureB := float32(appB.Ccu) / float32(appB.CcuMax)
 
-	if presureA < presureB / (1 + weightB) {
+	if presureA < presureB/(1+weightB) {
 		return appA
 	} else {
 		return appB

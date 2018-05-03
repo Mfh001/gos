@@ -1,17 +1,17 @@
 package main
 
 import (
-	"net"
-	"goslib/logger"
-	"goslib/redisdb"
+	"connection"
+	"context"
 	"google.golang.org/grpc"
 	pb "gos_rpc_proto"
 	"gosconf"
-	"connection"
-	"time"
-	"context"
+	"goslib/logger"
+	"goslib/redisdb"
 	"goslib/utils"
+	"net"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -87,7 +87,7 @@ func connectAgentMgr(listenPort int) {
 			Uuid: uuid,
 			Host: host,
 			Port: port,
-			Ccu: 0,
+			Ccu:  0,
 		}
 
 		// Heartbeat

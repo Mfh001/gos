@@ -1,18 +1,18 @@
 package game_utils
 
 import (
-	"goslib/redisdb"
-	"goslib/logger"
-	"strconv"
 	"gosconf"
+	"goslib/logger"
+	"goslib/redisdb"
+	"strconv"
 )
 
 type Game struct {
-	Uuid string
-	Host string
-	Port string
-	Ccu  int32
-	CcuMax int32
+	Uuid     string
+	Host     string
+	Port     string
+	Ccu      int32
+	CcuMax   int32
 	ActiveAt int64
 }
 
@@ -36,7 +36,7 @@ func LoadGames(apps map[string]*Game) error {
 		return err
 	}
 	for _, id := range ids {
-		if app, _ := Find(id); app != nil{
+		if app, _ := Find(id); app != nil {
 			apps[id] = app
 		}
 	}
@@ -45,7 +45,7 @@ func LoadGames(apps map[string]*Game) error {
 
 func Create(params map[string]string) (*Game, error) {
 	setParams := make(map[string]interface{})
-	for k,v := range params  {
+	for k, v := range params {
 		setParams[k] = v
 	}
 	_, err := redisdb.Instance().HMSet(params["uuid"], setParams).Result()
@@ -75,11 +75,11 @@ func parseObject(params map[string]string) *Game {
 	CcuMax, _ := strconv.Atoi(params["ccuMax"])
 	ActiveAt, _ := strconv.Atoi(params["activeAt"])
 	return &Game{
-		Uuid: params["uuid"],
-		Host: params["host"],
-		Port: params["port"],
-		Ccu: int32(Ccu),
-		CcuMax: int32(CcuMax),
+		Uuid:     params["uuid"],
+		Host:     params["host"],
+		Port:     params["port"],
+		Ccu:      int32(Ccu),
+		CcuMax:   int32(CcuMax),
 		ActiveAt: int64(ActiveAt),
 	}
 }
@@ -91,4 +91,3 @@ func (self *Game) Del() error {
 	}
 	return err
 }
-

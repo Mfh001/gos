@@ -2,9 +2,9 @@ package controllers
 
 import (
 	. "api"
-	"gslib/player"
-	"app/models"
 	"app/consts"
+	"app/models"
+	"gslib/player"
 )
 
 type EquipsController struct {
@@ -13,9 +13,8 @@ type EquipsController struct {
 
 func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}) {
 	user := models.CreateUser(self.Ctx, &consts.User{
-		Uuid: self.Ctx.PlayerId,
-		Level: 1,
-		Exp: 0,
+		Level:  1,
+		Exp:    0,
 		Online: true,
 	})
 
@@ -27,7 +26,5 @@ func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}
 }
 
 func (self *EquipsController) UnLoad(params *EquipUnLoadParams) (string, interface{}) {
-	 //fmt.Println("Context: ", self.Context)
-	 //fmt.Println("SystemInfo: ", self.Context.SystemInfo())
 	return "EquipLoadResponse", &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }

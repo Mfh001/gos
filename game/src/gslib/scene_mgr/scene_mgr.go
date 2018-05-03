@@ -2,9 +2,9 @@ package scene_mgr
 
 import (
 	"goslib/gen_server"
-	"sync"
-	"goslib/redisdb"
 	"goslib/logger"
+	"goslib/redisdb"
+	"sync"
 )
 
 var SceneLoadHandler func(sceneId string, sceneType string, sceneConfigId string) = nil
@@ -16,6 +16,7 @@ type SceneMgr struct {
 }
 
 const SERVER = "__scene_mgr__"
+
 var loadedScenes *sync.Map
 
 func StartSceneMgr() {

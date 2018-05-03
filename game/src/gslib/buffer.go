@@ -1,9 +1,9 @@
 package gslib
 
 import (
-	"net"
-	"goslib/packet"
 	"goslib/logger"
+	"goslib/packet"
+	"net"
 )
 
 type Buffer struct {

@@ -1,25 +1,25 @@
 package scene_utils
 
 import (
-	"goslib/redisdb"
-	"goslib/logger"
-	"strconv"
 	"gosconf"
+	"goslib/logger"
+	"goslib/redisdb"
+	"strconv"
 )
 
 type Scene struct {
-	Uuid string
-	GameAppId string
-	SceneType string
+	Uuid          string
+	GameAppId     string
+	SceneType     string
 	SceneConfigId string
-	Ccu int
-	CcuMax int
+	Ccu           int
+	CcuMax        int
 }
 
 type SceneConf struct {
-	ConfId string
+	ConfId    string
 	SceneType string
-	CcuMax int
+	CcuMax    int
 }
 
 func LoadScenes(mapScenes map[string]*Scene) {
@@ -58,15 +58,14 @@ func FindSceneConf(confId string) (*SceneConf, error) {
 		logger.ERR("SceneConf: ", confId, " Not Found!")
 		//FIXME
 		return &SceneConf{
-			ConfId: "default_conf_id",
+			ConfId:    "default_conf_id",
 			SceneType: "default_server",
-			CcuMax: 100,
+			CcuMax:    100,
 		}, nil
 		//return nil, nil
 	}
 	return parseSceneConf(valueMap), nil
 }
-
 
 func CreateDefaultServerScene(serverId string, conf *SceneConf) (*Scene, error) {
 	params := make(map[string]interface{})
@@ -84,12 +83,12 @@ func CreateDefaultServerScene(serverId string, conf *SceneConf) (*Scene, error) 
 	}
 	redisdb.Instance().SAdd(gosconf.RK_SCENE_IDS, serverId)
 	return &Scene{
-		Uuid: serverId,
-		GameAppId: "",
-		SceneType: conf.SceneType,
+		Uuid:          serverId,
+		GameAppId:     "",
+		SceneType:     conf.SceneType,
 		SceneConfigId: conf.ConfId,
-		Ccu: 0,
-		CcuMax: conf.CcuMax,
+		Ccu:           0,
+		CcuMax:        conf.CcuMax,
 	}, nil
 }
 
@@ -100,12 +99,12 @@ func parseScene(valueMap map[string]string) *Scene {
 	ccu, _ := strconv.Atoi(valueMap["ccu"])
 	ccuMax, _ := strconv.Atoi(valueMap["ccuMax"])
 	return &Scene{
-		Uuid: valueMap["uuid"],
-		GameAppId: valueMap["gameAppId"],
-		SceneType: valueMap["sceneType"],
+		Uuid:          valueMap["uuid"],
+		GameAppId:     valueMap["gameAppId"],
+		SceneType:     valueMap["sceneType"],
 		SceneConfigId: valueMap["sceneConfigId"],
-		Ccu: ccu,
-		CcuMax: ccuMax,
+		Ccu:           ccu,
+		CcuMax:        ccuMax,
 	}
 }
 
@@ -115,9 +114,8 @@ func parseSceneConf(valueMap map[string]string) *SceneConf {
 	}
 	ccuMax, _ := strconv.Atoi(valueMap["ccuMax"])
 	return &SceneConf{
-		ConfId: valueMap["confId"],
+		ConfId:    valueMap["confId"],
 		SceneType: valueMap["SceneType"],
-		CcuMax: ccuMax,
+		CcuMax:    ccuMax,
 	}
 }
-

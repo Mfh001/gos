@@ -1,12 +1,12 @@
 package gslib
 
 import (
+	"app/register/tables"
 	"fmt"
+	"goslib/broadcast"
 	"goslib/gen_server"
 	"goslib/memstore"
 	"time"
-	"app/register/tables"
-	"goslib/broadcast"
 )
 
 func Run() {
@@ -30,4 +30,3 @@ func Run() {
 	// Start broadcast server
 	gen_server.Start(BROADCAST_SERVER_ID, new(broadcast.Broadcast))
 }
-

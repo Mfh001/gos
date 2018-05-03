@@ -10,16 +10,16 @@
 package main
 
 import (
+	"account"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 	"google.golang.org/grpc"
 	pb "gos_rpc_proto"
-	"goslib/redisdb"
-	gl "goslib/logger"
-	"log"
 	"gosconf"
-	"account"
+	gl "goslib/logger"
+	"goslib/redisdb"
+	"log"
 )
 
 func main() {
@@ -73,14 +73,14 @@ func registerHandler(ctx iris.Context) {
 	user, err := account.Lookup(username)
 	if err != nil {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_internal_error"})
 		return
 	}
 
 	if user != nil {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_username_already_used"})
 		return
 	}
@@ -90,7 +90,7 @@ func registerHandler(ctx iris.Context) {
 
 	if err != nil {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_internal_error"})
 		return
 	}
@@ -105,21 +105,21 @@ func loginHandler(ctx iris.Context) {
 	user, err := account.Lookup(username)
 	if err != nil {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_internal_error"})
 		return
 	}
 
 	if user == nil {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_user_not_found"})
 		return
 	}
 
 	if !user.Auth(password) {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_password_invalid"})
 		return
 	}
@@ -136,21 +136,21 @@ func loginByGuestHandler(ctx iris.Context) {
 	user, err := account.Lookup(username)
 	if err != nil {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_internal_error"})
 		return
 	}
 
 	if user == nil {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_user_not_found"})
 		return
 	}
 
 	if user.Category != account.ACCOUNT_GUEST {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_password_invalid"})
 		return
 	}
@@ -166,15 +166,15 @@ func dispathAndRsp(ctx iris.Context, user *account.Account) {
 
 	if err != nil {
 		ctx.JSON(iris.Map{
-			"status": "failed",
+			"status":     "failed",
 			"error_code": "error_internal_error"})
 		return
 	}
 
 	ctx.JSON(iris.Map{
-		"status": "success",
-		"connectHost": host,
-		"port": port,
-		"accountId": user.Uuid,
+		"status":       "success",
+		"connectHost":  host,
+		"port":         port,
+		"accountId":    user.Uuid,
 		"sessionToken": session.Token})
 }

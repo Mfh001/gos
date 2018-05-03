@@ -1,18 +1,18 @@
 package session_utils
 
 import (
-	"goslib/redisdb"
 	"goslib/logger"
+	"goslib/redisdb"
 )
 
 type Session struct {
-	Uuid string
-	AccountId string
-	ServerId  string
-	SceneId   string
+	Uuid         string
+	AccountId    string
+	ServerId     string
+	SceneId      string
 	ConnectAppId string
-	GameAppId string
-	Token     string
+	GameAppId    string
+	Token        string
 }
 
 func Find(accountId string) (*Session, error) {
@@ -33,7 +33,7 @@ func Create(params map[string]string) (*Session, error) {
 	uuid := "session:" + params["accountId"]
 	params["uuid"] = uuid
 	setParams := make(map[string]interface{})
-	for k,v := range params  {
+	for k, v := range params {
 		setParams[k] = v
 	}
 	_, err := redisdb.Instance().HMSet(uuid, setParams).Result()

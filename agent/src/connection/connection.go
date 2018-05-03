@@ -1,28 +1,28 @@
 package connection
 
 import (
-	"net"
-	"time"
-	"io"
-	"encoding/binary"
-	"goslib/packet"
-	"goslib/logger"
 	"api"
+	"encoding/binary"
 	"errors"
-	"sync"
-	"goslib/session_utils"
 	pb "gos_rpc_proto"
 	"gosconf"
+	"goslib/logger"
+	"goslib/packet"
+	"goslib/session_utils"
+	"io"
+	"net"
+	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Connection struct {
-	id int
-	authed bool
-	conn net.Conn
+	id        int
+	authed    bool
+	conn      net.Conn
 	processed int64
-	session *session_utils.Session
-	stream pb.RouteConnectGame_AgentStreamClient
+	session   *session_utils.Session
+	stream    pb.RouteConnectGame_AgentStreamClient
 }
 
 var sessionMap = &sync.Map{}
@@ -36,9 +36,9 @@ func OnlinePlayers() int32 {
 
 func Handle(_conn net.Conn) {
 	instance := &Connection{
-		id: connId,
-		authed: false,
-		conn: _conn,
+		id:        connId,
+		authed:    false,
+		conn:      _conn,
 		processed: 0,
 	}
 	connectionMap.Store(instance.id, instance)
@@ -47,7 +47,7 @@ func Handle(_conn net.Conn) {
 	go instance.handleRequest()
 }
 
-func (self *Connection)handleRequest() {
+func (self *Connection) handleRequest() {
 	defer func() {
 		connectionMap.Delete(self.id)
 		self.stream = nil
@@ -92,7 +92,7 @@ func (self *Connection)handleRequest() {
 	}
 }
 
-func (self *Connection)setupProxy() error {
+func (self *Connection) setupProxy() error {
 	sessionMap.Store(self.session.AccountId, self.session)
 	gameAppId, err := ChooseGameServer(self.session)
 	if err != nil {
@@ -107,7 +107,7 @@ func (self *Connection)setupProxy() error {
 	return nil
 }
 
-func (self *Connection)proxyRequest(data []byte) error {
+func (self *Connection) proxyRequest(data []byte) error {
 	if self.stream == nil {
 		return errors.New("Stream not exits!")
 	}
@@ -118,7 +118,7 @@ func (self *Connection)proxyRequest(data []byte) error {
 }
 
 // Block And Receiving "request data"
-func (self *Connection)receiveRequest(header []byte) ([]byte, error) {
+func (self *Connection) receiveRequest(header []byte) ([]byte, error) {
 	self.conn.SetReadDeadline(time.Now().Add(gosconf.TCP_READ_TIMEOUT))
 	_, err := io.ReadFull(self.conn, header)
 	if err != nil {
@@ -136,7 +136,7 @@ func (self *Connection)receiveRequest(header []byte) ([]byte, error) {
 	return data, nil
 }
 
-func (self *Connection)authConn(data []byte) (bool, error){
+func (self *Connection) authConn(data []byte) (bool, error) {
 	reader := packet.Reader(data)
 	protocol := reader.ReadUint16()
 	decode_method := api.IdToName[protocol]
@@ -165,7 +165,7 @@ func (self *Connection)authConn(data []byte) (bool, error){
 	return success, nil
 }
 
-func (self *Connection)validateSession(params *api.SessionAuthParams) (bool, error) {
+func (self *Connection) validateSession(params *api.SessionAuthParams) (bool, error) {
 	session, err := session_utils.Find(params.AccountId)
 	if err != nil {
 		return false, err
@@ -177,5 +177,5 @@ func (self *Connection)validateSession(params *api.SessionAuthParams) (bool, err
 
 	self.session = session
 
-	return true,nil
+	return true, nil
 }

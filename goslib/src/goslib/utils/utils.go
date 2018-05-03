@@ -1,14 +1,14 @@
 package utils
 
 import (
-	"net"
-	"strings"
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"bytes"
-	"net/http"
-	"io/ioutil"
 	"goslib/logger"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"strings"
 )
 
 func GenId(list []string) string {

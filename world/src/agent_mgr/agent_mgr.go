@@ -5,14 +5,14 @@ import (
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	pb "gos_rpc_proto"
 	"google.golang.org/grpc/reflection"
+	pb "gos_rpc_proto"
 	"gosconf"
 	"goslib/logger"
 )
 
 // server is used to implement helloworld.GreeterServer.
-type connectAppMgr struct{
+type connectAppMgr struct {
 }
 
 func Start() {
@@ -39,8 +39,8 @@ func startConnectAppMgrRpc() {
 func (s *connectAppMgr) DispatchPlayer(ctx context.Context, in *pb.DispatchRequest) (*pb.DispatchReply, error) {
 	appId, host, port, err := dispatchAgent(in.AccountId, in.GroupId)
 
-	return  &pb.DispatchReply{
-		ConnectAppId: appId,
+	return &pb.DispatchReply{
+		ConnectAppId:   appId,
 		ConnectAppHost: host,
 		ConnectAppPort: port,
 	}, err

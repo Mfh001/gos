@@ -1,16 +1,16 @@
 package game_mgr
 
 import (
-	"net"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	pb "gos_rpc_proto"
 	"google.golang.org/grpc/reflection"
-	"goslib/logger"
+	pb "gos_rpc_proto"
 	"gosconf"
+	"goslib/logger"
+	"net"
 )
 
-type gameAppMgr struct{
+type gameAppMgr struct {
 }
 
 func Start() {
@@ -37,14 +37,14 @@ func startGameAppMgrRPC() {
 func (s *gameAppMgr) DispatchGame(ctx context.Context, in *pb.DispatchGameRequest) (*pb.DispatchGameReply, error) {
 	info, err := dispatchGame(in.AccountId, in.ServerId, in.SceneId)
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
 
-	return  &pb.DispatchGameReply{
-		GameAppId: info.AppId,
+	return &pb.DispatchGameReply{
+		GameAppId:   info.AppId,
 		GameAppHost: info.AppHost,
 		GameAppPort: info.AppPort,
-		SceneId: info.SceneId,
+		SceneId:     info.SceneId,
 	}, err
 }
 
