@@ -1,111 +1,189 @@
+/*
+Check timertask every seconds
+*/
+
 package timertask
 
 import (
+	"api"
 	"fmt"
-	"github.com/ryszard/goskiplist/skiplist"
+	"github.com/go-redis/redis"
+	"gosconf"
 	"goslib/gen_server"
-	"net"
+	"goslib/logger"
+	"goslib/redisdb"
+	"gslib/player_rpc"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type TimerTask struct {
-	Conn net.Conn
+	redisClient *redis.Client
+	taskTicker  *time.Ticker
+	retry       map[string]int
 }
+
+const SERVER = "__TIMERTASK_SERVER__"
+const KEY = "TIMERTASK_KEYS"
 
 func Start() {
-	addr := "tcp"
-	port := 6379
-	gen_server.Start(TIMERTASK_SERVER_ID, new(Timertask), addr, port)
+	gen_server.Start(SERVER, new(TimerTask))
 }
 
-func Add(key string, delay int, cb func()) {
-	gen_server.Cast(TIMERTASK_SERVER_ID, "add", key, delay, cb)
+func Add(key string, runAt int64, playerId string, encode_method string, params interface{}) {
+	writer := api.Encode(encode_method, params)
+	data := writer.GetSendData()
+	content := fmt.Sprintf("%s:%s", playerId, string(data))
+	gen_server.Cast(SERVER, "add", key, runAt, content)
 }
 
-func Update(key string, delay int) {
-	gen_server.Cast(TIMERTASK_SERVER_ID, "update", key, delay)
+func Update(key string, runAt int64) {
+	gen_server.Cast(SERVER, "update", key, runAt)
 }
 
 func Finish(key string) {
-	gen_server.Cast(TIMERTASK_SERVER_ID, "finish", key)
+	gen_server.Cast(SERVER, "finish", key)
 }
 
 func Del(key string) {
-	gen_server.Cast(TIMERTASK_SERVER_ID, "del", key)
+	gen_server.Cast(SERVER, "del", key)
 }
 
-func (t *Timertask) Init(args []interface{}) (err error) {
-	addr := args[0].(string)
-	port := args[1].(string)
-	conn, err := redis.Dial(addr, port)
-	if err != nil {
-		panic(err)
-	}
-	t.Conn = conn
+func (t *TimerTask) Init(args []interface{}) (err error) {
+	conf := gosconf.REDIS_FOR_TIMERTASK
+	t.redisClient = redisdb.Connect(SERVER, conf.Host, conf.Password, conf.Db)
+	t.taskTicker = time.NewTicker(gosconf.TIMERTASK_CHECK_DURATION)
+	t.retry = make(map[string]int)
+	go func() {
+		for range t.taskTicker.C {
+			gen_server.Call(SERVER, "tickerTask")
+		}
+	}()
+	return nil
 }
 
 func (t *TimerTask) HandleCall(args []interface{}) (interface{}, error) {
-	return handleCallAndCast(args), nil
+	err := t.handleCallAndCast(args)
+	return nil, err
 }
 
 func (t *TimerTask) HandleCast(args []interface{}) {
-	handleCallAndCast(args)
+	t.handleCallAndCast(args)
 }
 
 func (t *TimerTask) handleCallAndCast(args []interface{}) error {
 	method := args[0].(string)
 	if method == "add" {
-		return add(args[1].(string), args[2].(int), args[3].(func()))
+		key := args[1].(string)
+		runAt := args[2].(int64)
+		content := args[3].(string)
+		return t.add(key, runAt, content)
 	} else if method == "update" {
-		return update(args[1].(string), args[2].(int))
+		key := args[1].(string)
+		runAt := args[2].(int64)
+		return t.update(key, runAt)
 	} else if method == "finish" {
-		return t.finish(args[1].(string))
+		key := args[1].(string)
+		return t.finish(key)
 	} else if method == "del" {
-		return t.del(args[1].(string))
-	}
-}
-
-func (t *TimerTask) Terminate(args []interface{}) {
-}
-
-var KEY string = "TIMERTASK_KEYS"
-
-func mfa_key(key string) string {
-	return fmt.Sprintf("%s:mfa_key", key)
-}
-
-func (t *TimerTask) add(key string, delay int, cb func()) error {
-	return redis_transaction(func() {
-		l.Conn.Send("ZADD", KEY, delay, key)
-		l.Conn.Send("SET", mfa_key(key), encode(cb))
-	})
-}
-
-func (t *TimerTask) update(key string, delay int) error {
-	count, err := redis.Int(l.Conn.Do("ZREM", KEY, key))
-	if count == 1 {
-		rep, err := l.Conn.Do("ZADD", KEY, delay, key)
-		return err
-	}
-}
-
-func (t *TimerTask) finish(key string) err {
-	count, err := l.Conn.Do("ZREM", KEY, key)
-	if err != nil {
-		return err
-	}
-	if count == 1 {
-		handle_task(key)
+		key := args[1].(string)
+		return t.del(key)
+	} else if method == "tickerTask" {
+		t.tickerTask()
 	}
 	return nil
 }
 
+func (t *TimerTask) Terminate(reason string) (err error) {
+	t.taskTicker.Stop()
+	return nil
+}
+
+func mfa_key(key string) string {
+	return fmt.Sprintf("timertask:%s", key)
+}
+
+func (t *TimerTask) add(key string, runAt int64, content string) error {
+	if _, err := t.redisClient.Set(mfa_key(key), content, 0).Result(); err != nil {
+		return err
+	}
+	member := redis.Z{
+		Score:  float64(runAt),
+		Member: key,
+	}
+	if _, err := t.redisClient.ZAdd(KEY, member).Result(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *TimerTask) update(key string, runAt int64) error {
+	score, err := t.redisClient.ZScore(KEY, key).Result()
+	if err != nil {
+		return err
+	}
+	if score > 0 {
+		member := redis.Z{
+			Score:  float64(runAt),
+			Member: key,
+		}
+		_, err := t.redisClient.ZAdd(KEY, member).Result()
+		return err
+	}
+	return nil
+}
+
+func (t *TimerTask) finish(key string) error {
+	if err := t.handleTask(key); err != nil {
+		count, ok := t.retry[key]
+		if ok {
+			count = count + 1
+			t.retry[key] = count
+		} else {
+			t.retry[key] = 1
+		}
+		if count >= gosconf.TIMERTASK_MAX_RETRY {
+			delete(t.retry, key)
+		} else {
+			return err
+		}
+	}
+	return t.del(key)
+}
+
 func (t *TimerTask) del(key string) error {
-	_count, err := l.Conn.Do("ZREM", KEY, key)
+	_, err := t.redisClient.Del(mfa_key(key)).Result()
+	if err != nil {
+		return err
+	}
+	_, err = t.redisClient.ZRem(KEY, key).Result()
 	return err
 }
 
-func redis_transaction(action func()) (interface{}, error) {
-	l.Conn.Send("MULTI")
-	action()
-	return l.Conn.Do("EXEC")
+func (t *TimerTask) handleTask(key string) error {
+	content, err := t.redisClient.Get(mfa_key(key)).Result()
+	if err != nil {
+		return err
+	}
+	chunks := strings.Split(content, ":")
+	_, err = player_rpc.RequestPlayerRaw(chunks[0], []byte(chunks[1]))
+	return err
+}
+
+func (t *TimerTask) tickerTask() {
+	opt := redis.ZRangeBy{
+		Min:    "0",
+		Max:    strconv.Itoa(int(time.Now().Unix())),
+		Offset: 0,
+		Count:  gosconf.TIMERTASK_TASKS_PER_CHECK,
+	}
+	members, err := t.redisClient.ZRangeByScoreWithScores(KEY, opt).Result()
+	if err != nil {
+		logger.ERR("tickerTask failed: ", err)
+		return
+	}
+	for _, member := range members {
+		t.finish(member.Member.(string))
+	}
 }

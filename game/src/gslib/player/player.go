@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/kataras/iris/core/errors"
 	pb "gos_rpc_proto"
+	"gosconf"
 	"goslib/broadcast"
 	"goslib/gen_server"
 	"goslib/logger"
@@ -30,8 +31,8 @@ type Player struct {
 }
 
 type RPCReply struct {
-	encode_method string
-	response      interface{}
+	EncodeMethod string
+	Response     interface{}
 }
 
 const EXPIRE_DURATION = 1800
@@ -62,7 +63,7 @@ func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
 		return nil, err
 	}
 	reply := result.(*RPCReply)
-	return EncodeResponseData(reply.encode_method, reply.response), nil
+	return EncodeResponseData(reply.EncodeMethod, reply.Response), nil
 }
 
 func HandleRPCCast(accountId string, requestData []byte) {
@@ -183,11 +184,13 @@ func (self *Player) SendData(encode_method string, msg interface{}) {
 
 func (self *Player) handleRequest(data []byte) {
 	self.lastActive = time.Now().Unix()
-	defer func() {
-		if x := recover(); x != nil {
-			logger.ERR("caught panic in player handleRequest(): ", x)
-		}
-	}()
+	if !gosconf.IS_DEBUG {
+		defer func() {
+			if x := recover(); x != nil {
+				logger.ERR("caught panic in player handleRequest(): ", x)
+			}
+		}()
+	}
 
 	handler, params, err := ParseRequestData(data)
 	if err != nil {
@@ -201,7 +204,7 @@ func (self *Player) handleRequest(data []byte) {
 
 func (self *Player) handleRPCCall(handler routes.Handler, params interface{}) (*RPCReply, error) {
 	encode_method, response := handler(self, params)
-	return &RPCReply{encode_method: encode_method, response: response}, nil
+	return &RPCReply{EncodeMethod: encode_method, Response: response}, nil
 }
 
 func (self *Player) handleRPCCast(data []byte) {
@@ -229,15 +232,6 @@ func ParseRequestData(data []byte) (routes.Handler, interface{}, error) {
 func EncodeResponseData(encode_method string, response interface{}) []byte {
 	writer := api.Encode(encode_method, response)
 	return writer.GetSendData()
-}
-
-func parseResponseData(data []byte) interface{} {
-	reader := packet.Reader(data)
-	protocol := reader.ReadUint16()
-	decode_method := api.IdToName[protocol]
-	logger.INFO("handelResponse: ", decode_method)
-	params := api.Decode(decode_method, reader)
-	return params
 }
 
 func (self *Player) processRequest(handler routes.Handler, params interface{}) []byte {
@@ -294,20 +288,6 @@ func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
 	} else {
 		CastPlayer(targetPlayerId, "HandleAsyncWrap", fun)
 	}
-}
-
-func (self *Player) RequestPlayer(targetPlayerId string, encode_method string, params interface{}) (interface{}, error) {
-	if gen_server.Exists(targetPlayerId) {
-		return internalRequestPlayer(targetPlayerId, encode_method, params)
-	}
-	session, err := session_utils.Find(targetPlayerId)
-	if err != nil {
-		return nil, err
-	}
-	if self.Session.GameAppId == session.GameAppId {
-		return internalRequestPlayer(targetPlayerId, encode_method, params)
-	}
-	return crossRequestPlayer(session, encode_method, params)
 }
 
 func (self *Player) JoinChannel(channel string) {

@@ -17,7 +17,9 @@ import (
 	"gslib"
 	"gslib/leaderboard"
 	"gslib/player"
+	"gslib/player_rpc"
 	"gslib/scene_mgr"
+	"gslib/timertask"
 	"time"
 )
 
@@ -47,11 +49,13 @@ func main() {
 	// Start scene manager
 	scene_mgr.StartSceneMgr()
 
-	player.StartPlayerRPC()
+	player_rpc.StartPlayerRPC()
 	player.StartPlayerManager()
 
 	// Start listen agent stream
 	player.StartRpcStream()
+
+	timertask.Start()
 
 	// connect to game manager, retry if failed
 	for {

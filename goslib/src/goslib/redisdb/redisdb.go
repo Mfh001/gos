@@ -14,9 +14,9 @@ var clients = &sync.Map{}
 /*
  * Connect Redis Cluster
  */
-func Connect(name string, host string, password string, db int) {
-	if _, ok := clients.Load(name); ok {
-		return
+func Connect(name string, host string, password string, db int) *redis.Client {
+	if client, ok := clients.Load(name); ok {
+		return client.(*redis.Client)
 	}
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     host,
@@ -24,6 +24,7 @@ func Connect(name string, host string, password string, db int) {
 		DB:       db,
 	})
 	clients.Store(name, redisClient)
+	return redisClient
 }
 
 func Instance(name string) *redis.Client {

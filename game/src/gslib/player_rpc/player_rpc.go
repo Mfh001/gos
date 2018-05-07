@@ -1,4 +1,4 @@
-package player
+package player_rpc
 
 import (
 	"api"
@@ -10,8 +10,10 @@ import (
 	"goslib/game_utils"
 	"goslib/gen_server"
 	"goslib/logger"
+	"goslib/packet"
 	"goslib/scene_utils"
 	"goslib/session_utils"
+	"gslib/player"
 	"gslib/routes"
 	"sync"
 )
@@ -30,16 +32,52 @@ func StartPlayerRPC() {
 	gen_server.Start(PLAYER_RPC_SERVER, new(PlayerRPC))
 }
 
-func internalRequestPlayer(targetPlayerId string, encode_method string, params interface{}) (interface{}, error) {
-	handler, err := routes.Route(encode_method)
-	result, err := CallPlayer(targetPlayerId, "handleRPCCall", handler, params)
+func RequestPlayer(targetPlayerId string, encode_method string, params interface{}) (interface{}, error) {
+	if gen_server.Exists(targetPlayerId) {
+		return internalRequestPlayer(targetPlayerId, encode_method, params)
+	}
+	session, err := session_utils.Find(targetPlayerId)
 	if err != nil {
 		return nil, err
 	}
-	return result.(*RPCReply).response, nil
+	if session.GameAppId == player.CurrentGameAppId {
+		return internalRequestPlayer(targetPlayerId, encode_method, params)
+	}
+	writer := api.Encode(encode_method, params)
+	data := writer.GetSendData()
+	return crossRequestPlayer(session, data)
 }
 
-func crossRequestPlayer(session *session_utils.Session, encode_method string, msg interface{}) (interface{}, error) {
+func RequestPlayerRaw(targetPlayerId string, data []byte) (interface{}, error) {
+	if gen_server.Exists(targetPlayerId) {
+		encode_method, params := parseData(data)
+		return internalRequestPlayer(targetPlayerId, encode_method, params)
+	}
+	session, err := session_utils.Find(targetPlayerId)
+	if err != nil {
+		return nil, err
+	}
+	if session.GameAppId == player.CurrentGameAppId {
+		encode_method, params := parseData(data)
+		return internalRequestPlayer(targetPlayerId, encode_method, params)
+	}
+	return crossRequestPlayer(session, data)
+}
+
+func internalRequestPlayer(targetPlayerId string, encode_method string, params interface{}) (interface{}, error) {
+	handler, err := routes.Route(encode_method)
+	if err != nil {
+		logger.ERR("internalRequestPlayer failed: ", encode_method, " err: ", err)
+		return nil, err
+	}
+	result, err := player.CallPlayer(targetPlayerId, "handleRPCCall", handler, params)
+	if err != nil {
+		return nil, err
+	}
+	return result.(*player.RPCReply).Response, nil
+}
+
+func crossRequestPlayer(session *session_utils.Session, data []byte) (interface{}, error) {
 	client, err := getClient(session.SceneId)
 	if err != nil {
 		delClient(session.SceneId)
@@ -48,8 +86,6 @@ func crossRequestPlayer(session *session_utils.Session, encode_method string, ms
 
 	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
-	writer := api.Encode(encode_method, msg)
-	data := writer.GetSendData()
 	reply, err := client.RequestPlayer(ctx, &pb.RequestPlayerRequest{session.AccountId, data})
 	if err != nil {
 		logger.ERR("RequestPlayer failed: ", err)
@@ -57,14 +93,15 @@ func crossRequestPlayer(session *session_utils.Session, encode_method string, ms
 		return nil, err
 	}
 
-	return parseResponseData(reply.Data), nil
+	_, params := parseData(reply.Data)
+	return params, nil
 }
 
 func getClient(sceneId string) (pb.RouteConnectGameClient, error) {
 	if client, ok := rpcClients.Load(sceneId); ok {
 		return client.(pb.RouteConnectGameClient), nil
 	}
-	client, err := gen_server.Call(SERVER, "connectScene", sceneId)
+	client, err := gen_server.Call(PLAYER_RPC_SERVER, "connectScene", sceneId)
 	if err != nil {
 		logger.ERR("connectScene failed: ", err)
 		return nil, err
@@ -119,4 +156,13 @@ func connectGame(sceneId string, game *game_utils.Game) (pb.RouteConnectGameClie
 	client := pb.NewRouteConnectGameClient(conn)
 	rpcClients.Store(sceneId, client)
 	return client, nil
+}
+
+func parseData(requestData []byte) (decode_method string, params interface{}) {
+	reader := packet.Reader(requestData)
+	reader.ReadUint16() // read data length
+	protocol := reader.ReadUint16()
+	decode_method = api.IdToName[protocol]
+	params = api.Decode(decode_method, reader)
+	return decode_method, params
 }

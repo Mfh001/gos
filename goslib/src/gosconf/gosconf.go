@@ -5,7 +5,12 @@ import (
 	"time"
 )
 
-const IS_DEBUG = false
+const IS_DEBUG = true
+
+const (
+	WORLD_SERVER_IP = "127.0.0.1"
+	REDIS_SERVER_IP = "127.0.0.1"
+)
 
 const (
 	TCP_READ_TIMEOUT      = 60 * time.Second
@@ -14,6 +19,12 @@ const (
 	RPC_REQUEST_TIMEOUT   = 5 * time.Second
 	AGENT_CCU_MAX         = 20000
 	GAME_CCU_MAX          = 5000
+)
+
+const (
+	TIMERTASK_CHECK_DURATION  = time.Second // seconds
+	TIMERTASK_TASKS_PER_CHECK = 100         // max tasks fetched per check
+	TIMERTASK_MAX_RETRY       = 3           // retry 3 times
 )
 
 /*
@@ -27,13 +38,19 @@ type Redis struct {
 }
 
 var REDIS_FOR_SERVICE = &Redis{
-	Host:     "172.16.36.23:6379",
+	Host:     REDIS_SERVER_IP + ":6379",
 	Password: "",
 	Db:       0,
 }
 
 var REDIS_FOR_ACCOUNT = &Redis{
-	Host:     "172.16.36.23:6379",
+	Host:     REDIS_SERVER_IP + ":6379",
+	Password: "",
+	Db:       0,
+}
+
+var REDIS_FOR_TIMERTASK = &Redis{
+	Host:     REDIS_SERVER_IP + ":6379",
 	Password: "",
 	Db:       0,
 }
@@ -81,14 +98,14 @@ type Rpc struct {
 var RPC_FOR_CONNECT_APP_MGR = &Rpc{
 	ListenNet:   "tcp4",
 	ListenAddr:  ":50051",
-	DialAddress: "172.16.36.23:50051",
+	DialAddress: WORLD_SERVER_IP + ":50051",
 	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
 }
 
 var RPC_FOR_GAME_APP_MGR = &Rpc{
 	ListenNet:   "tcp4",
 	ListenAddr:  ":50052",
-	DialAddress: "172.16.36.23:50052",
+	DialAddress: WORLD_SERVER_IP + ":50052",
 	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
 }
 

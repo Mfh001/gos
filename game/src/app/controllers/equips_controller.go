@@ -4,7 +4,10 @@ import (
 	. "api"
 	"app/consts"
 	"app/models"
+	"goslib/logger"
 	"gslib/player"
+	"gslib/timertask"
+	"time"
 )
 
 type EquipsController struct {
@@ -22,9 +25,16 @@ func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}
 	user1.Data.Level = 10
 	user1.Save()
 
+	runAt := time.Now().Add(5 * time.Second).Unix()
+	timertask.Add("fake_task_id", runAt, self.Ctx.PlayerId, "EquipUnLoadParams", &EquipUnLoadParams{
+		PlayerID: "player_id",
+		EquipId:  "equip_id",
+	})
+
 	return "EquipLoadResponse", &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }
 
 func (self *EquipsController) UnLoad(params *EquipUnLoadParams) (string, interface{}) {
+	logger.INFO("UnLoad equips")
 	return "EquipLoadResponse", &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }
