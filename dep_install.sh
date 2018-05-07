@@ -28,3 +28,6 @@ go get -u github.com/go-sql-driver/mysql
 
 #UUID
 go get -u github.com/rs/xid
+
+#Cron
+go get -u github.com/robfig/cron

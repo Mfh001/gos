@@ -167,13 +167,13 @@ func (self *Dispatcher) addGame(info *GameInfo) {
 		ActiveAt: time.Now().Unix(),
 	}
 	self.apps[app.Uuid] = app
-	redisdb.Instance().SAdd(gosconf.RK_GAME_APP_IDS, app.Uuid)
+	redisdb.ServiceInstance().SAdd(gosconf.RK_GAME_APP_IDS, app.Uuid)
 	app.Save()
 }
 
 func (self *Dispatcher) delGame(uuid string) {
 	if app, ok := self.apps[uuid]; ok {
-		redisdb.Instance().SRem(gosconf.RK_GAME_APP_IDS, app.Uuid)
+		redisdb.ServiceInstance().SRem(gosconf.RK_GAME_APP_IDS, app.Uuid)
 		app.Del()
 	}
 	delete(self.apps, uuid)
@@ -311,7 +311,7 @@ func (self *Dispatcher) dispatchScene(scene *Scene) error {
 
 	params := make(map[string]interface{})
 	params["gameAppId"] = scene.GameAppId
-	redisdb.Instance().HMSet(scene.Uuid, params)
+	redisdb.ServiceInstance().HMSet(scene.Uuid, params)
 
 	return nil
 }

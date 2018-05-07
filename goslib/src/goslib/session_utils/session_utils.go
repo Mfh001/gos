@@ -17,7 +17,7 @@ type Session struct {
 
 func Find(accountId string) (*Session, error) {
 	uuid := "session:" + accountId
-	sessionMap, err := redisdb.Instance().HGetAll(uuid).Result()
+	sessionMap, err := redisdb.ServiceInstance().HGetAll(uuid).Result()
 	if err != nil {
 		logger.ERR("Find session failed: ", err)
 		return nil, err
@@ -36,7 +36,7 @@ func Create(params map[string]string) (*Session, error) {
 	for k, v := range params {
 		setParams[k] = v
 	}
-	_, err := redisdb.Instance().HMSet(uuid, setParams).Result()
+	_, err := redisdb.ServiceInstance().HMSet(uuid, setParams).Result()
 	if err != nil {
 		logger.ERR("Create session failed: ", err)
 	}
@@ -51,7 +51,7 @@ func (self *Session) Save() error {
 	params["connectAppId"] = self.ConnectAppId
 	params["gameAppId"] = self.GameAppId
 	params["token"] = self.Token
-	_, err := redisdb.Instance().HMSet(self.Uuid, params).Result()
+	_, err := redisdb.ServiceInstance().HMSet(self.Uuid, params).Result()
 	if err != nil {
 		logger.ERR("Save session failed: ", err)
 	}
@@ -72,7 +72,7 @@ func parseSession(params map[string]string) *Session {
 }
 
 func (self *Session) Del() error {
-	_, err := redisdb.Instance().Del(self.Uuid).Result()
+	_, err := redisdb.ServiceInstance().Del(self.Uuid).Result()
 	if err != nil {
 		logger.ERR("Del session failed: ", err)
 	}

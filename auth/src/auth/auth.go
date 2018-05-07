@@ -23,8 +23,8 @@ import (
 )
 
 func main() {
-	conf := gosconf.REDIS_FOR_SERVICE
-	redisdb.Connect(conf.Host, conf.Password, conf.Db)
+	redisdb.InitServiceClient()
+	redisdb.InitAccountClient()
 	connectConnectApp()
 	startHttpServer()
 }

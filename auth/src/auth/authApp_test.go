@@ -9,7 +9,7 @@ import (
 )
 
 var _ = Describe("AuthApp", func() {
-	redisdb.Connect("localhost:6379", "", 0)
+	redisdb.InitAccountClient()
 
 	It("should startup", func() {
 		accountId := "fakeAccountId"

@@ -3,11 +3,15 @@ package main
 import (
 	"app/register"
 	"app/register/callbacks"
+	"app/register/tables"
 	"context"
 	"google.golang.org/grpc"
 	pb "gos_rpc_proto"
 	"gosconf"
+	"goslib/broadcast"
+	"goslib/gen_server"
 	"goslib/logger"
+	"goslib/memstore"
 	"goslib/redisdb"
 	"goslib/utils"
 	"gslib"
@@ -18,8 +22,7 @@ import (
 )
 
 func main() {
-	conf := gosconf.REDIS_FOR_SERVICE
-	redisdb.Connect(conf.Host, conf.Password, conf.Db)
+	redisdb.InitServiceClient()
 
 	// Register routes
 	register.Load()
@@ -30,7 +33,17 @@ func main() {
 	callbacks.RegisterBroadcast()
 	callbacks.RegisterSceneLoad()
 	leaderboard.Start()
-	gslib.Run()
+
+	// Print routine info
+	go gslib.SysRoutine()
+	// Init DB Connections
+	memstore.InitDB()
+	memstore.StartDBPersister()
+	tables.RegisterTables(memstore.GetSharedDBInstance())
+
+	// Start broadcast server
+	gen_server.Start(gslib.BROADCAST_SERVER_ID, new(broadcast.Broadcast))
+
 	// Start scene manager
 	scene_mgr.StartSceneMgr()
 
@@ -39,19 +52,24 @@ func main() {
 
 	// Start listen agent stream
 	player.StartRpcStream()
-	// connect to Game manager
-	connectGameMgr()
+
+	// connect to game manager, retry if failed
+	for {
+		if err := connectGameMgr(); err != nil {
+			logger.ERR("connect GameMgr failed: ", err)
+		}
+		time.Sleep(gosconf.HEARTBEAT)
+	}
 }
 
-func connectGameMgr() {
+func connectGameMgr() error {
 	OutIP, _ := utils.GetOutboundIP()
 	LocalIP, _ := utils.GetLocalIp()
 	logger.INFO("OutboundIP: ", OutIP, " LocalIP: ", LocalIP)
 	conf := gosconf.RPC_FOR_GAME_APP_MGR
 	conn, err := grpc.Dial(conf.DialAddress, conf.DialOptions...)
 	if err != nil {
-		logger.ERR("connect AgentMgr failed: ", err)
-		return
+		return err
 	}
 	client := pb.NewGameDispatcherClient(conn)
 
@@ -63,9 +81,7 @@ func connectGameMgr() {
 		host, err = utils.GetLocalIp()
 	}
 	if err != nil {
-		time.Sleep(gosconf.HEARTBEAT)
-		connectGameMgr()
-		return
+		return err
 	}
 
 	uuid := utils.GenId([]string{host, player.StreamRpcListenPort})
@@ -76,16 +92,21 @@ func connectGameMgr() {
 		Port: player.StreamRpcListenPort,
 	}
 
-	// Heartbeat
 	for {
-		ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
-		defer cancel()
-		gameInfo.Ccu = player.OnlinePlayers()
-		_, err = client.ReportGameInfo(ctx, gameInfo)
-		if err != nil {
-			logger.ERR("ReportGameInfo heartbeat failed: ", err)
-		}
-		logger.INFO("ReportGameInfo: ", gameInfo.Uuid, " Host: ", host, " Port: ", gameInfo.Port, " ccu: ", gameInfo.Ccu)
+		heartbeat(client, gameInfo)
 		time.Sleep(gosconf.HEARTBEAT)
 	}
+
+	return nil
+}
+
+func heartbeat(client pb.GameDispatcherClient, gameInfo *pb.ReportGameRequest) {
+	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
+	defer cancel()
+	gameInfo.Ccu = player.OnlinePlayers()
+	_, err := client.ReportGameInfo(ctx, gameInfo)
+	if err != nil {
+		logger.ERR("ReportGameInfo heartbeat failed: ", err)
+	}
+	logger.INFO("ReportGameInfo: ", gameInfo.Uuid, " Host: ", gameInfo.Host, " Port: ", gameInfo.Port, " ccu: ", gameInfo.Ccu)
 }

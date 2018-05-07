@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const IS_DEBUG = true
+const IS_DEBUG = false
 
 const (
 	TCP_READ_TIMEOUT      = 60 * time.Second
@@ -27,7 +27,13 @@ type Redis struct {
 }
 
 var REDIS_FOR_SERVICE = &Redis{
-	Host:     "localhost:6379",
+	Host:     "172.16.36.23:6379",
+	Password: "",
+	Db:       0,
+}
+
+var REDIS_FOR_ACCOUNT = &Redis{
+	Host:     "172.16.36.23:6379",
 	Password: "",
 	Db:       0,
 }
@@ -59,7 +65,7 @@ type TCP struct {
 
 var TCP_SERVER_CONNECT_APP = &TCP{
 	Network: "tcp",
-	Address: "127.0.0.1:4000",
+	Address: ":4000",
 }
 
 /*
@@ -68,7 +74,6 @@ Rpc Servers
 type Rpc struct {
 	ListenNet   string // must be "tcp", "tcp4", "tcp6", "unix" or "unixpacket"
 	ListenAddr  string
-	ListenPort  string
 	DialAddress string
 	DialOptions []grpc.DialOption
 }
@@ -76,22 +81,21 @@ type Rpc struct {
 var RPC_FOR_CONNECT_APP_MGR = &Rpc{
 	ListenNet:   "tcp4",
 	ListenAddr:  ":50051",
-	DialAddress: "127.0.0.1:50051",
+	DialAddress: "172.16.36.23:50051",
 	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
 }
 
 var RPC_FOR_GAME_APP_MGR = &Rpc{
 	ListenNet:   "tcp4",
 	ListenAddr:  ":50052",
-	DialAddress: "127.0.0.1:50052",
+	DialAddress: "172.16.36.23:50052",
 	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
 }
 
 // Dial addresses are dynamic dispatched by GameAppMgr
 var RPC_FOR_GAME_APP_STREAM = &Rpc{
 	ListenNet:   "tcp4",
-	ListenAddr:  "127.0.0.1:50053",
-	ListenPort:  "50053",
+	ListenAddr:  ":50053",
 	DialAddress: "",
 	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
 }

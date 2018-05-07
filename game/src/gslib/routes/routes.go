@@ -17,6 +17,6 @@ func Route(protocol string) (Handler, error) {
 	if ok {
 		return handler, nil
 	} else {
-		return handler, errors.New("Router not found!")
+		return handler, errors.New("router not found")
 	}
 }

@@ -23,13 +23,13 @@ type SceneConf struct {
 }
 
 func LoadScenes(mapScenes map[string]*Scene) {
-	ids, _ := redisdb.Instance().SMembers(gosconf.RK_SCENE_IDS).Result()
+	ids, _ := redisdb.ServiceInstance().SMembers(gosconf.RK_SCENE_IDS).Result()
 	for i := 0; i < len(ids); i++ {
 		id := ids[i]
 		if id == "" {
 			continue
 		}
-		valueMap, _ := redisdb.Instance().HGetAll(id).Result()
+		valueMap, _ := redisdb.ServiceInstance().HGetAll(id).Result()
 		app := parseScene(valueMap)
 		mapScenes[app.Uuid] = app
 	}
@@ -37,7 +37,7 @@ func LoadScenes(mapScenes map[string]*Scene) {
 }
 
 func FindScene(sceneId string) (*Scene, error) {
-	sceneMap, err := redisdb.Instance().HGetAll(sceneId).Result()
+	sceneMap, err := redisdb.ServiceInstance().HGetAll(sceneId).Result()
 	if err != nil {
 		logger.ERR("findScene: ", sceneId, " failed: ", err)
 		return nil, err
@@ -49,7 +49,7 @@ func FindScene(sceneId string) (*Scene, error) {
 }
 
 func FindSceneConf(confId string) (*SceneConf, error) {
-	valueMap, err := redisdb.Instance().HGetAll(confId).Result()
+	valueMap, err := redisdb.ServiceInstance().HGetAll(confId).Result()
 	if err != nil {
 		logger.ERR("findSceneConf: ", confId, " failed: ", err)
 		return nil, err
@@ -76,12 +76,12 @@ func CreateDefaultServerScene(serverId string, conf *SceneConf) (*Scene, error) 
 	params["ccu"] = 0
 	params["ccuMax"] = conf.CcuMax
 	params["servedServers"] = ""
-	_, err := redisdb.Instance().HMSet(serverId, params).Result()
+	_, err := redisdb.ServiceInstance().HMSet(serverId, params).Result()
 	if err != nil {
 		logger.ERR("createDefaultServerScene: ", serverId, " failed: ", err)
 		return nil, err
 	}
-	redisdb.Instance().SAdd(gosconf.RK_SCENE_IDS, serverId)
+	redisdb.ServiceInstance().SAdd(gosconf.RK_SCENE_IDS, serverId)
 	return &Scene{
 		Uuid:          serverId,
 		GameAppId:     "",

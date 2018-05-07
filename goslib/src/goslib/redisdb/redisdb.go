@@ -2,24 +2,59 @@ package redisdb
 
 import (
 	"github.com/go-redis/redis"
+	"gosconf"
+	"sync"
 )
 
-var redisClient *redis.Client
+var serviceClient *redis.Client
+var accountClient *redis.Client
+
+var clients = &sync.Map{}
 
 /*
  * Connect Redis Cluster
  */
-func Connect(host string, password string, db int) {
-	redisClient = redis.NewClient(&redis.Options{
+func Connect(name string, host string, password string, db int) {
+	if _, ok := clients.Load(name); ok {
+		return
+	}
+	redisClient := redis.NewClient(&redis.Options{
 		Addr:     host,
 		Password: password,
 		DB:       db,
 	})
+	clients.Store(name, redisClient)
 }
 
-func Instance() *redis.Client {
-	if redisClient == nil {
-		panic("Redis not connected!")
+func Instance(name string) *redis.Client {
+	if client, ok := clients.Load(name); ok {
+		return client.(*redis.Client)
 	}
-	return redisClient
+	return nil
+}
+
+func InitServiceClient() {
+	conf := gosconf.REDIS_FOR_SERVICE
+	serviceClient = redis.NewClient(&redis.Options{
+		Addr:     conf.Host,
+		Password: conf.Password,
+		DB:       conf.Db,
+	})
+}
+
+func ServiceInstance() *redis.Client {
+	return serviceClient
+}
+
+func InitAccountClient() {
+	conf := gosconf.REDIS_FOR_ACCOUNT
+	accountClient = redis.NewClient(&redis.Options{
+		Addr:     conf.Host,
+		Password: conf.Password,
+		DB:       conf.Db,
+	})
+}
+
+func AccountInstance() *redis.Client {
+	return accountClient
 }

@@ -67,7 +67,9 @@ func (e *MemStore) EnsureDataLoaded(modelName string) {
 	if loaded, ok := e.dataLoaded[modelName]; !ok || !loaded {
 		handler, ok := dataLoaderMap[modelName]
 		if ok {
+			logger.INFO("EnsureDataLoaded: ", e.playerId, " modelName: ", modelName)
 			handler(e.playerId, e)
+			e.dataLoaded[modelName] = true
 		}
 	}
 }
@@ -76,7 +78,6 @@ func (e *MemStore) Load(namespaces []string, key string, value interface{}) {
 	ctx := e.makeCtx(namespaces)
 	ctx[key] = value
 	e.UpdateStatus(namespaces[len(namespaces)-1], key, STATUS_ORIGIN)
-	e.dataLoaded[namespaces[len(namespaces)-1]] = true
 }
 
 func (e *MemStore) Get(namespaces []string, key string) interface{} {

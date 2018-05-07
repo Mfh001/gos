@@ -54,7 +54,7 @@ func (self *SceneMgr) Terminate(reason string) (err error) {
 }
 
 func doLoadScene(sceneId string) {
-	valueMap, err := redisdb.Instance().HGetAll(sceneId).Result()
+	valueMap, err := redisdb.ServiceInstance().HGetAll(sceneId).Result()
 	if err != nil {
 		logger.ERR("LoadScene failed: ", sceneId, " err: ", err)
 	}
