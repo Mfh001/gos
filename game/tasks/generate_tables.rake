@@ -1,32 +1,5 @@
 desc "Generate Structs from mysql tables"
 
-def convert_define(type)
-    case type.to_s
-    when 'integer'
-        'int'
-    when 'boolean'
-        'bool'
-    else
-        type.to_s
-    end
-end
-
-def type_formatter(type)
-  type = convert_define(type)
-  case type
-  when 'int'
-    '%d'
-  when 'float'
-    '%d'
-  when 'bool'
-    '%t'
-  when 'string'
-    "'%s'"
-  else
-    raise "invalid type: #{type}"
-  end
-end
-
 task :generate_tables => :environment do
   header = %Q{
 /*
@@ -44,7 +17,7 @@ task :generate_tables => :environment do
     next if table_name == 'schema_migrations'
     next if table_name == 'schema_persistances'
     next if table_name == 'ar_internal_metadata'
-    struct_name = table_name.singularize.camelize
+    struct_name = get_struct_name(table_name)
     structs_content << "type #{struct_name} struct{\n"
     field_names = []
     field_types = []

@@ -27,6 +27,9 @@ tcp_protocol:
 generate_tables:
 	cd game && bundle exec rake generate_tables
 
+generate_configs:
+	cd game && bundle exec rake generate_config
+
 build_ubuntu_apps:
 	docker run --rm -v $(shell pwd):/usr/src/gos -w /usr/src/gos -e GOOS=linux -e GOARCH=amd64 golang:ubuntu sh build_gos.sh
 

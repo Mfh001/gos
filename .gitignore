@@ -24,3 +24,7 @@ world/bin/world
 .DS_Store
 *.log
 .idea
+.ruby-version
+~$*.xlsx
+
+game/src/app/game_data/gen

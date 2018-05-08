@@ -60,6 +60,17 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rake (12.3.1)
+    roo (2.0.1)
+      nokogiri (~> 1)
+      rubyzip (~> 1.1, < 2.0.0)
+    roo-xls (1.2.0)
+      nokogiri
+      roo (>= 2.0.0, < 3)
+      spreadsheet (> 0.9.0)
+    ruby-ole (1.2.12.1)
+    rubyzip (1.2.1)
+    spreadsheet (1.1.7)
+      ruby-ole (>= 1.0)
     thor (0.20.0)
     thread_safe (0.3.6)
     tzinfo (1.2.5)
@@ -71,6 +82,8 @@ PLATFORMS
 DEPENDENCIES
   active_record_migrations
   mysql2
+  roo (~> 2.0.0)
+  roo-xls
 
 BUNDLED WITH
    1.16.1
