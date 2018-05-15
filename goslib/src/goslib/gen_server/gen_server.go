@@ -10,6 +10,11 @@ import (
 var SIGN_STOP int = 1
 var ServerRegisterMap = cmap.NewCMap()
 
+const (
+	CALL = iota
+	CAST
+)
+
 type Packet struct {
 	method string
 	args   []interface{}
@@ -27,11 +32,10 @@ type ResponsePacket struct {
 }
 
 type GenServer struct {
-	name         string
-	callback     GenServerBehavior
-	cast_channel chan []interface{}
-	call_channel chan []interface{}
-	sign_channel chan SignPacket
+	name        string
+	callback    GenServerBehavior
+	msgChannel  chan []interface{}
+	signChannel chan SignPacket
 }
 
 type GenServerBehavior interface {
@@ -65,16 +69,14 @@ func delGenServer(name string) {
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server *GenServer) {
 	gen_server, exists := GetGenServer(server_name)
 	if !exists {
-		cast_channel := make(chan []interface{}, 1024)
-		call_channel := make(chan []interface{})
-		sign_channel := make(chan SignPacket)
+		msgChannel := make(chan []interface{}, 1024)
+		signChannel := make(chan SignPacket)
 
 		gen_server = &GenServer{
-			name:         server_name,
-			callback:     module,
-			cast_channel: cast_channel,
-			call_channel: call_channel,
-			sign_channel: sign_channel}
+			name:        server_name,
+			callback:    module,
+			msgChannel:  msgChannel,
+			signChannel: signChannel}
 
 		gen_server.callback.Init(args)
 
@@ -90,7 +92,7 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 func Stop(server_name, reason string) error {
 	if gen_server, exists := GetGenServer(server_name); exists {
 		response_channel := make(chan *ResponsePacket)
-		gen_server.sign_channel <- SignPacket{
+		gen_server.signChannel <- SignPacket{
 			signal:           SIGN_STOP,
 			reason:           reason,
 			response_channel: response_channel,
@@ -109,8 +111,8 @@ func Call(server_name string, args ...interface{}) (interface{}, error) {
 		defer func() {
 			close(response_channel)
 		}()
-		args = append(args, response_channel)
-		gen_server.call_channel <- args
+		args = append(args, response_channel, CALL)
+		gen_server.msgChannel <- args
 		packet := <-response_channel
 		return packet.result, packet.err
 	} else {
@@ -122,7 +124,8 @@ func Call(server_name string, args ...interface{}) (interface{}, error) {
 
 func Cast(server_name string, args ...interface{}) error {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		gen_server.cast_channel <- args
+		args = append(args, CAST)
+		gen_server.msgChannel <- args
 		return nil
 	} else {
 		errMsg := fmt.Sprintf("GenServer cast failed: ", server_name, " server not found!")
@@ -138,21 +141,25 @@ func loop(gen_server *GenServer) {
 
 	for {
 		select {
-		case args, ok := <-gen_server.cast_channel:
-			if ok {
-				gen_server.callback.HandleCast(args)
-			}
-		case args, ok := <-gen_server.call_channel:
+		case args, ok := <-gen_server.msgChannel:
 			if ok {
 				size := len(args)
-				response_channel := args[size-1]
-				result, err := gen_server.callback.HandleCall(args[0 : size-1])
-				response_channel.(chan *ResponsePacket) <- &ResponsePacket{
-					result: result,
-					err:    err,
+				callType := args[size-1].(int)
+				switch callType {
+				case CALL:
+					response_channel := args[size-2]
+					result, err := gen_server.callback.HandleCall(args[0 : size-2])
+					response_channel.(chan *ResponsePacket) <- &ResponsePacket{
+						result: result,
+						err:    err,
+					}
+					break
+				case CAST:
+					gen_server.callback.HandleCast(args)
+					break
 				}
 			}
-		case sign_packet, ok := <-gen_server.sign_channel:
+		case sign_packet, ok := <-gen_server.signChannel:
 			if ok {
 				switch sign_packet.signal {
 				case SIGN_STOP:
@@ -174,8 +181,7 @@ func loop(gen_server *GenServer) {
 }
 
 func terminate(gen_server *GenServer) {
-	close(gen_server.cast_channel)
-	close(gen_server.call_channel)
-	close(gen_server.sign_channel)
+	close(gen_server.msgChannel)
+	close(gen_server.signChannel)
 	delGenServer(gen_server.name)
 }
