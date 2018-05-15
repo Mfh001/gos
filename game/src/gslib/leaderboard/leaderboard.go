@@ -1,279 +1,392 @@
 package leaderboard
 
-//import (
-//"goslib/gen_server"
-//. "gslib"
-//"fmt"
-//"goslib/redisdb"
-//"math"
-//)
+import (
+	"fmt"
+	"github.com/go-redis/redis"
+	"gosconf"
+	"goslib/gen_server"
+	"goslib/logger"
+	"goslib/redisdb"
+	"goslib/utils"
+	"math"
+)
 
-type Leaderboard struct {
+/*
+   GenServer Callbacks
+*/
+type Server struct {
+	name  string
+	redis *redis.Client
 }
 
-func Start() {
-	//addr := "tcp"
-	//port := ":6379"
-	//gen_server.Start(LEADERBOARD_SERVER_ID, new(Leaderboard), addr, port)
+type MemberData map[string]string
+
+type Member struct {
+	Id    string
+	Rank  int64
+	Score int64
+	Data  MemberData
 }
 
-//func MemberDataKey(name string) string {
-//	return fmt.Sprintf("%s:member_data", name)
-//}
-//
-//func DeleteLeaderboard(name string) {
-//	gen_server.Call(LEADERBOARD_SERVER_ID, "deleteLeaderboard", name)
-//}
-//
-//func MemberDataFor(name, member string) (interface{}, error) {
-//	return gen_server.Call(LEADERBOARD_SERVER_ID, "memberDataFor", name, member)
-//}
-//
-//func (l *Leaderboard) HandleCall(args []interface{}) interface{} {
-//	return handleCallAndCast(args)
-//}
-//
-//func (l *Leaderboard) HandleCast(args []interface{}) {
-//	handleCallAndCast(args)
-//}
-//
-//func handleCallAndCast(args []interface{}) error {
-//	//method := args[0].(string)
-//	//if method == "add" {
-//	//	return t.DoAdd(args[1].(string), args[2].(int), args[3].(func()))
-//	//} else if method == "update" {
-//	//	return t.DoUpdate(args[1].(string), args[2].(int))
-//	//} else if method == "finish" {
-//	//	return t.DoFinish(args[1].(string))
-//	//} else if method == "del" {
-//	//	return t.DoDel(args[1].(string))
-//	//}
-//	return nil
-//}
-//
-//// Private Methods
-//func (l *Leaderboard) DeleteLeaderboard(name string) {
-//	l.Conn.Send("MULTI")
-//	l.Conn.Send("DEL", name)
-//	l.Conn.Send("DEL", MemberDataKey(name))
-//	l.Conn.Send("EXEC")
-//}
-//
-//func (l *Leaderboard) MemberDataFor(name, member string) (string, error) {
-//	return redis.String(l.Conn.Do("HGET", MemberDataKey(name), member))
-//}
-//
-//func (l *Leaderboard) TotalMembers(name string) (int, error) {
-//	return redis.Int(l.Conn.Do("ZCARD", name))
-//}
-//
-//func (l *Leaderboard) TotalPages(name string, pagesize int) (int, error) {
-//	count, err := l.TotalMembers(name)
-//	if err != nil {
-//		return 0, err
-//	} else {
-//		return int(math.Ceil(float64(count) / float64(pagesize))), nil
-//	}
-//}
-//
-//func (l *Leaderboard) TotalMembersInScoreRange(name string, minScore int, maxScore int) (int, error) {
-//	return redis.Int(l.Conn.Do("ZCOUNT", name, minScore, maxScore))
-//}
-//
-//func (l *Leaderboard) ChangeScoreFor(name string, member string, delta int) (int, error) {
-//	return redis.Int(l.Conn.Do("ZINCRBY", name, delta, member))
-//}
-//
-//func (l *Leaderboard) RangeFor(name string, member string) (int, error) {
-//	return redis.Int(l.Conn.Do("ZREVRANK", name, member))
-//}
-//
-//func (l *Leaderboard) ScoreFor(name string, member string) (int, error) {
-//	return redis.Int(l.Conn.Do("ZSCORE", name, member))
-//}
-//
-//func (l *Leaderboard) IsMemberRanked(name string, member string) (bool, error) {
-//	r, err := l.Conn.Do("ZSCORE", name, member)
-//	if err != nil {
-//		return false, err
-//	} else {
-//		switch r.(type) {
-//		case nil:
-//			return false, nil
-//		default:
-//			return true, nil
-//		}
-//	}
-//}
-//
-//func (l *Leaderboard) ScoreAndRankFor(name string, member string) (int, int, error) {
-//	l.Conn.Send("MULTI")
-//	l.Conn.Send("ZSCORE", name, member)
-//	l.Conn.Send("ZREVRANK", name, member)
-//	r, err := redis.Values(l.Conn.Do("EXEC"))
-//	if err != nil {
-//		return 0, 0, err
-//	}
-//	var score int
-//	var rank int
-//	if _, err := redis.Scan(r, &score, &rank); err != nil {
-//		return 0, 0, err
-//	} else {
-//		return score, rank + 1, nil
-//	}
-//}
-//
-//func (l *Leaderboard) PageFor(name string, pagesize int, member string) (int, error) {
-//	rank, err := redis.Int(l.Conn.Do("ZREVRANK", name, member))
-//	if err != nil {
-//		return 0, err
-//	} else {
-//		return int(math.Ceil((float64(rank) + 1) / float64(pagesize))), nil
-//	}
-//}
-//
-//func (l *Leaderboard) ExpireLeaderboard(name string, seconds int) error {
-//	l.Conn.Send("MULTI")
-//	l.Conn.Send("EXPIRE", name, seconds)
-//	l.Conn.Send("EXPIRE", MemberDataKey(name), seconds)
-//	_, err := l.Conn.Do("EXEC")
-//	return err
-//}
-//
-//func (l *Leaderboard) ExpireLeaderboardAt(name string, seconds int) error {
-//	l.Conn.Send("MULTI")
-//	l.Conn.Send("EXPIREAT", name, seconds)
-//	l.Conn.Send("EXPIREAT", MemberDataKey(name), seconds)
-//	_, err := l.Conn.Do("EXEC")
-//	return err
-//}
-//
-//func (l *Leaderboard) Members(name string, pagesize int, currentPage int) ([]*LeaderboardData, error) {
-//	totalPage, err := l.TotalPages(name, pagesize)
-//	if err != nil {
-//		return nil, err
-//	}
-//	if currentPage < 1 {
-//		currentPage = 1
-//	}
-//	if currentPage > totalPage {
-//		currentPage = totalPage
-//	}
-//	startOffset := (currentPage - 1) * pagesize
-//	endOffset := startOffset + pagesize - 1
-//	datas, err1 := redis.Values(l.Conn.Do("ZREVRANGE", name, startOffset, endOffset))
-//	if err1 != nil {
-//		return nil, err
-//	}
-//	return l.rankedInList(name, datas)
-//}
-//
-//func (l *Leaderboard) AllMembers(name string) ([]*LeaderboardData, error) {
-//	datas, err := redis.Values(l.Conn.Do("ZREVRANGE", name, 0, -1))
-//	if err != nil {
-//		return nil, err
-//	}
-//	return l.rankedInList(name, datas)
-//}
-//
-//func (l *Leaderboard) MembersFromScoreRange(name string, minScore int, maxScore int) ([]*LeaderboardData, error) {
-//	datas, err := redis.Values(l.Conn.Do("ZREVRANGEBYSCORE", maxScore, minScore))
-//	if err != nil {
-//		return nil, err
-//	}
-//	return l.rankedInList(name, datas)
-//}
-//
-//func (l *Leaderboard) MembersFromRankRange(name string, minRank int, maxRank int) ([]*LeaderboardData, error) {
-//	if minRank < 1 {
-//		minRank = 1
-//	}
-//	totalMember, err := l.TotalMembers(name)
-//	if err != nil {
-//		return nil, err
-//	}
-//	if maxRank > totalMember {
-//		maxRank = totalMember
-//	}
-//	datas, err := redis.Values(l.Conn.Do("ZREVRANGEBYRANK", maxRank, minRank))
-//	if err != nil {
-//		return nil, err
-//	}
-//	return l.rankedInList(name, datas)
-//}
-//
-//func (l *Leaderboard) TopMember(name string) (*LeaderboardData, error) {
-//	topMember, err := l.MembersFromRankRange(name, 1, 1)
-//	if err != nil {
-//		return nil, err
-//	}
-//	if len(topMember) == 0 {
-//		return nil, err
-//	}
-//	return topMember[0], nil
-//}
-//
-//func (l *Leaderboard) MemberAt(name string, pagesize int, position int) (*LeaderboardData, error) {
-//	totalMember, err := l.TotalMembers(name)
-//	if err != nil {
-//		return nil, err
-//	}
-//	if position <= totalMember {
-//		currentPage := int(math.Ceil(float64(position) / float64(pagesize)))
-//		members, _ := l.Members(name, pagesize, currentPage)
-//		if len(members) == 0 {
-//			return nil, nil
-//		} else {
-//			return members[0], nil
-//		}
-//	} else {
-//		return nil, nil
-//	}
-//}
-//
-//func (l *Leaderboard) AroundMe(name string, pagesize int, member string) ([]*LeaderboardData, error) {
-//	rank, err := redis.Int(l.Conn.Do("ZREVRANK", name, member))
-//	if err != nil {
-//		return nil, err
-//	}
-//	startOffset := rank - int(math.Ceil(float64(pagesize/2)))
-//	if startOffset < 0 {
-//		startOffset = 0
-//	}
-//	endOffset := startOffset + pagesize - 1
-//	datas, err1 := redis.Values(l.Conn.Do("ZREVRANGE", startOffset, endOffset))
-//	if err1 != nil {
-//		return nil, err1
-//	}
-//	return l.rankedInList(name, datas)
-//}
-//
-//func (l *Leaderboard) rankedInList(name string, datas []interface{}) ([]*LeaderboardData, error) {
-//	var members []*LeaderboardData
-//	for _, data := range datas {
-//		key := data.(string)
-//		score, rank, err := l.ScoreAndRankFor(name, key)
-//		memberData, err := l.MemberDataFor(name, key)
-//		if err != nil {
-//			return nil, err
-//		}
-//		members = append(members, &LeaderboardData{key, score, rank, memberData})
-//	}
-//	return members, nil
-//}
-//
-//func (l *Leaderboard) Init(args []interface{}) (err error) {
-//	addr := args[0].(string)
-//	port := args[1].(string)
-//	conn, err := redis.Dial(addr, port)
-//	if err != nil {
-//		panic(err)
-//	}
-//	l.Conn = conn
-//	return err
-//}
-//
-//func (l *Leaderboard) Terminate(reason string) (err error) {
-//	l.Conn.Close()
-//	return nil
-//}
+// Start or create leaderboard
+func Start(leaderboard string) {
+	gen_server.Start(leaderboard, new(Server), leaderboard)
+}
+
+// Delete leaderboard
+func Delete(leaderboard string) {
+	gen_server.Cast(leaderboard, "Delete")
+}
+
+// Total members in leaderboard
+func TotalMembers(leaderboard string) (int, error) {
+	result, err := gen_server.Call(leaderboard, "TotalMembers")
+	if err != nil {
+		return 0, err
+	}
+	return int(result.(int64)), err
+}
+
+// Total pages in leaderboard
+func TotalPages(leaderboard string, pageSize int) (int, error) {
+	result, err := gen_server.Call(leaderboard, "TotalPages", pageSize)
+	if err != nil {
+		return 0, err
+	}
+	return result.(int), err
+}
+
+// Add member to leaderboard or update member
+func RankMember(leaderboard string, member *Member) {
+	gen_server.Cast(leaderboard, "RankMember", member)
+}
+
+// Add members to leaderboard or update members
+func RankMembers(leaderboard string, members []*Member) {
+	gen_server.Cast(leaderboard, "RankMembers", members)
+}
+
+// Del member from leaderboard
+func RemoveMember(leaderboard string, memberId string) {
+	gen_server.Cast(leaderboard, "RemoveMember", memberId)
+}
+
+// Del members from leaderboard
+func RemoveMembers(leaderboard string, memberIds []string) {
+	gen_server.Cast(leaderboard, "RemoveMembers", memberIds)
+}
+
+// Change member's score
+func ChangeScoreFor(leaderboard string, memberId string, score int64) {
+	gen_server.Cast(leaderboard, "ChangeScoreFor", memberId, score)
+}
+
+// Get member data
+func MemberDataFor(leaderboard string, memberId string) (MemberData, error) {
+	result, err := gen_server.Call(leaderboard, "MemberDataFor", memberId)
+	if err != nil {
+		return nil, err
+	}
+	return result.(MemberData), err
+}
+
+// Update member data
+func UpdateMemberData(leaderboard string, memberId string, memberData MemberData) error {
+	_, err := gen_server.Call(leaderboard, "UpdateMemberData", memberId, memberData)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+// Get member's rank
+func RankFor(leaderboard string, memberId string) (int64, error) {
+	result, err := gen_server.Call(leaderboard, "RankFor", memberId)
+	if err != nil {
+		return 0, err
+	}
+	return result.(int64), err
+}
+
+// Get member's score
+func ScoreFor(leaderboard string, memberId string) (int64, error) {
+	result, err := gen_server.Call(leaderboard, "ScoreFor", memberId)
+	if err != nil {
+		return 0, err
+	}
+	return result.(int64), err
+}
+
+// Get member's rank and score
+func RankAndScoreFor(leaderboard string, memberId string) (int64, int64, error) {
+	rankAndScore, err := gen_server.Call(leaderboard, "RankAndScoreFor", memberId)
+	if err != nil {
+		return 0, 0, err
+	}
+	member := rankAndScore.(*Member)
+	return member.Rank, member.Score, err
+}
+
+// Get member's rank, score, member data
+func MemberFor(leaderboard string, memberId string) (*Member, error) {
+	result, err := gen_server.Call(leaderboard, "MemberFor", memberId)
+	if err != nil {
+		return nil, err
+	}
+	member := result.(*Member)
+	return member, err
+}
+
+// Get members around me
+func MembersAroundMe(leaderboard string, memberId string, pageSize int) ([]*Member, error) {
+	result, err := gen_server.Call(leaderboard, "MembersAroundMe", memberId, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	members := result.([]*Member)
+	return members, err
+}
+
+// Get members in page
+func MembersInPage(leaderboard string, page int, pageSize int) ([]*Member, error) {
+	result, err := gen_server.Call(leaderboard, "MembersInPage", page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	members := result.([]*Member)
+	return members, err
+}
+
+func (self *Server) Init(args []interface{}) (err error) {
+	self.name = args[0].(string)
+	conf := gosconf.REDIS_FOR_LEADERBOARD
+	self.redis = redisdb.Connect("leaderboard:"+self.name, conf.Host, conf.Password, conf.Db)
+	return nil
+}
+
+func (self *Server) HandleCast(args []interface{}) {
+	_, err := self.handleCallAndCast(args)
+	if err != nil {
+		logger.ERR("leaderboard ", args[0].(string), " err: ", err)
+	}
+}
+
+func (self *Server) HandleCall(args []interface{}) (interface{}, error) {
+	result, err := self.handleCallAndCast(args)
+	if err != nil {
+		logger.ERR("leaderboard ", args[0].(string), " err: ", err)
+	}
+	return result, err
+}
+
+func (self *Server) handleCallAndCast(args []interface{}) (interface{}, error) {
+	handle := args[0].(string)
+	if handle == "Delete" {
+		memberIds, err := self.redis.ZRange(self.name, 0, -1).Result()
+		if err != nil {
+			return 0, err
+		}
+		return self.removeMembers(memberIds)
+	} else if handle == "TotalMembers" {
+		return self.redis.ZCard(self.name).Result()
+	} else if handle == "TotalPages" {
+		pageSize := args[1].(int)
+		return self.totalPage(pageSize)
+	} else if handle == "RankMember" {
+		member := args[1].(*Member)
+		return self.rankMember(member)
+	} else if handle == "RankMembers" {
+		members := args[1].([]*Member)
+		for _, member := range members {
+			if _, err := self.rankMember(member); err != nil {
+				return nil, err
+			}
+		}
+		return len(members), nil
+	} else if handle == "RemoveMember" {
+		memberId := args[1].(string)
+		return self.removeMembers([]string{memberId})
+	} else if handle == "RemoveMembers" {
+		memberIds := args[1].([]string)
+		return self.removeMembers(memberIds)
+	} else if handle == "ChangeScoreFor" {
+		return self.rankMember(&Member{
+			Id:    args[1].(string),
+			Score: args[2].(int64),
+		})
+	} else if handle == "MemberDataFor" {
+		memberId := args[1].(string)
+		data, err := self.getMemberData(memberId)
+		if err != nil {
+			return nil, err
+		}
+		return data, err
+	} else if handle == "UpdateMemberData" {
+		memberId := args[1].(string)
+		memberData := args[2].(MemberData)
+		return self.setMemberData(memberId, memberData)
+	} else if handle == "RankFor" {
+		memberId := args[1].(string)
+		return self.getRank(memberId)
+	} else if handle == "ScoreFor" {
+		memberId := args[1].(string)
+		return self.getScore(memberId)
+	} else if handle == "RankAndScoreFor" {
+		memberId := args[1].(string)
+		rank, err := self.getRank(memberId)
+		if err != nil {
+			return nil, err
+		}
+		score, err := self.getScore(memberId)
+		if err != nil {
+			return nil, err
+		}
+		return &Member{
+			Id:    memberId,
+			Rank:  rank,
+			Score: int64(score),
+		}, nil
+	} else if handle == "MemberFor" {
+		memberId := args[1].(string)
+		return self.getMember(memberId)
+	} else if handle == "MembersAroundMe" {
+		memberId := args[1].(string)
+		pageSize := args[2].(int)
+		rank, err := self.getRank(memberId)
+		if err != nil {
+			return nil, err
+		}
+		startOffset := utils.Max(int(rank)-pageSize, 0)
+		endOffset := startOffset + pageSize - 1
+		memberIds, err := self.redis.ZRevRange(self.name, int64(startOffset), int64(endOffset)).Result()
+		if err != nil {
+			return nil, err
+		}
+		return self.getMembers(memberIds)
+	} else if handle == "MembersInPage" {
+		page := args[1].(int)
+		pageSize := args[2].(int)
+		totalPage, err := self.totalPage(pageSize)
+		if err != nil {
+			return nil, err
+		}
+		currentPage := utils.Min(utils.Max(page, 1), totalPage)
+		indexForRedis := currentPage - 1
+		startOffset := utils.Max(indexForRedis*pageSize, 0)
+		endOffset := startOffset + pageSize - 1
+		memberIds, err := self.redis.ZRevRange(self.name, int64(startOffset), int64(endOffset)).Result()
+		if err != nil {
+			return nil, err
+		}
+		return self.getMembers(memberIds)
+	}
+	return nil, nil
+}
+
+func (self *Server) Terminate(reason string) (err error) {
+	return nil
+}
+
+func (self *Server) rankMember(member *Member) (int64, error) {
+	count, err := self.redis.ZAdd(self.name, redis.Z{
+		Member: member.Id,
+		Score:  float64(member.Score),
+	}).Result()
+	if err != nil {
+		return 0, err
+	}
+	if member.Data != nil {
+		_, err := self.setMemberData(member.Id, member.Data)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return count, nil
+}
+
+func (self *Server) removeMembers(memberIds []string) (int64, error) {
+	if len(memberIds) == 0 {
+		return 0, nil
+	}
+	ids := make([]interface{}, len(memberIds))
+	memberDataKeys := make([]string, len(memberIds))
+	for i, v := range memberIds {
+		memberDataKeys[i] = memberDataKey(self.name, v)
+		ids[i] = v
+	}
+	self.redis.Del(memberDataKeys...)
+	return self.redis.ZRem(self.name, ids...).Result()
+}
+
+func (self *Server) setMemberData(memberId string, data MemberData) (string, error) {
+	memberData := make(map[string]interface{})
+	for k, v := range data {
+		memberData[k] = v
+	}
+	return self.redis.HMSet(memberDataKey(self.name, memberId), memberData).Result()
+}
+
+func (self *Server) getMemberData(memberId string) (MemberData, error) {
+	return self.redis.HGetAll(memberDataKey(self.name, memberId)).Result()
+}
+
+func memberDataKey(leaderboard string, memberId string) string {
+	return fmt.Sprintf("%s:%s", leaderboard, memberId)
+}
+
+func (self *Server) getMember(memberId string) (*Member, error) {
+	rank, err := self.getRank(memberId)
+	if err != nil {
+		return nil, err
+	}
+	score, err := self.getScore(memberId)
+	if err != nil {
+		return nil, err
+	}
+	data, err := self.getMemberData(memberId)
+	if err != nil {
+		return nil, err
+	}
+	return &Member{
+		Id:    memberId,
+		Rank:  rank,
+		Score: int64(score),
+		Data:  data,
+	}, nil
+}
+
+func (self *Server) getMembers(memberIds []string) ([]*Member, error) {
+	members := make([]*Member, len(memberIds))
+	for idx, memberId := range memberIds {
+		member, err := self.getMember(memberId)
+		if err != nil {
+			return nil, err
+		}
+		members[idx] = member
+	}
+	return members, nil
+}
+
+func (self *Server) totalPage(pageSize int) (int, error) {
+	count, err := self.redis.ZCard(self.name).Result()
+	if err != nil {
+		return 0, err
+	}
+	return int(math.Ceil(float64(count) / float64(pageSize))), nil
+}
+
+func (self *Server) getRank(memberId string) (int64, error) {
+	rank, err := self.redis.ZRevRank(self.name, memberId).Result()
+	if err != nil {
+		return 0, err
+	}
+	return rank + 1, nil
+}
+
+func (self *Server) getScore(memberId string) (int64, error) {
+	score, err := self.redis.ZScore(self.name, memberId).Result()
+	if err != nil {
+		return 0, err
+	}
+	return int64(score), nil
+}

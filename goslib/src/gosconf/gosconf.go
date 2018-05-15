@@ -55,6 +55,12 @@ var REDIS_FOR_TIMERTASK = &Redis{
 	Db:       0,
 }
 
+var REDIS_FOR_LEADERBOARD = &Redis{
+	Host:     REDIS_SERVER_IP + ":6379",
+	Password: "",
+	Db:       0,
+}
+
 // Keys for retrive redis data
 const (
 	RK_GAME_APP_IDS                 = "__GAME_APP_IDS__"

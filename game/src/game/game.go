@@ -15,7 +15,6 @@ import (
 	"goslib/redisdb"
 	"goslib/utils"
 	"gslib"
-	"gslib/leaderboard"
 	"gslib/player"
 	"gslib/player_rpc"
 	"gslib/scene_mgr"
@@ -34,7 +33,7 @@ func main() {
 	register.CustomRegisterDataLoader()
 	callbacks.RegisterBroadcast()
 	callbacks.RegisterSceneLoad()
-	leaderboard.Start()
+	//leaderboard.Start()
 
 	// Print routine info
 	go gslib.SysRoutine()
