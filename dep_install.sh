@@ -37,3 +37,7 @@ go get -u github.com/sideshow/apns2
 
 #Android FCM
 go get -u github.com/appleboy/go-fcm
+
+#In App Purchase Validator
+go get -u github.com/awa/go-iap/appstore
+go get -u github.com/awa/go-iap/playstore

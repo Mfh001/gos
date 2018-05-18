@@ -48,6 +48,7 @@
   * 配置数据生成工具：解析excel表格生成对应的配置表
   * 排行榜服务：自定义各种排行榜，根据积分排名，可设置每个玩家自定义信息
   * 推送消息：苹果、谷歌(FCM)
+  * 支付验证：苹果、谷歌
 
 ## Quick Start
 ```bash
@@ -65,7 +66,6 @@ make start_all
   * 世界数据
   * 云服务器管理
   * 运行时REPL交互环境
-  * 支付验证：苹果、谷歌
 
 ## License
 GOS is under The MIT License (MIT)
