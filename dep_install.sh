@@ -31,3 +31,9 @@ go get -u github.com/rs/xid
 
 #Cron
 go get -u github.com/robfig/cron
+
+#iOS Push
+go get -u github.com/sideshow/apns2
+
+#Android FCM
+go get -u github.com/appleboy/go-fcm
