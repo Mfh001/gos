@@ -1,0 +1,47 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gos-auth-service-ing
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: gos-auth-service
+          servicePort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gos-auth-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3000
+  selector:
+    app: gos-auth-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gos-auth-app
+spec:
+  selector:
+    matchLabels:
+      app: gos-auth-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: gos-auth-app
+    spec:
+      containers:
+      - name: gos-auth-app
+        image: savin198/gos-auth-app
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000

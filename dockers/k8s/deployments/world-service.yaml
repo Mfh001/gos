@@ -1,0 +1,41 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gos-world-service
+spec:
+  selector:
+    app: gos-world-app
+  ports:
+  - name: agent
+    protocol: TCP
+    port: 50051
+    targetPort: 50051
+  - name: game
+    protocol: TCP
+    port: 50052
+    targetPort: 50052
+  type: NodePort
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: gos-world-app
+spec:
+  selector:
+    matchLabels:
+      app: gos-world-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: gos-world-app
+    spec:
+      containers:
+      - name: gos-world-app
+        image: savin198/gos-world-app
+        imagePullPolicy: Always
+        ports:
+        - name: agent
+          containerPort: 50051
+        - name: game
+          containerPort: 50052

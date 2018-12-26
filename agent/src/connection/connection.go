@@ -6,6 +6,7 @@ import (
 	"errors"
 	pb "gos_rpc_proto"
 	"gosconf"
+	"goslib/game_utils"
 	"goslib/logger"
 	"goslib/packet"
 	"goslib/session_utils"
@@ -79,6 +80,7 @@ func (self *Connection) handleRequest() {
 				break
 			}
 			if err = self.setupProxy(); err != nil {
+				logger.ERR("DispatchToGameApp failed: ", err)
 				break
 			}
 		}
@@ -94,12 +96,20 @@ func (self *Connection) handleRequest() {
 
 func (self *Connection) setupProxy() error {
 	sessionMap.Store(self.session.AccountId, self.session)
-	gameAppId, err := ChooseGameServer(self.session)
-	if err != nil {
-		logger.ERR("DispatchToGameApp failed: ", err)
-		return err
+	var game *game_utils.Game
+	var err error
+	if self.session.GameAppId != "" {
+		game, err = game_utils.Find(self.session.GameAppId)
+		if err != nil {
+			return err
+		}
+	} else {
+		game, err = ChooseGameServer(self.session)
+		if err != nil {
+			return err
+		}
 	}
-	self.stream, err = ConnectGameServer(gameAppId, self.session.AccountId, self.conn)
+	self.stream, err = ConnectGameServer(game.Uuid, self.session.AccountId, self.conn)
 	if err != nil {
 		logger.ERR("StartConnToGameStream failed: ", err)
 		return err

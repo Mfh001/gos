@@ -21,13 +21,13 @@
       GameCellMgr根据玩家SceneId分配到对应GameCell的Scene
 
     结构梳理
-      Hardware:(物理机)
+      Hardware <-> Node:(物理机)
         uuid
         Zone
         NetIP
         LocalIP
 
-      GameCell:(游戏服务)
+      GameCell <-> Pod:(游戏服务)
         uuid
         HardwareId
         SpaceMax
@@ -48,7 +48,7 @@
         ServerId
         SceneId
 
-      Hardware : GameCell => 1 : N
+      Node     : GameCell => 1 : N
       GameCell : Scene    => 1 : N
       Scene    : Player   => 1 : N
 

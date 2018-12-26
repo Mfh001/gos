@@ -5,11 +5,17 @@ import (
 	"time"
 )
 
-const IS_DEBUG = true
+const IS_DEBUG = false
 
 const (
-	WORLD_SERVER_IP = "127.0.0.1"
-	REDIS_SERVER_IP = "127.0.0.1"
+	//WORLD_SERVER_IP = "127.0.0.1"
+	//REDIS_SERVER_IP = "127.0.0.1"
+	//REDIS_PASSWORD  = ""
+	WORLD_SERVER_IP = "gos-world-service.default.svc.cluster.local"
+	REDIS_SERVER_IP = "single-redis-master.default.svc.cluster.local"
+	REDIS_PASSWORD  = "X7nwLqtrSZ"
+
+	GAME_DOMAIN = "gos-game-service.default.svc.cluster.local"
 )
 
 const (
@@ -18,7 +24,7 @@ const (
 	SERVICE_DEAD_DURATION = 16
 	RPC_REQUEST_TIMEOUT   = 5 * time.Second
 	AGENT_CCU_MAX         = 20000
-	GAME_CCU_MAX          = 5000
+	GAME_CCU_MAX          = 6000
 )
 
 const (
@@ -45,28 +51,26 @@ var REDIS_FOR_SERVICE = &Redis{
 
 var REDIS_FOR_ACCOUNT = &Redis{
 	Host:     REDIS_SERVER_IP + ":6379",
-	Password: "",
+	Password: REDIS_PASSWORD,
 	Db:       0,
 }
 
 var REDIS_FOR_TIMERTASK = &Redis{
 	Host:     REDIS_SERVER_IP + ":6379",
-	Password: "",
+	Password: REDIS_PASSWORD,
 	Db:       0,
 }
 
 var REDIS_FOR_LEADERBOARD = &Redis{
 	Host:     REDIS_SERVER_IP + ":6379",
-	Password: "",
+	Password: REDIS_PASSWORD,
 	Db:       0,
 }
 
 // Keys for retrive redis data
 const (
-	RK_GAME_APP_IDS                 = "__GAME_APP_IDS__"
-	RK_SCENE_IDS                    = "__SCENE_IDS__"
-	RK_SCENE_CONF_IDS               = "__SCENE_CONF_IDS__"
-	RK_DEFAULT_SERVER_SCENE_CONF_ID = "__DEFAULT_SERVER_SCENE_ID__"
+	RK_GAME_APP_IDS = "__GAME_APP_IDS__"
+	RK_SCENE_IDS    = "__SCENE_IDS__"
 )
 
 /*

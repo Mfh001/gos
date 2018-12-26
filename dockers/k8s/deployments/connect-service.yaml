@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tcp-services
+  namespace: ingress-nginx
+data:
+  4000: "default/gos-connect-service:4000"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: gos-connect-service
+spec:
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 4000
+    targetPort: 4000
+  selector:
+    app: gos-connect-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gos-connect-app
+spec:
+  selector:
+    matchLabels:
+      app: gos-connect-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: gos-connect-app
+    spec:
+      containers:
+      - name: gos-connect-app
+        image: savin198/gos-connect-app
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4000

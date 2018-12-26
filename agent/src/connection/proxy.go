@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	pb "gos_rpc_proto"
 	"gosconf"
+	"goslib/game_utils"
 	"goslib/gen_server"
 	"goslib/logger"
 	"goslib/session_utils"
@@ -35,28 +36,30 @@ func StartProxyManager() {
 }
 
 // Request GameAppMgr to dispatch GameApp for session
-func ChooseGameServer(session *session_utils.Session) (string, error) {
+func ChooseGameServer(session *session_utils.Session) (*game_utils.Game, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
 
 	reply, err := GameMgrRpcClient.DispatchGame(ctx, &pb.DispatchGameRequest{
 		AccountId: session.AccountId,
 		ServerId:  session.ServerId,
-		SceneId:   session.SceneId,
 	})
 	if err != nil {
 		logger.ERR("DispatchGame failed: ", err)
 		return "", err
 	}
 
-	logger.INFO("ChooseGameServer: ", reply.GetSceneId())
-	session.SceneId = reply.GetSceneId()
+	logger.INFO("ChooseGameServer: ", reply.GetGameAppHost())
 	session.GameAppId = reply.GetGameAppId()
 	session.Save()
 
 	err = MakeSureConnectedToGame(reply.GetGameAppId(), reply.GetGameAppHost(), reply.GetGameAppPort())
 
-	return reply.GetGameAppId(), err
+	return &game_utils.Game{
+		Uuid: reply.GetGameAppId(),
+		Host: reply.GetGameAppHost(),
+		Port: reply.GetGameAppPort(),
+	}, err
 }
 
 func ConnectGameServer(gameAppId string, accountId string, rawConn net.Conn) (pb.RouteConnectGame_AgentStreamClient, error) {

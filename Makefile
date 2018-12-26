@@ -37,6 +37,16 @@ build_docker_images:
 	docker run --rm -v $(shell pwd):/usr/src/gos -w /usr/src/gos -e GOOS=linux -e GOARCH=amd64 golang:alpine sh build_gos.sh
 	cd dockers && ./build-dockers
 
+push_docker_images:
+	docker tag gos-auth-app savin198/gos-auth-app
+	docker tag gos-connect-app savin198/gos-connect-app
+	docker tag gos-game-app savin198/gos-game-app
+	docker tag gos-world-app savin198/gos-world-app
+	docker push savin198/gos-auth-app
+	docker push savin198/gos-connect-app
+	docker push savin198/gos-game-app
+	docker push savin198/gos-world-app
+
 run_dockers:
 	cd dockers && ./run-apps
 
