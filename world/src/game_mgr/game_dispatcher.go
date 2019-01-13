@@ -82,7 +82,7 @@ func dispatchScene(sceneId string) (*scene_utils.Scene, error) {
 	}
 	uuid := scene_utils.GenUuid(sceneId)
 	lockKey := "lock_scene:" + uuid
-	locked, err := redisdb.ServiceInstance().SetNX(lockKey, "uuid", 10*time.Second).Result()
+	locked, err := redisdb.Instance().SetNX(lockKey, "uuid", 10*time.Second).Result()
 	if locked {
 		scene, err := scene_utils.CreateScene(&scene_utils.Scene{
 			Uuid:        scene_utils.GenUuid(sceneId),
@@ -90,7 +90,7 @@ func dispatchScene(sceneId string) (*scene_utils.Scene, error) {
 			GameAppHost: game.Host,
 			GameAppPort: game.Port,
 		})
-		redisdb.ServiceInstance().Del(lockKey)
+		redisdb.Instance().Del(lockKey)
 		return scene, err
 	} else {
 		time.Sleep(1 * time.Second)

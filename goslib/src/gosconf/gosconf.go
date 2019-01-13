@@ -7,13 +7,17 @@ import (
 
 const IS_DEBUG = false
 
+var REDIS_CLUSTERS = []string{
+	"redis-cluster-0.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-1.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-2.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-3.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-4.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-5.redis-cluster.default.svc.cluster.local",
+}
+
 const (
-	//WORLD_SERVER_IP = "127.0.0.1"
-	//REDIS_SERVER_IP = "127.0.0.1"
-	//REDIS_PASSWORD  = ""
 	WORLD_SERVER_IP = "gos-world-service.default.svc.cluster.local"
-	REDIS_SERVER_IP = "single-redis-master.default.svc.cluster.local"
-	REDIS_PASSWORD  = "X7nwLqtrSZ"
 
 	GAME_DOMAIN = "gos-game-service.default.svc.cluster.local"
 )
@@ -32,40 +36,6 @@ const (
 	TIMERTASK_TASKS_PER_CHECK = 100         // max tasks fetched per check
 	TIMERTASK_MAX_RETRY       = 3           // retry 3 times
 )
-
-/*
-Redis for service config data
-service config datas: session, connectApp, gameApp, scene
-*/
-type Redis struct {
-	Host     string
-	Password string
-	Db       int
-}
-
-var REDIS_FOR_SERVICE = &Redis{
-	Host:     REDIS_SERVER_IP + ":6379",
-	Password: "",
-	Db:       0,
-}
-
-var REDIS_FOR_ACCOUNT = &Redis{
-	Host:     REDIS_SERVER_IP + ":6379",
-	Password: REDIS_PASSWORD,
-	Db:       0,
-}
-
-var REDIS_FOR_TIMERTASK = &Redis{
-	Host:     REDIS_SERVER_IP + ":6379",
-	Password: REDIS_PASSWORD,
-	Db:       0,
-}
-
-var REDIS_FOR_LEADERBOARD = &Redis{
-	Host:     REDIS_SERVER_IP + ":6379",
-	Password: REDIS_PASSWORD,
-	Db:       0,
-}
 
 // Keys for retrive redis data
 const (

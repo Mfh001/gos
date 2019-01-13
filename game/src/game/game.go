@@ -21,8 +21,6 @@ import (
 )
 
 func main() {
-	redisdb.InitServiceClient()
-
 	// Register routes
 	register.Load()
 	// Register MySQL data loader
@@ -104,7 +102,7 @@ func addGame(uuid, host, port string) (*game_utils.Game, error) {
 		Port:     port,
 		ActiveAt: time.Now().Unix(),
 	}
-	_, err := redisdb.ServiceInstance().SAdd(gosconf.RK_GAME_APP_IDS, app.Uuid).Result()
+	_, err := redisdb.Instance().SAdd(gosconf.RK_GAME_APP_IDS, app.Uuid).Result()
 	if err != nil {
 		return nil, err
 	}

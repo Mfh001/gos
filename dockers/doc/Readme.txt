@@ -2,7 +2,12 @@
   brew install kubernetes-helm
 
 部署Redis
-  helm install stable/redis --name single-redis
+  kubectl apply -f k8s/deps/redis-cluster.yml
+  kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 \
+  $(kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 ')
+
+部署Mysql
+  helm install stable/mysql --name single-mysql
 
 部署Ingress-nginx
   helm install stable/nginx-ingress --name nginx-ingress

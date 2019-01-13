@@ -6,13 +6,11 @@ import (
 	pb "gos_rpc_proto"
 	"gosconf"
 	"goslib/logger"
-	"goslib/redisdb"
 	"net"
 )
 
 func main() {
 	// Start redis
-	redisdb.InitServiceClient()
 	connectGameMgr()
 	connection.StartProxyManager()
 

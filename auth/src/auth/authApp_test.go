@@ -5,12 +5,9 @@ import (
 	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"goslib/redisdb"
 )
 
 var _ = Describe("AuthApp", func() {
-	redisdb.InitAccountClient()
-
 	It("should startup", func() {
 		accountId := "fakeAccountId"
 		password := "fakePassword"

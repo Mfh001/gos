@@ -17,7 +17,7 @@ type Game struct {
 }
 
 func Find(uuid string) (*Game, error) {
-	valueMap, err := redisdb.ServiceInstance().HGetAll(uuid).Result()
+	valueMap, err := redisdb.Instance().HGetAll(uuid).Result()
 	if err != nil {
 		logger.ERR("Find game failed: ", err)
 		return nil, err
@@ -30,7 +30,7 @@ func Find(uuid string) (*Game, error) {
 }
 
 func LoadGames(apps map[string]*Game) error {
-	ids, err := redisdb.ServiceInstance().SMembers(gosconf.RK_GAME_APP_IDS).Result()
+	ids, err := redisdb.Instance().SMembers(gosconf.RK_GAME_APP_IDS).Result()
 	if err != nil {
 		logger.ERR("Redis load games failed: ", err)
 		return err
@@ -48,7 +48,7 @@ func Create(params map[string]string) (*Game, error) {
 	for k, v := range params {
 		setParams[k] = v
 	}
-	_, err := redisdb.ServiceInstance().HMSet(params["uuid"], setParams).Result()
+	_, err := redisdb.Instance().HMSet(params["uuid"], setParams).Result()
 	if err != nil {
 		logger.ERR("Create game failed: ", err)
 	}
@@ -63,7 +63,7 @@ func (self *Game) Save() error {
 	params["ccu"] = self.Ccu
 	params["ccuMax"] = self.CcuMax
 	params["activeAt"] = self.ActiveAt
-	_, err := redisdb.ServiceInstance().HMSet(self.Uuid, params).Result()
+	_, err := redisdb.Instance().HMSet(self.Uuid, params).Result()
 	if err != nil {
 		logger.ERR("Save game failed: ", err)
 	}
@@ -85,7 +85,7 @@ func parseObject(params map[string]string) *Game {
 }
 
 func (self *Game) Del() error {
-	_, err := redisdb.ServiceInstance().Del(self.Uuid).Result()
+	_, err := redisdb.Instance().Del(self.Uuid).Result()
 	if err != nil {
 		logger.ERR("Del game failed: ", err)
 	}

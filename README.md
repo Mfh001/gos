@@ -60,6 +60,8 @@ make start_all
 ```
 
 ## TODO
+  * 集成Vitess(MySQL集群) https://github.com/vitessio/vitess
+  * 集成codis(redis集群)  https://github.com/CodisLabs/codis
   * 聊天服务
   * 邮件服务
   * 玩家日志
