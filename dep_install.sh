@@ -44,3 +44,6 @@ go get -u github.com/appleboy/go-fcm
 #In App Purchase Validator
 go get -u github.com/awa/go-iap/appstore
 go get -u github.com/awa/go-iap/playstore
+
+# Websocket
+go get github.com/gorilla/websocket

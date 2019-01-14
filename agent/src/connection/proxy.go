@@ -62,7 +62,7 @@ func ChooseGameServer(session *session_utils.Session) (*game_utils.Game, error) 
 	}, err
 }
 
-func ConnectGameServer(gameAppId string, accountId string, rawConn net.Conn) (pb.RouteConnectGame_AgentStreamClient, error) {
+func ConnectGameServer(gameAppId string, accountId string, agent AgentBehavior) (pb.RouteConnectGame_AgentStreamClient, error) {
 	conn := GetGameServerConn(gameAppId)
 	client := pb.NewRouteConnectGameClient(conn)
 	header := metadata.New(map[string]string{"accountId": accountId})
@@ -88,7 +88,7 @@ func ConnectGameServer(gameAppId string, accountId string, rawConn net.Conn) (pb
 				break
 			}
 			logger.INFO("AgentStream received: ", accountId)
-			rawConn.Write(in.GetData())
+			agent.SendMessage(in.GetData())
 		}
 		accountStreamMap.Delete(accountId)
 		stream.CloseSend()

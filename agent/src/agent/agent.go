@@ -6,29 +6,19 @@ import (
 	pb "gos_rpc_proto"
 	"gosconf"
 	"goslib/logger"
-	"net"
 )
 
 func main() {
-	// Start redis
 	connectGameMgr()
 	connection.StartProxyManager()
 
-	// Listen incomming tcp connections
-	tcpConf := gosconf.TCP_SERVER_CONNECT_APP
-	l, err := net.Listen(tcpConf.Network, tcpConf.Address)
-	if err != nil {
-		logger.ERR("Connection listen failed: ", err)
-	}
-	logger.INFO("ConnectApp started!")
-	defer l.Close()
-
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			logger.ERR("Connection accept failed: ", err)
-		}
-		connection.Handle(conn)
+	switch gosconf.AGENT_PROTOCOL {
+	case gosconf.AGENT_PROTOCOL_TCP:
+		StartWSAgent()
+		break
+	case gosconf.AGENT_PROTOCOL_WS:
+		StartTCPAgent()
+		break
 	}
 }
 

@@ -7,6 +7,24 @@ import (
 
 const IS_DEBUG = false
 
+// 支持的通信协议
+const (
+	AGENT_PROTOCOL_TCP = iota
+	AGENT_PROTOCOL_WS
+)
+
+// 支持的编码方式
+const (
+	PROTOCOL_ENCODING_RAW = iota
+	PROTOCOL_ENCODING_JSON
+	PROTOCOL_ENCODING_PB
+)
+
+const (
+	AGENT_PROTOCOL = AGENT_PROTOCOL_WS
+	AGENT_ENCODING = PROTOCOL_ENCODING_JSON
+)
+
 var REDIS_CLUSTERS = []string{
 	"redis-cluster-0.redis-cluster.default.svc.cluster.local",
 	"redis-cluster-1.redis-cluster.default.svc.cluster.local",
@@ -56,11 +74,13 @@ TCP Servers
 */
 
 type TCP struct {
+	Packet  uint8
 	Network string
 	Address string
 }
 
 var TCP_SERVER_CONNECT_APP = &TCP{
+	Packet:  2,
 	Network: "tcp",
 	Address: ":4000",
 }
