@@ -20,6 +20,10 @@ func (p *Packet) Data() []byte {
 	return p.data
 }
 
+func (p *Packet) RemainData() []byte {
+	return p.data[p.pos:]
+}
+
 func (p *Packet) Length() int {
 	return len(p.data)
 }

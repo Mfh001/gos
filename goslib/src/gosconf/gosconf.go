@@ -36,8 +36,7 @@ var REDIS_CLUSTERS = []string{
 
 const (
 	WORLD_SERVER_IP = "gos-world-service.default.svc.cluster.local"
-
-	GAME_DOMAIN = "gos-game-service.default.svc.cluster.local"
+	GAME_DOMAIN     = "gos-game-service.default.svc.cluster.local"
 )
 
 const (
@@ -75,13 +74,11 @@ TCP Servers
 
 type TCP struct {
 	Packet  uint8
-	Network string
 	Address string
 }
 
 var TCP_SERVER_CONNECT_APP = &TCP{
 	Packet:  2,
-	Network: "tcp",
 	Address: ":4000",
 }
 

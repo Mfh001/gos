@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/json-iterator/go"
 	pb "gos_rpc_proto"
-	"gosconf"
 	"goslib/game_utils"
 	"goslib/logger"
 	"goslib/packet"
@@ -127,7 +126,7 @@ func (self *Connection) proxyRequest(data []byte) error {
 }
 
 func (self *Connection) authConn(data []byte) (bool, error) {
-	// 解码数据
+	// Decode data
 	params, err := decodeAuthData(data)
 	if err != nil {
 		return false, err
@@ -140,7 +139,10 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 	}
 
 	// Send auth response to client
-	writer := api.Encode("SessionAuthResponse", &api.SessionAuthResponse{Success: success})
+	writer, err := api.Encode("SessionAuthResponse", &api.SessionAuthResponse{Success: success})
+	if err != nil {
+		return false, err
+	}
 
 	self.processed++
 	// INFO("Processed: ", self.processed, " Response Data: ", response_data)
@@ -152,32 +154,19 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 }
 
 func decodeAuthData(data []byte) (*api.SessionAuthParams, error) {
-	switch gosconf.AGENT_ENCODING {
-	//case gosconf.PROTOCOL_ENCODING_PB:
-	case gosconf.PROTOCOL_ENCODING_RAW:
-		return decodeRawAuthData(data)
-	case gosconf.PROTOCOL_ENCODING_JSON:
-		return decodeJSONAuthData(data)
-	}
-}
-
-func decodeRawAuthData(data []byte) (*api.SessionAuthParams, error) {
 	reader := packet.Reader(data)
 	protocol := reader.ReadUint16()
 	decode_method := api.IdToName[protocol]
 
 	if decode_method != "SessionAuthParams" {
-		return false, errors.New("Request UnAuthed connection: " + decode_method)
+		return nil, errors.New("Request UnAuthed connection: " + decode_method)
 	}
 
-	params := api.Decode(decode_method, reader).(*api.SessionAuthParams)
-	return params, nil
-}
-
-func decodeJSONAuthData(data []byte) (*api.SessionAuthParams, error) {
-	params := &api.SessionAuthParams{}
-	err := json.Unmarshal(data, params)
-	return params, err
+	params, err := api.Decode(decode_method, reader)
+	if err != nil {
+		return nil, err
+	}
+	return params.(*api.SessionAuthParams), err
 }
 
 func (self *Connection) validateSession(params *api.SessionAuthParams) (bool, error) {

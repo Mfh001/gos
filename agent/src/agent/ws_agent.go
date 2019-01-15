@@ -4,6 +4,7 @@ import (
 	"connection"
 	"flag"
 	"github.com/gorilla/websocket"
+	"gosconf"
 	"goslib/logger"
 	"net/http"
 )
@@ -17,7 +18,8 @@ type WSAgent struct {
 func StartWSAgent() {
 	http.HandleFunc("/", wsHandler)
 
-	addr := flag.String("addr", "localhost:8080", "http service address")
+	tcpConf := gosconf.TCP_SERVER_CONNECT_APP
+	addr := flag.String("addr", tcpConf.Address, "http service address")
 	http.ListenAndServe(*addr, nil)
 }
 

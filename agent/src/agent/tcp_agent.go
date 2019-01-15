@@ -20,7 +20,7 @@ type TCPAgent struct {
 func StartTCPAgent() {
 	// Listen incomming tcp connections
 	tcpConf := gosconf.TCP_SERVER_CONNECT_APP
-	l, err := net.Listen(tcpConf.Network, tcpConf.Address)
+	l, err := net.Listen("tcp", tcpConf.Address)
 	if err != nil {
 		logger.ERR("Connection listen failed: ", err)
 	}

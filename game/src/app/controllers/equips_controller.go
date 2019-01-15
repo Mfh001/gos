@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	. "api"
+	"api"
 	"app/consts"
 	"app/models"
 	"goslib/logger"
@@ -14,7 +14,7 @@ type EquipsController struct {
 	Ctx *player.Player
 }
 
-func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}) {
+func (self *EquipsController) Load(params *api.EquipLoadParams) (string, interface{}) {
 	user := models.CreateUser(self.Ctx, &consts.User{
 		Level:  1,
 		Exp:    0,
@@ -26,15 +26,15 @@ func (self *EquipsController) Load(params *EquipLoadParams) (string, interface{}
 	user1.Save()
 
 	runAt := time.Now().Add(5 * time.Second).Unix()
-	timertask.Add("fake_task_id", runAt, self.Ctx.PlayerId, "EquipUnLoadParams", &EquipUnLoadParams{
+	timertask.Add("fake_task_id", runAt, self.Ctx.PlayerId, "EquipUnLoadParams", &api.EquipUnLoadParams{
 		PlayerID: "player_id",
 		EquipId:  "equip_id",
 	})
 
-	return "EquipLoadResponse", &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
+	return api.PT_EquipLoadResponse, &api.EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }
 
-func (self *EquipsController) UnLoad(params *EquipUnLoadParams) (string, interface{}) {
+func (self *EquipsController) UnLoad(params *api.EquipUnLoadParams) (string, interface{}) {
 	logger.INFO("UnLoad equips")
-	return "EquipLoadResponse", &EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
+	return api.PT_EquipLoadResponse, &api.EquipLoadResponse{PlayerID: "player_id", EquipId: "equip_id", Level: 10}
 }

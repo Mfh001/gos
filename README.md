@@ -2,10 +2,10 @@
 《GOS》是一款基于Go语言的分布式游戏服务器框架，高可用、动态伸缩、在线扩容，可应用于市面上绝大多数游戏类型：SLG、RPG、ARPG、MMO、MOBA。
 
 ## 结构图
-![Architecture](Architecture.png)
+![Architecture](docs/images/Architecture.png)
 
 ## 单点消除
-![SinglePoints](SinglePoints.png)
+![SinglePoints](docs/images/SinglePoints.png)
   
 ## 结构详解
   * AuthService
