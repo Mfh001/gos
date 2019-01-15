@@ -1,9 +1,9 @@
 source "https://rubygems.org"
 
 # Generate MySQL tables
-gem 'active_record_migrations'
-gem 'mysql2'
+gem 'active_record_migrations', '~> 5.2.0'
+gem 'mysql2', '~> 0.5.2'
 
 # Generate configs
 gem 'roo', '~> 2.0.0'
-gem 'roo-xls'
+gem 'roo-xls', '~> 1.2.0'
