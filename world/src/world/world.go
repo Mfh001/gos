@@ -9,5 +9,4 @@ import (
 func main() {
 	go agent_mgr.Start()
 	game_mgr.Start()
-	//RootMgr.Start()
 }
