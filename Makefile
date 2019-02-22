@@ -4,6 +4,7 @@ setup:
 	cd goslib && protoc -I src/gos_rpc_proto --go_out=plugins=grpc:src/gos_rpc_proto src/gos_rpc_proto/*.proto
 	cd game && ./tools/gen_routes
 	cd game && ./tools/gen_protocol
+	cd game && bundle exec rake generate_config
 	cd game && bundle exec rake generate_tables
 
 # Install dependent go packages
