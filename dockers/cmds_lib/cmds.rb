@@ -12,7 +12,7 @@ class Cmds
 
   # Build docker image
   def self.build_image(image_name, docker_filename)
-    $stdout.puts `docker build -t #{image_name} -f #{docker_filename} ../`
+    $stdout.puts `docker build -t #{image_name}:latest -f #{docker_filename} ../`
   end
 
   # Export docker image

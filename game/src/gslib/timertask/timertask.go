@@ -19,9 +19,8 @@ import (
 )
 
 type TimerTask struct {
-	redisClient *redis.Client
-	taskTicker  *time.Ticker
-	retry       map[string]int
+	taskTicker *time.Ticker
+	retry      map[string]int
 }
 
 const SERVER = "__TIMERTASK_SERVER__"
@@ -51,8 +50,6 @@ func Del(key string) {
 }
 
 func (t *TimerTask) Init(args []interface{}) (err error) {
-	conf := gosconf.REDIS_FOR_TIMERTASK
-	t.redisClient = redisdb.Connect(SERVER, conf.Host, conf.Password, conf.Db)
 	t.taskTicker = time.NewTicker(gosconf.TIMERTASK_CHECK_DURATION)
 	t.retry = make(map[string]int)
 	go func() {
@@ -105,21 +102,21 @@ func mfa_key(key string) string {
 }
 
 func (t *TimerTask) add(key string, runAt int64, content string) error {
-	if _, err := t.redisClient.Set(mfa_key(key), content, 0).Result(); err != nil {
+	if _, err := redisdb.Instance().Set(mfa_key(key), content, 0).Result(); err != nil {
 		return err
 	}
 	member := redis.Z{
 		Score:  float64(runAt),
 		Member: key,
 	}
-	if _, err := t.redisClient.ZAdd(KEY, member).Result(); err != nil {
+	if _, err := redisdb.Instance().ZAdd(KEY, member).Result(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (t *TimerTask) update(key string, runAt int64) error {
-	score, err := t.redisClient.ZScore(KEY, key).Result()
+	score, err := redisdb.Instance().ZScore(KEY, key).Result()
 	if err != nil {
 		return err
 	}
@@ -128,7 +125,7 @@ func (t *TimerTask) update(key string, runAt int64) error {
 			Score:  float64(runAt),
 			Member: key,
 		}
-		_, err := t.redisClient.ZAdd(KEY, member).Result()
+		_, err := redisdb.Instance().ZAdd(KEY, member).Result()
 		return err
 	}
 	return nil
@@ -153,16 +150,16 @@ func (t *TimerTask) finish(key string) error {
 }
 
 func (t *TimerTask) del(key string) error {
-	_, err := t.redisClient.Del(mfa_key(key)).Result()
+	_, err := redisdb.Instance().Del(mfa_key(key)).Result()
 	if err != nil {
 		return err
 	}
-	_, err = t.redisClient.ZRem(KEY, key).Result()
+	_, err = redisdb.Instance().ZRem(KEY, key).Result()
 	return err
 }
 
 func (t *TimerTask) handleTask(key string) error {
-	content, err := t.redisClient.Get(mfa_key(key)).Result()
+	content, err := redisdb.Instance().Get(mfa_key(key)).Result()
 	if err != nil {
 		return err
 	}
@@ -178,7 +175,7 @@ func (t *TimerTask) tickerTask() {
 		Offset: 0,
 		Count:  gosconf.TIMERTASK_TASKS_PER_CHECK,
 	}
-	members, err := t.redisClient.ZRangeByScoreWithScores(KEY, opt).Result()
+	members, err := redisdb.Instance().ZRangeByScoreWithScores(KEY, opt).Result()
 	if err != nil {
 		logger.ERR("tickerTask failed: ", err)
 		return

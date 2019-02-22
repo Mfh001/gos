@@ -1,41 +1,44 @@
+#项目状态
+开发中
+
 # 简介
-《GOS》是一款基于Go语言的分布式游戏服务器框架，高可用、动态伸缩、在线扩容，可应用于市面上绝大多数游戏类型：SLG、RPG、ARPG、MMO、MOBA。
+《GOS》是一款基于Go语言的分布式游戏服务器框架，通过与k8s结合实现高可用、动态伸缩、在线扩容的特性，可应用于市面上绝大多数游戏类型：SLG、RPG、ARPG、MMO等。
 
 ## 结构图
-![Architecture](Architecture.png)
+![Architecture](docs/images/Architecture.png)
 
 ## 单点消除
-![SinglePoints](SinglePoints.png)
+![SinglePoints](docs/images/SinglePoints.png)
   
 ## 结构详解
-  * AuthService
-    
-    验证服务，提供账户注册、玩家登陆，以及为玩家获取连接服务(AgentCell)信息的功能。
-  * AgentMgr
-  
-    连接服务管理器，连接服务负载均衡管理，根据当前负载情况为玩家分配的连接服务。向集群管理器申请开辟和释放连接服务。
-  * GameMgr
-  
-    游戏服务管理器，游戏服务负载均衡管理，根据当前负载情况为玩家分配游戏服务。向集群管理器申请开辟和释放游戏服务。
-  * Agent
-  
-    连接服务，转发玩家信息至游戏服务，转发游戏服务信息至玩家，处理游戏内广播消息。
-  * Game
-  
-    游戏服务，游戏场景管理，处理玩家请求，游戏逻辑的主要发生地；加载、持久化场景、玩家信息至MySQL集群。
-  * Scene
-  
-    游戏场景，每个游戏服务内包含一个或多个游戏场景，场景可以是MMO的每个场景地图，也可以是SLG的世界地图，还可以是MMO的大厅服务，甚至可以是一个游戏服。场景的大小粒度，可以根据游戏的实际情况而定，游戏场景概念是《GOS》进行负载分布的核心设计。
-  * Hot Data
-  
-    热数据管理，由于游戏内玩家数据会频繁变更，所以游戏场景和玩家启动后会将其相关的数据加载到内存中，并由Hot Data进行管理，并定时的回写到MySQL集群。
-  * MySQL Cluster
-  
-    数据库集群，主要用于保存玩家数据和游戏场景数据；由于当下云服务已经非常成熟和完善，这里建议直接使用云服务的RDS服务，在后台点点点就能创建一个MySQL集群，读写性能和数据安全性都有保证。
-  * Redis Cluster
-  
-    Redis集群，主要用于集群配置信息保存，玩家Session缓存；Redis集群可以自己根据Redis官网搭建，同时也推荐大家使用云服务，简单快捷稳定，费用不高。
-  
+  * Auth(验证服务)
+      - 职责:
+        1. 提供账户注册、登陆
+        2. 颁发Session和分配连接服务(Agent)信息
+      - 简介:
+        1. k8s无状态集群服务
+        2. Ingress-Nginx进行负载均衡
+  * Agent(连接服务)
+      - 职责:
+        1. 提供连接服务，转发玩家信息至游戏服务，转发游戏服务信息至玩家
+        2. 广播管理：订阅、取消订阅
+      - 简介:
+        1. k8s无状态集群服务
+        2. 使用Ingres-Nginx进行负载均衡
+  * Game(游戏服务)
+      - 职责:
+        1. 处理玩家请求，游戏逻辑的主要发生地
+        2. 加载、持久化玩家、场景信息至数据库
+      - 简介:
+        1. k8s有状态集群服务
+        2. 每个Game对应一个k8s的Pod，服务于一个或多个场景
+  * World(世界服务)
+      - 职责:
+        1. 为玩家分配合适的连接服务(Agent)
+        2. 为玩家分配合适的游戏服务(Game)
+      - 简介:
+        1. k8s无状态集群服务
+        2. 通过k8s提供一个无状态的service，提供集群内访问
 
 ## 基础工具集
   * 分布式服务健康监测
@@ -50,22 +53,121 @@
   * 推送消息：苹果、谷歌(FCM)
   * 支付验证：苹果、谷歌
 
-## Quick Start
+## Setup gos
 ```bash
 git checkout https://github.com/mafei198/gos.git
-make dep_install
-make setup
-make build
-make start_all
+
+# 安装依赖(go packages)
+sh dep_install.sh
+
+# 生成RPC通讯协议
+cd goslib && protoc -I src/gos_rpc_proto --go_out=plugins=grpc:src/gos_rpc_proto src/gos_rpc_proto/*.proto
+
+# 生成路由信息
+cd game && ./tools/gen_routes
+
+# 生成通讯协议
+cd game && ./tools/gen_protocol
+
+# 导出配置文件
+cd game && bundle exec rake generate_config
+
+# 根据数据库表导出Model
+cd game && bundle exec rake generate_tables
+
+# 编译游戏模块并打包成docker的image
+make build_docker_images
+
+# 将打包好的image上传到dockerhub(需要配置自己的docker账户进行推送)
+make push_docker_images
+```
+
+## Setup k8s
+```bash
+#安装Helm
+brew install kubernetes-helm
+
+#部署Redis集群
+kubectl apply -f k8s/deps/redis-cluster.yml
+kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 \
+$(kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 ')
+
+#部署MySQL
+helm install stable/mysql --name single-mysql
+
+#部署Ingress-nginx
+helm install stable/nginx-ingress --name nginx-ingress
+
+#部署游戏服务
+kubectl apply -f dockers/k8s/depoyments/auth-service.yaml
+kubectl apply -f dockers/k8s/depoyments/connect-service.yaml
+kubectl apply -f dockers/k8s/depoyments/game-deployment.yaml
 ```
 
 ## TODO
+  * 集成Vitess(MySQL集群) https://github.com/vitessio/vitess
   * 聊天服务
   * 邮件服务
   * 玩家日志
-  * 世界数据
   * 云服务器管理
   * 运行时REPL交互环境
+  
+## FAQ
+1.为什么连接管理与游戏服分离？
+  - 业务分离
+    1. 尽量少的暴露服务器公网接口
+    2. 让连接服务维持长连接，便于游戏服的动态调整（增减），以及玩家在服务间的迁移
+  - 便于广播
+    1. 连接服务器由于业务单一，可以维持更多的在线用户，便于广播
+    
+2.玩家在连接服务上的分配规则？
+  - 分配规则：
+    1. 直接将玩家分配到负载最低的连接服务
+    
+3.玩家在游戏服务上的分配规则？
+  - 典型案例：根据游戏场景分布玩家
+    1. MMO/SLG/RPG-场景：区服地图、跨服战地图
+    2. MOBA/RTS/棋牌-场景: 区服大厅、对战房间
+  - 内部处理逻辑：
+    1. GameMgr根据玩家SceneId分配到对应Game的Scene
+
+4.冷热数据如何管理？
+  - 热数据类型有哪些？
+    - 玩家热数据
+      - 比如：玩家角色相关信息、个人信息
+      - 玩家热数据随着玩家在服务间的迁移而迁移
+    - 场景热数据
+      - 比如：场景相关的信息
+    - 世界热数据
+      - 比如：排行榜、服务拓扑图
+      
+    注：
+      1. 玩家、场景热数据由玩家当前所在场景管理
+      2. 世界热数据由Redis托管
+  - 冷热数据管理概述
+    - HotData <-> RDS
+    - HotData：玩家、场景、世界热数据
+      - 职责：
+        1. 热数据加载与定时回写，以及玩家下线回写
+        2. 限制内存使用上限
+        3. 使用LRU算法清理长时间未使用的玩家数据
+      
+    - RDS：冷数据存储
+    - 关于RDS的选择: 首先根据在线玩家数量和玩家热数据持久化频率做预估，假设游戏有10w在线玩家，每个玩家平均隔5分钟进行一次数据存储，那么平均 TPS = 10w / 300s = 333
+
+5.广播如何管理？
+  主动订阅自己感兴趣的事件
+
+6.定时任务在哪里进行处理？
+  根据玩家SceneId，在对应场景处理
+  
+7.服务器间通信
+  - RPC：
+    - 技术选型：GRPC
+    - 延迟不敏感、交互频率不高的场景
+  - TCP：
+    - 延迟敏感，交互频繁的场景
+
 
 ## License
 GOS is under The MIT License (MIT)

@@ -5,11 +5,38 @@ import (
 	"time"
 )
 
-const IS_DEBUG = true
+const IS_DEBUG = false
+
+// 支持的通信协议
+const (
+	AGENT_PROTOCOL_TCP = iota
+	AGENT_PROTOCOL_WS
+)
+
+// 支持的编码方式
+const (
+	PROTOCOL_ENCODING_RAW = iota
+	PROTOCOL_ENCODING_JSON
+	PROTOCOL_ENCODING_PB
+)
 
 const (
-	WORLD_SERVER_IP = "127.0.0.1"
-	REDIS_SERVER_IP = "127.0.0.1"
+	AGENT_PROTOCOL = AGENT_PROTOCOL_WS
+	AGENT_ENCODING = PROTOCOL_ENCODING_JSON
+)
+
+var REDIS_CLUSTERS = []string{
+	"redis-cluster-0.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-1.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-2.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-3.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-4.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-5.redis-cluster.default.svc.cluster.local",
+}
+
+const (
+	WORLD_SERVER_IP = "gos-world-service.default.svc.cluster.local"
+	GAME_DOMAIN     = "gos-game-service.default.svc.cluster.local"
 )
 
 const (
@@ -18,7 +45,7 @@ const (
 	SERVICE_DEAD_DURATION = 16
 	RPC_REQUEST_TIMEOUT   = 5 * time.Second
 	AGENT_CCU_MAX         = 20000
-	GAME_CCU_MAX          = 5000
+	GAME_CCU_MAX          = 6000
 )
 
 const (
@@ -27,46 +54,10 @@ const (
 	TIMERTASK_MAX_RETRY       = 3           // retry 3 times
 )
 
-/*
-Redis for service config data
-service config datas: session, connectApp, gameApp, scene
-*/
-type Redis struct {
-	Host     string
-	Password string
-	Db       int
-}
-
-var REDIS_FOR_SERVICE = &Redis{
-	Host:     REDIS_SERVER_IP + ":6379",
-	Password: "",
-	Db:       0,
-}
-
-var REDIS_FOR_ACCOUNT = &Redis{
-	Host:     REDIS_SERVER_IP + ":6379",
-	Password: "",
-	Db:       0,
-}
-
-var REDIS_FOR_TIMERTASK = &Redis{
-	Host:     REDIS_SERVER_IP + ":6379",
-	Password: "",
-	Db:       0,
-}
-
-var REDIS_FOR_LEADERBOARD = &Redis{
-	Host:     REDIS_SERVER_IP + ":6379",
-	Password: "",
-	Db:       0,
-}
-
 // Keys for retrive redis data
 const (
-	RK_GAME_APP_IDS                 = "__GAME_APP_IDS__"
-	RK_SCENE_IDS                    = "__SCENE_IDS__"
-	RK_SCENE_CONF_IDS               = "__SCENE_CONF_IDS__"
-	RK_DEFAULT_SERVER_SCENE_CONF_ID = "__DEFAULT_SERVER_SCENE_ID__"
+	RK_GAME_APP_IDS = "__GAME_APP_IDS__"
+	RK_SCENE_IDS    = "__SCENE_IDS__"
 )
 
 /*
@@ -82,12 +73,12 @@ TCP Servers
 */
 
 type TCP struct {
-	Network string
+	Packet  uint8
 	Address string
 }
 
 var TCP_SERVER_CONNECT_APP = &TCP{
-	Network: "tcp",
+	Packet:  2,
 	Address: ":4000",
 }
 

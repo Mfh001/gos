@@ -4,11 +4,9 @@ import (
 	"app/register"
 	"app/register/callbacks"
 	"app/register/tables"
-	"context"
-	"google.golang.org/grpc"
-	pb "gos_rpc_proto"
 	"gosconf"
 	"goslib/broadcast"
+	"goslib/game_utils"
 	"goslib/gen_server"
 	"goslib/logger"
 	"goslib/memstore"
@@ -23,8 +21,6 @@ import (
 )
 
 func main() {
-	redisdb.InitServiceClient()
-
 	// Register routes
 	register.Load()
 	// Register MySQL data loader
@@ -58,58 +54,58 @@ func main() {
 
 	// connect to game manager, retry if failed
 	for {
-		if err := connectGameMgr(); err != nil {
+		if err := reportGameInfo(); err != nil {
 			logger.ERR("connect GameMgr failed: ", err)
 		}
 		time.Sleep(gosconf.HEARTBEAT)
 	}
 }
 
-func connectGameMgr() error {
-	OutIP, _ := utils.GetOutboundIP()
-	LocalIP, _ := utils.GetLocalIp()
-	logger.INFO("OutboundIP: ", OutIP, " LocalIP: ", LocalIP)
-	conf := gosconf.RPC_FOR_GAME_APP_MGR
-	conn, err := grpc.Dial(conf.DialAddress, conf.DialOptions...)
-	if err != nil {
-		return err
-	}
-	client := pb.NewGameDispatcherClient(conn)
-
+func reportGameInfo() error {
 	// Report Game Info
-	var host string
-	if gosconf.IS_DEBUG {
-		host = "127.0.0.1"
-	} else {
-		host, err = utils.GetLocalIp()
-	}
+	hostname, err := utils.GetHostname()
+	host := hostname + "." + gosconf.GAME_DOMAIN
 	if err != nil {
 		return err
 	}
 
 	uuid := utils.GenId([]string{host, player.StreamRpcListenPort})
 	player.CurrentGameAppId = uuid
-	gameInfo := &pb.ReportGameRequest{
-		Uuid: uuid,
-		Host: host,
-		Port: player.StreamRpcListenPort,
+
+	app, err := addGame(uuid, host, player.StreamRpcListenPort)
+	if err != nil {
+		logger.ERR("addGame failed: ", err)
+		return err
 	}
+	logger.INFO("AddGame: ", uuid, " Host: ", host, " Port: ", player.StreamRpcListenPort)
 
 	for {
-		heartbeat(client, gameInfo)
+		heartbeat(app)
 		time.Sleep(gosconf.HEARTBEAT)
 	}
 
 	return nil
 }
 
-func heartbeat(client pb.GameDispatcherClient, gameInfo *pb.ReportGameRequest) {
-	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
-	defer cancel()
-	gameInfo.Ccu = player.OnlinePlayers()
-	_, err := client.ReportGameInfo(ctx, gameInfo)
-	if err != nil {
-		logger.ERR("ReportGameInfo heartbeat failed: ", err)
+func heartbeat(app *game_utils.Game) {
+	// TODO for k8s health check
+	app.Ccu = player.OnlinePlayers()
+	app.ActiveAt = time.Now().Unix()
+	app.Save()
+	logger.INFO("ReportGameInfo: ", app.Uuid, " Host: ", app.Host, " Port: ", app.Port, " ccu: ", app.Ccu)
+}
+
+func addGame(uuid, host, port string) (*game_utils.Game, error) {
+	app := &game_utils.Game{
+		Uuid:     uuid,
+		Host:     host,
+		Port:     port,
+		ActiveAt: time.Now().Unix(),
 	}
-	logger.INFO("ReportGameInfo: ", gameInfo.Uuid, " Host: ", gameInfo.Host, " Port: ", gameInfo.Port, " ccu: ", gameInfo.Ccu)
+	_, err := redisdb.Instance().SAdd(gosconf.RK_GAME_APP_IDS, app.Uuid).Result()
+	if err != nil {
+		return nil, err
+	}
+	err = app.Save()
+	return app, err
 }

@@ -32,7 +32,7 @@ type Account struct {
  * Lookup Account
  */
 func Lookup(username string) (*Account, error) {
-	values, err := redisdb.AccountInstance().HGetAll(username).Result()
+	values, err := redisdb.Instance().HGetAll(username).Result()
 	if err != nil {
 		log.Println("Account Lookup Error: %v", err)
 		return nil, err
@@ -68,7 +68,7 @@ func Create(username string, password string) (*Account, error) {
 	params["password"] = password
 
 	fmt.Println("uuid: ", params["uuid"])
-	val, err := redisdb.AccountInstance().HMSet(username, params).Result()
+	val, err := redisdb.Instance().HMSet(username, params).Result()
 
 	if err != nil {
 		log.Println("Create account failed: %v", err)
@@ -87,7 +87,7 @@ func Create(username string, password string) (*Account, error) {
 }
 
 func Delete(username string) {
-	redisdb.AccountInstance().Del(username)
+	redisdb.Instance().Del(username)
 }
 
 /*

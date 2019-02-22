@@ -3,7 +3,6 @@ package leaderboard
 import (
 	"fmt"
 	"github.com/go-redis/redis"
-	"gosconf"
 	"goslib/gen_server"
 	"goslib/logger"
 	"goslib/redisdb"
@@ -15,8 +14,7 @@ import (
    GenServer Callbacks
 */
 type Server struct {
-	name  string
-	redis *redis.Client
+	name string
 }
 
 type MemberData map[string]string
@@ -159,8 +157,6 @@ func MembersInPage(leaderboard string, page int, pageSize int) ([]*Member, error
 
 func (self *Server) Init(args []interface{}) (err error) {
 	self.name = args[0].(string)
-	conf := gosconf.REDIS_FOR_LEADERBOARD
-	self.redis = redisdb.Connect("leaderboard:"+self.name, conf.Host, conf.Password, conf.Db)
 	return nil
 }
 
@@ -182,13 +178,13 @@ func (self *Server) HandleCall(args []interface{}) (interface{}, error) {
 func (self *Server) handleCallAndCast(args []interface{}) (interface{}, error) {
 	handle := args[0].(string)
 	if handle == "Delete" {
-		memberIds, err := self.redis.ZRange(self.name, 0, -1).Result()
+		memberIds, err := redisdb.Instance().ZRange(self.name, 0, -1).Result()
 		if err != nil {
 			return 0, err
 		}
 		return self.removeMembers(memberIds)
 	} else if handle == "TotalMembers" {
-		return self.redis.ZCard(self.name).Result()
+		return redisdb.Instance().ZCard(self.name).Result()
 	} else if handle == "TotalPages" {
 		pageSize := args[1].(int)
 		return self.totalPage(pageSize)
@@ -258,7 +254,7 @@ func (self *Server) handleCallAndCast(args []interface{}) (interface{}, error) {
 		}
 		startOffset := utils.Max(int(rank)-pageSize, 0)
 		endOffset := startOffset + pageSize - 1
-		memberIds, err := self.redis.ZRevRange(self.name, int64(startOffset), int64(endOffset)).Result()
+		memberIds, err := redisdb.Instance().ZRevRange(self.name, int64(startOffset), int64(endOffset)).Result()
 		if err != nil {
 			return nil, err
 		}
@@ -274,7 +270,7 @@ func (self *Server) handleCallAndCast(args []interface{}) (interface{}, error) {
 		indexForRedis := currentPage - 1
 		startOffset := utils.Max(indexForRedis*pageSize, 0)
 		endOffset := startOffset + pageSize - 1
-		memberIds, err := self.redis.ZRevRange(self.name, int64(startOffset), int64(endOffset)).Result()
+		memberIds, err := redisdb.Instance().ZRevRange(self.name, int64(startOffset), int64(endOffset)).Result()
 		if err != nil {
 			return nil, err
 		}
@@ -288,7 +284,7 @@ func (self *Server) Terminate(reason string) (err error) {
 }
 
 func (self *Server) rankMember(member *Member) (int64, error) {
-	count, err := self.redis.ZAdd(self.name, redis.Z{
+	count, err := redisdb.Instance().ZAdd(self.name, redis.Z{
 		Member: member.Id,
 		Score:  float64(member.Score),
 	}).Result()
@@ -314,8 +310,8 @@ func (self *Server) removeMembers(memberIds []string) (int64, error) {
 		memberDataKeys[i] = memberDataKey(self.name, v)
 		ids[i] = v
 	}
-	self.redis.Del(memberDataKeys...)
-	return self.redis.ZRem(self.name, ids...).Result()
+	redisdb.Instance().Del(memberDataKeys...)
+	return redisdb.Instance().ZRem(self.name, ids...).Result()
 }
 
 func (self *Server) setMemberData(memberId string, data MemberData) (string, error) {
@@ -323,11 +319,11 @@ func (self *Server) setMemberData(memberId string, data MemberData) (string, err
 	for k, v := range data {
 		memberData[k] = v
 	}
-	return self.redis.HMSet(memberDataKey(self.name, memberId), memberData).Result()
+	return redisdb.Instance().HMSet(memberDataKey(self.name, memberId), memberData).Result()
 }
 
 func (self *Server) getMemberData(memberId string) (MemberData, error) {
-	return self.redis.HGetAll(memberDataKey(self.name, memberId)).Result()
+	return redisdb.Instance().HGetAll(memberDataKey(self.name, memberId)).Result()
 }
 
 func memberDataKey(leaderboard string, memberId string) string {
@@ -368,7 +364,7 @@ func (self *Server) getMembers(memberIds []string) ([]*Member, error) {
 }
 
 func (self *Server) totalPage(pageSize int) (int, error) {
-	count, err := self.redis.ZCard(self.name).Result()
+	count, err := redisdb.Instance().ZCard(self.name).Result()
 	if err != nil {
 		return 0, err
 	}
@@ -376,7 +372,7 @@ func (self *Server) totalPage(pageSize int) (int, error) {
 }
 
 func (self *Server) getRank(memberId string) (int64, error) {
-	rank, err := self.redis.ZRevRank(self.name, memberId).Result()
+	rank, err := redisdb.Instance().ZRevRank(self.name, memberId).Result()
 	if err != nil {
 		return 0, err
 	}
@@ -384,7 +380,7 @@ func (self *Server) getRank(memberId string) (int64, error) {
 }
 
 func (self *Server) getScore(memberId string) (int64, error) {
-	score, err := self.redis.ZScore(self.name, memberId).Result()
+	score, err := redisdb.Instance().ZScore(self.name, memberId).Result()
 	if err != nil {
 		return 0, err
 	}

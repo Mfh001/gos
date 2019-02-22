@@ -1,0 +1,40 @@
+# TODO Under developing
+k8s:
+  redis_clusters:
+    - "redis-cluster-0.redis-cluster.default.svc.cluster.local"
+    - "redis-cluster-1.redis-cluster.default.svc.cluster.local"
+    - "redis-cluster-2.redis-cluster.default.svc.cluster.local"
+    - "redis-cluster-3.redis-cluster.default.svc.cluster.local"
+    - "redis-cluster-4.redis-cluster.default.svc.cluster.local"
+    - "redis-cluster-5.redis-cluster.default.svc.cluster.local"
+
+  world_server_ip: 
+    "gos-world-service.default.svc.cluster.local"
+
+  game_domain: 
+    "gos-game-service.default.svc.cluster.local"
+
+services:
+  heartbeat: 5 # seconds, Service heartbeat
+  service_dead_duration: 16 # seconds
+  rpc_request_timeout: 5 # seconds
+
+
+loadbalance:
+  agent_ccu_max: 20000
+  game_ccu_max: 6000
+
+timertask:
+  check_duration:  1   # seconds
+  tasks_per_check: 100 # max tasks fetched per check
+  max_retry:       3   # retry 3 times
+
+protocol:
+  tcp_read_timeout: 60 # seconds
+  agent_protocol: "WS"   # WS|TCP|KCP
+  agent_encoding: "JSON" # JSON|RAW|PB
+
+ports:
+  auth_service_port: "3000"
+  agent_port: "4000"
+  agent_tcp_packet: 2

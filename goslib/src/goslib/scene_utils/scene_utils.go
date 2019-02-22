@@ -4,32 +4,28 @@ import (
 	"gosconf"
 	"goslib/logger"
 	"goslib/redisdb"
-	"strconv"
 )
 
 type Scene struct {
-	Uuid          string
-	GameAppId     string
-	SceneType     string
-	SceneConfigId string
-	Ccu           int
-	CcuMax        int
+	Uuid        string
+	GameAppId   string
+	GameAppHost string
+	GameAppPort string
 }
 
-type SceneConf struct {
-	ConfId    string
-	SceneType string
-	CcuMax    int
+func GenUuid(sceneId string) string {
+	uuid := "server_scene:" + sceneId
+	return uuid
 }
 
 func LoadScenes(mapScenes map[string]*Scene) {
-	ids, _ := redisdb.ServiceInstance().SMembers(gosconf.RK_SCENE_IDS).Result()
+	ids, _ := redisdb.Instance().SMembers(gosconf.RK_SCENE_IDS).Result()
 	for i := 0; i < len(ids); i++ {
 		id := ids[i]
 		if id == "" {
 			continue
 		}
-		valueMap, _ := redisdb.ServiceInstance().HGetAll(id).Result()
+		valueMap, _ := redisdb.Instance().HGetAll(id).Result()
 		app := parseScene(valueMap)
 		mapScenes[app.Uuid] = app
 	}
@@ -37,7 +33,7 @@ func LoadScenes(mapScenes map[string]*Scene) {
 }
 
 func FindScene(sceneId string) (*Scene, error) {
-	sceneMap, err := redisdb.ServiceInstance().HGetAll(sceneId).Result()
+	sceneMap, err := redisdb.Instance().HGetAll(sceneId).Result()
 	if err != nil {
 		logger.ERR("findScene: ", sceneId, " failed: ", err)
 		return nil, err
@@ -48,74 +44,37 @@ func FindScene(sceneId string) (*Scene, error) {
 	return parseScene(sceneMap), nil
 }
 
-func FindSceneConf(confId string) (*SceneConf, error) {
-	valueMap, err := redisdb.ServiceInstance().HGetAll(confId).Result()
+func CreateScene(scene *Scene) (*Scene, error) {
+	err := scene.Save()
 	if err != nil {
-		logger.ERR("findSceneConf: ", confId, " failed: ", err)
-		return nil, err
+		logger.ERR("Create session failed: ", err)
+	} else {
+		redisdb.Instance().SAdd(gosconf.RK_SCENE_IDS, scene.Uuid)
 	}
-	if len(valueMap) == 0 {
-		logger.ERR("SceneConf: ", confId, " Not Found!")
-		//FIXME
-		return &SceneConf{
-			ConfId:    "default_conf_id",
-			SceneType: "default_server",
-			CcuMax:    100,
-		}, nil
-		//return nil, nil
-	}
-	return parseSceneConf(valueMap), nil
+	return scene, err
 }
 
-func CreateDefaultServerScene(serverId string, conf *SceneConf) (*Scene, error) {
+func (self *Scene) Save() error {
 	params := make(map[string]interface{})
-	params["uuid"] = "server_scene:" + serverId
-	params["gameAppId"] = ""
-	params["sceneType"] = conf.SceneType
-	params["sceneConfigId"] = conf.ConfId
-	params["ccu"] = 0
-	params["ccuMax"] = conf.CcuMax
-	params["servedServers"] = ""
-	_, err := redisdb.ServiceInstance().HMSet(serverId, params).Result()
+	params["uuid"] = self.Uuid
+	params["gameAppId"] = self.GameAppId
+	params["gameAppHost"] = self.GameAppHost
+	params["gameAppPort"] = self.GameAppPort
+	_, err := redisdb.Instance().HMSet(self.Uuid, params).Result()
 	if err != nil {
-		logger.ERR("createDefaultServerScene: ", serverId, " failed: ", err)
-		return nil, err
+		logger.ERR("Save game failed: ", err)
 	}
-	redisdb.ServiceInstance().SAdd(gosconf.RK_SCENE_IDS, serverId)
-	return &Scene{
-		Uuid:          serverId,
-		GameAppId:     "",
-		SceneType:     conf.SceneType,
-		SceneConfigId: conf.ConfId,
-		Ccu:           0,
-		CcuMax:        conf.CcuMax,
-	}, nil
+	return err
 }
 
 func parseScene(valueMap map[string]string) *Scene {
 	if valueMap["uuid"] == "" {
 		return nil
 	}
-	ccu, _ := strconv.Atoi(valueMap["ccu"])
-	ccuMax, _ := strconv.Atoi(valueMap["ccuMax"])
 	return &Scene{
-		Uuid:          valueMap["uuid"],
-		GameAppId:     valueMap["gameAppId"],
-		SceneType:     valueMap["sceneType"],
-		SceneConfigId: valueMap["sceneConfigId"],
-		Ccu:           ccu,
-		CcuMax:        ccuMax,
-	}
-}
-
-func parseSceneConf(valueMap map[string]string) *SceneConf {
-	if valueMap["uuid"] == "" {
-		return nil
-	}
-	ccuMax, _ := strconv.Atoi(valueMap["ccuMax"])
-	return &SceneConf{
-		ConfId:    valueMap["confId"],
-		SceneType: valueMap["SceneType"],
-		CcuMax:    ccuMax,
+		Uuid:        valueMap["uuid"],
+		GameAppId:   valueMap["gameAppId"],
+		GameAppHost: valueMap["gameAppHost"],
+		GameAppPort: valueMap["gameAppPort"],
 	}
 }

@@ -63,7 +63,7 @@ func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
 		return nil, err
 	}
 	reply := result.(*RPCReply)
-	return EncodeResponseData(reply.EncodeMethod, reply.Response), nil
+	return EncodeResponseData(reply.EncodeMethod, reply.Response)
 }
 
 func HandleRPCCast(accountId string, requestData []byte) {
@@ -177,9 +177,12 @@ func (self *Player) SystemInfo() int {
 	return runtime.NumCPU()
 }
 
-func (self *Player) SendData(encode_method string, msg interface{}) {
-	writer := api.Encode(encode_method, msg)
-	self.sendToClient(writer.GetSendData())
+func (self *Player) SendData(encode_method string, msg interface{}) error {
+	writer, err := api.Encode(encode_method, msg)
+	if err != nil {
+		return err
+	}
+	return self.sendToClient(writer.GetSendData())
 }
 
 func (self *Player) handleRequest(data []byte) {
@@ -195,10 +198,20 @@ func (self *Player) handleRequest(data []byte) {
 	handler, params, err := ParseRequestData(data)
 	if err != nil {
 		logger.ERR(err)
-		self.sendToClient(failMsgData("error_route_not_found"))
+		data, err := failMsgData("error_route_not_found")
+		if err == nil {
+			self.sendToClient(data)
+		}
 	} else {
-		data := self.processRequest(handler, params)
-		self.sendToClient(data)
+		data, err := self.processRequest(handler, params)
+		if err != nil {
+			data, err := failMsgData("error_msg_encoding_failed")
+			if err == nil {
+				self.sendToClient(data)
+			}
+		} else {
+			self.sendToClient(data)
+		}
 	}
 }
 
@@ -225,32 +238,41 @@ func ParseRequestData(data []byte) (routes.Handler, interface{}, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	params := api.Decode(decode_method, reader)
-	return handler, params, nil
+	params, err := api.Decode(decode_method, reader)
+	return handler, params, err
 }
 
-func EncodeResponseData(encode_method string, response interface{}) []byte {
-	writer := api.Encode(encode_method, response)
-	return writer.GetSendData()
+func EncodeResponseData(encode_method string, response interface{}) ([]byte, error) {
+	writer, err := api.Encode(encode_method, response)
+	if err != nil {
+		logger.ERR("EncodeResponseData failed: ", err)
+		return nil, err
+	}
+	return writer.GetSendData(), nil
 }
 
-func (self *Player) processRequest(handler routes.Handler, params interface{}) []byte {
+func (self *Player) processRequest(handler routes.Handler, params interface{}) ([]byte, error) {
 	encode_method, response := handler(self, params)
 	self.processed++
 	logger.INFO("Processed: ", self.processed, " Response Data: ", response)
 	return EncodeResponseData(encode_method, response)
 }
 
-func (self *Player) sendToClient(data []byte) {
+func (self *Player) sendToClient(data []byte) error {
 	if self.stream != nil {
 		err := self.stream.Send(&pb.RouteMsg{
 			Data: data,
 		})
 		if err != nil {
 			logger.ERR("sendToClient failed: ", err)
+			return err
+		} else {
+			return nil
 		}
 	} else {
-		logger.WARN("sendToClient failed, connectAppId is nil!")
+		errMsg := "sendToClient failed, connectAppId is nil!"
+		logger.WARN(errMsg)
+		return errors.New(errMsg)
 	}
 }
 
@@ -308,7 +330,11 @@ func (self *Player) PublishChannelMsg(channel, category string, data interface{}
 	gen_server.Cast(gslib.BROADCAST_SERVER_ID, "Publish", msg)
 }
 
-func failMsgData(errorMsg string) []byte {
-	writer := api.Encode("Fail", &api.Fail{Fail: errorMsg})
-	return writer.GetSendData()
+func failMsgData(errorMsg string) ([]byte, error) {
+	writer, err := api.Encode("Fail", &api.Fail{Fail: errorMsg})
+	if err != nil {
+		logger.ERR("Encode msg failed: ", err)
+		return nil, err
+	}
+	return writer.GetSendData(), nil
 }

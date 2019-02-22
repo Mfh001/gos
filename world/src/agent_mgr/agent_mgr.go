@@ -11,7 +11,6 @@ import (
 	"goslib/logger"
 )
 
-// server is used to implement helloworld.GreeterServer.
 type connectAppMgr struct {
 }
 

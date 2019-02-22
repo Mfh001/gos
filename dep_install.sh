@@ -11,6 +11,9 @@ go get -u github.com/go-redis/redis
 go get -u github.com/kataras/iris
 go get -u github.com/hashicorp
 
+# JSON
+go get github.com/json-iterator/go
+
 #gRpc
 go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
 go get -u google.golang.org/grpc
@@ -41,3 +44,6 @@ go get -u github.com/appleboy/go-fcm
 #In App Purchase Validator
 go get -u github.com/awa/go-iap/appstore
 go get -u github.com/awa/go-iap/playstore
+
+# Websocket
+go get github.com/gorilla/websocket

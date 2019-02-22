@@ -18,13 +18,10 @@ import (
 	pb "gos_rpc_proto"
 	"gosconf"
 	gl "goslib/logger"
-	"goslib/redisdb"
 	"log"
 )
 
 func main() {
-	redisdb.InitServiceClient()
-	redisdb.InitAccountClient()
 	connectConnectApp()
 	startHttpServer()
 }

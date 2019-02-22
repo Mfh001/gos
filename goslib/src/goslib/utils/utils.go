@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -78,6 +79,10 @@ func GetLocalIp() (string, error) {
 		}
 	}
 	return "", nil
+}
+
+func GetHostname() (string, error) {
+	return os.Hostname()
 }
 
 func IsPublicIP(IP net.IP) bool {
