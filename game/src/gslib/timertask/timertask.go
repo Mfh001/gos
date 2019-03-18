@@ -30,11 +30,15 @@ func Start() {
 	gen_server.Start(SERVER, new(TimerTask))
 }
 
-func Add(key string, runAt int64, playerId string, encode_method string, params interface{}) {
-	writer := api.Encode(encode_method, params)
+func Add(key string, runAt int64, playerId string, encode_method string, params interface{}) error {
+	writer, err := api.Encode(encode_method, params)
+	if err != nil {
+		return err
+	}
 	data := writer.GetSendData()
 	content := fmt.Sprintf("%s:%s", playerId, string(data))
 	gen_server.Cast(SERVER, "add", key, runAt, content)
+	return nil
 }
 
 func Update(key string, runAt int64) {

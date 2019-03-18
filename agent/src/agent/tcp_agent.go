@@ -3,7 +3,6 @@ package main
 import (
 	"connection"
 	"encoding/binary"
-	"github.com/gorilla/websocket"
 	"gosconf"
 	"goslib/logger"
 	"io"
@@ -13,7 +12,7 @@ import (
 
 type TCPAgent struct {
 	mt      int
-	tcpConn *websocket.Conn
+	tcpConn net.Conn
 	connIns *connection.Connection
 }
 
@@ -53,7 +52,7 @@ func tcpHandler(conn net.Conn) {
 		if err != nil {
 			break
 		}
-		if err = agent.onMessage(data); err != nil {
+		if err = agent.OnMessage(data); err != nil {
 			break
 		}
 	}
@@ -78,14 +77,14 @@ func (self *TCPAgent) receiveRequest(header []byte) ([]byte, error) {
 	return data, nil
 }
 
-func (self *TCPAgent) onMessage(data []byte) error {
+func (self *TCPAgent) OnMessage(data []byte) error {
 	logger.INFO("ws received: ", data)
 	err := self.connIns.OnMessage(data)
 	return err
 }
 
 func (self *TCPAgent) SendMessage(data []byte) error {
-	err := self.tcpConn.WriteMessage(self.mt, data)
+	_, err := self.tcpConn.Write(data)
 	if err != nil {
 		logger.ERR("write: ", err)
 		return err

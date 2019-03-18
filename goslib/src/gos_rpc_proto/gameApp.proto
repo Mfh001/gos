@@ -8,7 +8,7 @@ option go_package = "gos_rpc_proto";
 
 service GameDispatcher {
     rpc DispatchGame(DispatchGameRequest) returns (DispatchGameReply) {}
-    rpc ReportGameInfo(ReportGameRequest) returns (ReportGameReply) {}
+//    rpc ReportGameInfo(ReportGameRequest) returns (ReportGameReply) {}
 }
 
 message DispatchGameRequest {

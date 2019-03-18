@@ -49,13 +49,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			logger.ERR("read: ", err)
 			break
 		}
-		if err = agent.onMessage(message); err != nil {
+		if err = agent.OnMessage(message); err != nil {
 			break
 		}
 	}
 }
 
-func (self *WSAgent) onMessage(data []byte) error {
+func (self *WSAgent) OnMessage(data []byte) error {
 	logger.INFO("ws received: ", data)
 	err := self.connIns.OnMessage(data)
 	return err

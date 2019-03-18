@@ -66,7 +66,7 @@ defines.each do |protocol, define|
       else
         decode_fields << %Q{
     for i := 0; i < int(buffer.ReadUint16()); i++ {
-        data.#{field} = append(data.#{field}, decode#{sub_type}(buffer).(*api.#{sub_type}))
+        data.#{field} = append(data.#{field}, decode#{sub_type}(buffer).(*pt.#{sub_type}))
     }}
         encode_fields << %Q{
     buffer.WriteUint16(uint16(len(v.#{field})))
@@ -78,13 +78,13 @@ defines.each do |protocol, define|
   end
   decode_handlers << %Q{
 func decode#{protocol}(buffer *packet.Packet) interface{} {
-    data := &api.#{protocol}{}
+    data := &pt.#{protocol}{}
     #{decode_fields.join("\n    ")}
     return data
 }}
   encode_handlers << %Q{
 func encode#{protocol}(buffer *packet.Packet, value interface{}) {
-    v := value.(*api.#{protocol})
+    v := value.(*pt.#{protocol})
     #{encode_fields.join("\n    ")}
 }}
 end
@@ -98,7 +98,7 @@ File.open(target, "w") do |io|
 package #{package}
 
 import (
-        "api"
+        "api/pt"
 	"goslib/packet"
 )
 
@@ -130,7 +130,7 @@ File.open(target, "w") do |io|
 package #{package}
 
 import (
-        "api"
+        "api/pt"
   	"goslib/packet"
 )
 
@@ -141,7 +141,7 @@ var encode_handlers = map[string]EncodeHandler{
     #{defines.keys.map{|protocol| "\"#{protocol}\": encode#{protocol}"}.join(",\n    ")}}
 
 func Encode(encode_method string, v interface{}) *packet.Packet {
-    protocol := api.NameToId[encode_method]
+    protocol := pt.NameToId[encode_method]
     buffer := packet.Writer()
     buffer.WriteUint16(protocol)
     encode_handlers[encode_method](buffer, v)

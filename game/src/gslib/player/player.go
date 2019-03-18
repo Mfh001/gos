@@ -2,6 +2,7 @@ package player
 
 import (
 	"api"
+	"api/pt"
 	"fmt"
 	"github.com/kataras/iris/core/errors"
 	pb "gos_rpc_proto"
@@ -232,7 +233,7 @@ func (self *Player) handleRPCCast(data []byte) {
 func ParseRequestData(data []byte) (routes.Handler, interface{}, error) {
 	reader := packet.Reader(data)
 	protocol := reader.ReadUint16()
-	decode_method := api.IdToName[protocol]
+	decode_method := pt.IdToName[protocol]
 	handler, err := routes.Route(decode_method)
 	logger.INFO("handelRequest: ", decode_method)
 	if err != nil {
@@ -331,7 +332,7 @@ func (self *Player) PublishChannelMsg(channel, category string, data interface{}
 }
 
 func failMsgData(errorMsg string) ([]byte, error) {
-	writer, err := api.Encode("Fail", &api.Fail{Fail: errorMsg})
+	writer, err := api.Encode("Fail", &pt.Fail{Fail: errorMsg})
 	if err != nil {
 		logger.ERR("Encode msg failed: ", err)
 		return nil, err

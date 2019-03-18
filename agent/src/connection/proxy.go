@@ -11,7 +11,6 @@ import (
 	"goslib/logger"
 	"goslib/session_utils"
 	"io"
-	"net"
 	"strings"
 	"sync"
 )
@@ -46,7 +45,7 @@ func ChooseGameServer(session *session_utils.Session) (*game_utils.Game, error) 
 	})
 	if err != nil {
 		logger.ERR("DispatchGame failed: ", err)
-		return "", err
+		return nil, err
 	}
 
 	logger.INFO("ChooseGameServer: ", reply.GetGameAppHost())

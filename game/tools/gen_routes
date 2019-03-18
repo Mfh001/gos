@@ -16,7 +16,7 @@ defines.each do |key, value|
   contents << %Q{\
     routes.Add("#{value}", func(ctx interface{}, params interface{}) (string, interface{}) {
         instance := &controllers.#{controller}{Ctx: ctx.(*player.Player)}
-        return instance.#{handler}(params.(*#{value}))
+        return instance.#{handler}(params.(*pt.#{value}))
     })
 }
 end
@@ -28,7 +28,7 @@ File.open(target, "w") do |io|
 package register
 
 import (
-	. "api"
+	"api/pt"
 	"app/controllers"
 	"gslib/player"
 	"gslib/routes"

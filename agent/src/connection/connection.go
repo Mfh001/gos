@@ -2,6 +2,7 @@ package connection
 
 import (
 	"api"
+	"api/pt"
 	"errors"
 	"github.com/json-iterator/go"
 	pb "gos_rpc_proto"
@@ -16,7 +17,7 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type AgentBehavior interface {
-	onMessage(data []byte) error
+	OnMessage(data []byte) error
 	SendMessage(data []byte) error
 }
 
@@ -139,7 +140,7 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 	}
 
 	// Send auth response to client
-	writer, err := api.Encode("SessionAuthResponse", &api.SessionAuthResponse{Success: success})
+	writer, err := api.Encode("SessionAuthResponse", &pt.SessionAuthResponse{Success: success})
 	if err != nil {
 		return false, err
 	}
@@ -153,10 +154,10 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 	return success, nil
 }
 
-func decodeAuthData(data []byte) (*api.SessionAuthParams, error) {
+func decodeAuthData(data []byte) (*pt.SessionAuthParams, error) {
 	reader := packet.Reader(data)
 	protocol := reader.ReadUint16()
-	decode_method := api.IdToName[protocol]
+	decode_method := pt.IdToName[protocol]
 
 	if decode_method != "SessionAuthParams" {
 		return nil, errors.New("Request UnAuthed connection: " + decode_method)
@@ -166,10 +167,10 @@ func decodeAuthData(data []byte) (*api.SessionAuthParams, error) {
 	if err != nil {
 		return nil, err
 	}
-	return params.(*api.SessionAuthParams), err
+	return params.(*pt.SessionAuthParams), err
 }
 
-func (self *Connection) validateSession(params *api.SessionAuthParams) (bool, error) {
+func (self *Connection) validateSession(params *pt.SessionAuthParams) (bool, error) {
 	session, err := session_utils.Find(params.AccountId)
 	if err != nil {
 		return false, err

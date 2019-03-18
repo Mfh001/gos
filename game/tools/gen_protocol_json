@@ -23,13 +23,13 @@ decode_handlers = []
 defines.each do |protocol, define|
   decode_handlers << %Q{
 func decode#{protocol}(buffer *packet.Packet) (interface{}, error) {
-    data := &api.#{protocol}{}
+    data := &pt.#{protocol}{}
     err := json.Unmarshal(buffer.RemainData(), data)    
     return data, err
 }}
   encode_handlers << %Q{
 func encode#{protocol}(buffer *packet.Packet, value interface{}) error {
-    data, err := json.Marshal(value.(*api.#{protocol}))
+    data, err := json.Marshal(value.(*pt.#{protocol}))
     buffer.WriteBytes(data)
     return err
 }}
@@ -44,7 +44,7 @@ File.open(target, "w") do |io|
 package #{package}
 
 import (
-        "api"
+        "api/pt"
         "github.com/json-iterator/go"
 	"goslib/packet"
 )
@@ -79,7 +79,7 @@ File.open(target, "w") do |io|
 package #{package}
 
 import (
-	"api"
+	"api/pt"
   	"goslib/packet"
 )
 
@@ -90,7 +90,7 @@ var encode_handlers = map[string]EncodeHandler{
     #{defines.keys.map{|protocol| "\"#{protocol}\": encode#{protocol}"}.join(",\n    ")}}
 
 func Encode(encode_method string, v interface{}) (*packet.Packet, error) {
-    protocol := api.NameToId[encode_method]
+    protocol := pt.NameToId[encode_method]
     buffer := packet.Writer()
     buffer.WriteUint16(protocol)
     err := encode_handlers[encode_method](buffer, v)

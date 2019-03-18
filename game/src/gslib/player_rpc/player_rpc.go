@@ -2,6 +2,7 @@ package player_rpc
 
 import (
 	"api"
+	"api/pt"
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
@@ -43,14 +44,21 @@ func RequestPlayer(targetPlayerId string, encode_method string, params interface
 	if session.GameAppId == player.CurrentGameAppId {
 		return internalRequestPlayer(targetPlayerId, encode_method, params)
 	}
-	writer := api.Encode(encode_method, params)
+	writer, err := api.Encode(encode_method, params)
+	if err != nil {
+		logger.ERR("EncodeResponseData failed: ", err)
+		return nil, err
+	}
 	data := writer.GetSendData()
 	return crossRequestPlayer(session, data)
 }
 
 func RequestPlayerRaw(targetPlayerId string, data []byte) (interface{}, error) {
 	if gen_server.Exists(targetPlayerId) {
-		encode_method, params := parseData(data)
+		encode_method, params, err := parseData(data)
+		if err != nil {
+			return nil, err
+		}
 		return internalRequestPlayer(targetPlayerId, encode_method, params)
 	}
 	session, err := session_utils.Find(targetPlayerId)
@@ -58,7 +66,10 @@ func RequestPlayerRaw(targetPlayerId string, data []byte) (interface{}, error) {
 		return nil, err
 	}
 	if session.GameAppId == player.CurrentGameAppId {
-		encode_method, params := parseData(data)
+		encode_method, params, err := parseData(data)
+		if err != nil {
+			return nil, err
+		}
 		return internalRequestPlayer(targetPlayerId, encode_method, params)
 	}
 	return crossRequestPlayer(session, data)
@@ -93,7 +104,10 @@ func crossRequestPlayer(session *session_utils.Session, data []byte) (interface{
 		return nil, err
 	}
 
-	_, params := parseData(reply.Data)
+	_, params, err := parseData(reply.Data)
+	if err != nil {
+		return nil, err
+	}
 	return params, nil
 }
 
@@ -158,11 +172,15 @@ func connectGame(sceneId string, game *game_utils.Game) (pb.RouteConnectGameClie
 	return client, nil
 }
 
-func parseData(requestData []byte) (decode_method string, params interface{}) {
+func parseData(requestData []byte) (decode_method string, params interface{}, err error) {
 	reader := packet.Reader(requestData)
 	reader.ReadUint16() // read data length
 	protocol := reader.ReadUint16()
-	decode_method = api.IdToName[protocol]
-	params = api.Decode(decode_method, reader)
-	return decode_method, params
+	decode_method = pt.IdToName[protocol]
+	params, err = api.Decode(decode_method, reader)
+	if err != nil {
+		logger.ERR("player_rpc parseData failed: ", err)
+		return decode_method, nil, err
+	}
+	return decode_method, params, nil
 }
