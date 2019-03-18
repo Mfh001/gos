@@ -1,8 +1,9 @@
 source "https://rubygems.org"
 
 # Generate MySQL tables
-gem 'active_record_migrations', '~> 5.2.0'
+gem 'active_record_migrations', '~> 5.2.0.1'
 gem 'mysql2', '~> 0.5.2'
+gem "actionview", ">= 5.2.2.1"
 
 # Generate configs
 gem 'roo', '~> 2.0.0'
