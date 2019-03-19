@@ -17,6 +17,7 @@ src/auth/bin/auth
 src/agent/bin/agent
 src/game/bin/game
 src/world/bin/world
+src/*/pkg
 
 # generators
 src/goslib/src/gen
@@ -24,9 +25,11 @@ src/goslib/src/gen
 # deps
 src/vendor
 
+# idea files
+.idea
+*.iml
+
 .DS_Store
 *.log
-.idea
 .ruby-version
 ~$*.xlsx
-
