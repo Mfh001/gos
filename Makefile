@@ -1,6 +1,7 @@
 # Bootstrap
 setup:
 	sh dep_install.sh
+	mkdir -p goslib/src/gen/proto
 	cd goslib && protoc -I src/rpc_proto --go_out=plugins=grpc:src/gen/proto src/rpc_proto/*.proto
 	cd generator && ./tools/gen_routes
 	cd generator && ./tools/gen_protocol
@@ -24,6 +25,7 @@ start_all:
 
 # Generate framework grpc proto
 gen_rpc_proto:
+	mkdir -p goslib/src/gen/proto
 	cd goslib && protoc -I src/rpc_proto --go_out=plugins=grpc:src/gen/proto src/rpc_proto/*.proto
 
 # Generate client-server communicate protocol files
