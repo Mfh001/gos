@@ -1,11 +1,11 @@
 # Bootstrap
 setup:
 	sh dep_install.sh
-	cd goslib && protoc -I src/gos_rpc_proto --go_out=plugins=grpc:src/gos_rpc_proto src/gos_rpc_proto/*.proto
-	cd game && ./tools/gen_routes
-	cd game && ./tools/gen_protocol
-	cd game && bundle exec rake generate_config
-	cd game && bundle exec rake generate_tables
+	cd goslib && protoc -I src/rpc_proto --go_out=plugins=grpc:src/gen/proto src/rpc_proto/*.proto
+	cd generator && ./tools/gen_routes
+	cd generator && ./tools/gen_protocol
+	cd generator && bundle exec rake generate_config
+	cd generator && bundle exec rake generate_tables
 
 # Install dependent go packages
 dep_install:
@@ -23,20 +23,21 @@ start_all:
 	nohup ./world/bin/world > logs/world.log &
 
 # Generate framework grpc proto
-rpc_proto:
-	cd goslib && protoc -I src/gos_rpc_proto --go_out=plugins=grpc:src/gos_rpc_proto src/gos_rpc_proto/*.proto
+gen_rpc_proto:
+	cd goslib && protoc -I src/rpc_proto --go_out=plugins=grpc:src/gen/proto src/rpc_proto/*.proto
 
 # Generate client-server communicate protocol files
-tcp_protocol:
-	cd game && ./tools/gen_routes
-	cd game && ./tools/gen_protocol
+gen_protocol:
+	cd generator && ./tools/gen_routes
+	cd generator && ./tools/gen_protocol
 
-generate_tables:
-	cd game && bundle exec rake generate_tables
+# Generate tables from mysql table
+gen_tables:
+	cd generator && bundle exec rake generate_tables
 
 # Generate config files from excels
-generate_configs:
-	cd game && bundle exec rake generate_config
+gen_configs:
+	cd generator && bundle exec rake generate_config
 
 ######################## Docker ######################## 
 build_ubuntu_apps:

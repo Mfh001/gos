@@ -3,7 +3,7 @@ package main
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gslib/leaderboard"
+	"goslib/leaderboard"
 )
 
 var _ = Describe("Game", func() {

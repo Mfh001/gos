@@ -11,11 +11,11 @@ package main
 
 import (
 	"account"
+	"gen/proto"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 	"google.golang.org/grpc"
-	pb "gos_rpc_proto"
 	"gosconf"
 	gl "goslib/logger"
 	"log"
@@ -36,7 +36,7 @@ func connectConnectApp() {
 		log.Println("did not connect: %v", err)
 	}
 
-	account.ConnectRpcClient = pb.NewDispatcherClient(conn)
+	account.ConnectRpcClient = proto.NewDispatcherClient(conn)
 }
 
 /*

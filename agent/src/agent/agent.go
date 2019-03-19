@@ -2,8 +2,8 @@ package main
 
 import (
 	"connection"
+	"gen/proto"
 	"google.golang.org/grpc"
-	pb "gos_rpc_proto"
 	"gosconf"
 	"goslib/logger"
 )
@@ -30,7 +30,7 @@ func connectGameMgr() {
 		return
 	}
 
-	connection.GameMgrRpcClient = pb.NewGameDispatcherClient(conn)
+	connection.GameMgrRpcClient = proto.NewGameDispatcherClient(conn)
 }
 
 func heartbeat() {

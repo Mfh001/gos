@@ -2,20 +2,21 @@ package connection
 
 import (
 	"context"
+	"gen/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	pb "gos_rpc_proto"
 	"gosconf"
 	"goslib/game_utils"
 	"goslib/gen_server"
 	"goslib/logger"
 	"goslib/session_utils"
 	"io"
+	"strconv"
 	"strings"
 	"sync"
 )
 
-var GameMgrRpcClient pb.GameDispatcherClient
+var GameMgrRpcClient proto.GameDispatcherClient
 
 /*
    GenServer Callbacks
@@ -26,11 +27,9 @@ type ProxyManager struct {
 const AGENT_SERVER = "AGENT_SERVER"
 
 var gameConnMap *sync.Map
-var accountStreamMap *sync.Map
 
 func StartProxyManager() {
 	gameConnMap = new(sync.Map)
-	accountStreamMap = new(sync.Map)
 	gen_server.Start(AGENT_SERVER, new(ProxyManager))
 }
 
@@ -39,7 +38,7 @@ func ChooseGameServer(session *session_utils.Session) (*game_utils.Game, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
 
-	reply, err := GameMgrRpcClient.DispatchGame(ctx, &pb.DispatchGameRequest{
+	reply, err := GameMgrRpcClient.DispatchGame(ctx, &proto.DispatchGameRequest{
 		AccountId: session.AccountId,
 		ServerId:  session.ServerId,
 	})
@@ -61,18 +60,20 @@ func ChooseGameServer(session *session_utils.Session) (*game_utils.Game, error) 
 	}, err
 }
 
-func ConnectGameServer(gameAppId string, accountId string, agent AgentBehavior) (pb.RouteConnectGame_AgentStreamClient, error) {
+func ConnectGameServer(gameAppId, accountId, roomId string, protocolType int, agent AgentBehavior) (proto.RouteConnectGame_AgentStreamClient, error) {
 	conn := GetGameServerConn(gameAppId)
-	client := pb.NewRouteConnectGameClient(conn)
-	header := metadata.New(map[string]string{"accountId": accountId})
+	client := proto.NewRouteConnectGameClient(conn)
+	header := metadata.New(map[string]string{
+		"protocolType": strconv.Itoa(protocolType),
+		"accountId":    accountId,
+		"roomId":       roomId,
+	})
 	ctx := metadata.NewOutgoingContext(context.Background(), header)
 	stream, err := client.AgentStream(ctx)
 	if err != nil {
 		logger.ERR("startPlayerProxyStream failed: ", client, " err:", err)
 		return nil, err
 	}
-
-	accountStreamMap.Store(accountId, stream)
 
 	// start stream receiver
 	go func() {
@@ -89,7 +90,6 @@ func ConnectGameServer(gameAppId string, accountId string, agent AgentBehavior) 
 			logger.INFO("AgentStream received: ", accountId)
 			agent.SendMessage(in.GetData())
 		}
-		accountStreamMap.Delete(accountId)
 		stream.CloseSend()
 	}()
 

@@ -1,11 +1,10 @@
 package connection
 
 import (
-	"api"
-	"api/pt"
 	"errors"
-	"github.com/json-iterator/go"
-	pb "gos_rpc_proto"
+	"gen/api/pt"
+	"gen/proto"
+	"goslib/api"
 	"goslib/game_utils"
 	"goslib/logger"
 	"goslib/packet"
@@ -13,8 +12,6 @@ import (
 	"sync"
 	"sync/atomic"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type AgentBehavior interface {
 	OnMessage(data []byte) error
@@ -27,10 +24,9 @@ type Connection struct {
 	agent     AgentBehavior
 	processed int64
 	session   *session_utils.Session
-	stream    pb.RouteConnectGame_AgentStreamClient
+	streams   map[int]proto.RouteConnectGame_AgentStreamClient
 }
 
-var sessionMap = &sync.Map{}
 var connectionMap = &sync.Map{}
 var onlinePlayers int32
 var connId int64
@@ -45,6 +41,7 @@ func New(agent AgentBehavior) *Connection {
 		authed:    false,
 		processed: 0,
 		agent:     agent,
+		streams:   make(map[int]proto.RouteConnectGame_AgentStreamClient),
 	}
 	connectionMap.Store(instance.id, instance)
 	atomic.AddInt64(&connId, 1)
@@ -55,17 +52,17 @@ func New(agent AgentBehavior) *Connection {
 func (self *Connection) Cleanup() {
 	defer func() {
 		connectionMap.Delete(self.id)
-		self.stream = nil
 		self.agent = nil
 		self.session = nil
 		self.authed = false
 		atomic.AddInt32(&onlinePlayers, -1)
-		if self.stream != nil {
-			err := self.stream.CloseSend()
+		for _, stream := range self.streams {
+			err := stream.CloseSend()
 			if err != nil {
 				logger.ERR("Connection close stream failed: ", err)
 			}
 		}
+		self.streams = nil
 	}()
 }
 
@@ -85,45 +82,73 @@ func (self *Connection) OnMessage(data []byte) error {
 			logger.ERR("AuthConn failed! ")
 			return errors.New("AuthConn failed")
 		}
-		if err = self.setupProxy(); err != nil {
-			logger.ERR("DispatchToGameApp failed: ", err)
-			return err
-		}
 	}
 	return nil
 }
 
-func (self *Connection) setupProxy() error {
-	sessionMap.Store(self.session.AccountId, self.session)
+func (self *Connection) setupProxy(protocolType int) (proto.RouteConnectGame_AgentStreamClient, error) {
 	var game *game_utils.Game
 	var err error
-	if self.session.GameAppId != "" {
-		game, err = game_utils.Find(self.session.GameAppId)
-		if err != nil {
-			return err
+
+	switch protocolType {
+	case pt.PT_TYPE_GS:
+		if self.session.GameAppId != "" {
+			game, err = game_utils.Find(self.session.GameAppId)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			game, err = ChooseGameServer(self.session)
+			if err != nil {
+				return nil, err
+			}
 		}
-	} else {
-		game, err = ChooseGameServer(self.session)
-		if err != nil {
-			return err
+	case pt.PT_TYPE_ROOM:
+		if self.session.RoomAppId != "" {
+			game, err = game_utils.Find(self.session.RoomAppId)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, errors.New("room app id is blank")
 		}
 	}
-	self.stream, err = ConnectGameServer(game.Uuid, self.session.AccountId, self.agent)
+
+	stream, err := ConnectGameServer(game.Uuid, self.session.AccountId, self.session.RoomId, protocolType, self.agent)
 	if err != nil {
 		logger.ERR("StartConnToGameStream failed: ", err)
-		return err
+		return nil, err
 	}
-	return nil
+	return stream, nil
 }
 
 func (self *Connection) proxyRequest(data []byte) error {
-	if self.stream == nil {
-		return errors.New("Stream not exits!")
+	stream, err := self.getStream(data)
+	if err != nil {
+		logger.ERR("Get Stream failed: ", err)
+		return err
 	}
-	err := self.stream.Send(&pb.RouteMsg{
+
+	err = stream.Send(&proto.RouteMsg{
 		Data: data,
 	})
 	return err
+}
+
+func (self *Connection) getStream(data []byte) (proto.RouteConnectGame_AgentStreamClient, error) {
+	reader := packet.Reader(data)
+	protocol := reader.ReadUint16()
+	protocolType := pt.IdToType[protocol]
+
+	stream, ok := self.streams[protocolType]
+	if !ok {
+		stream, err := self.setupProxy(protocolType)
+		if err != nil {
+			return nil, err
+		}
+		self.streams[protocolType] = stream
+	}
+	return stream, nil
 }
 
 func (self *Connection) authConn(data []byte) (bool, error) {
@@ -148,10 +173,10 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 	self.processed++
 	// INFO("Processed: ", self.processed, " Response Data: ", response_data)
 	if self.agent != nil {
-		self.agent.SendMessage(writer.GetSendData())
+		err = self.agent.SendMessage(writer.GetSendData())
 	}
 
-	return success, nil
+	return success, err
 }
 
 func decodeAuthData(data []byte) (*pt.SessionAuthParams, error) {
@@ -177,7 +202,7 @@ func (self *Connection) validateSession(params *pt.SessionAuthParams) (bool, err
 	}
 
 	if session.Token != params.Token {
-		return false, errors.New("Session token invalid!")
+		return false, errors.New("session token invalid")
 	}
 
 	self.session = session

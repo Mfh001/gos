@@ -1,18 +1,18 @@
 package main
 
 import (
-	"app/consts"
-	"app/models"
-	"app/register"
-	"app/register/tables"
+	"app/custom_register"
+	"gen/consts"
+	"gen/models"
+	"gen/register/tables"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"goslib/memstore"
-	"gslib/player"
+	"goslib/player"
 )
 
 var _ = Describe("Game", func() {
-	register.Load()
+	custom_register.Load()
 	memstore.InitDB()
 	memstore.StartDBPersister()
 	tables.RegisterTables(memstore.GetSharedDBInstance())

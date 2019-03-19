@@ -3,7 +3,7 @@ package account
 import (
 	"context"
 	"fmt"
-	pb "gos_rpc_proto"
+	"gen/proto"
 	"gosconf"
 	"goslib/logger"
 	"goslib/redisdb"
@@ -13,7 +13,7 @@ import (
 	"strconv"
 )
 
-var ConnectRpcClient pb.DispatcherClient
+var ConnectRpcClient proto.DispatcherClient
 
 const (
 	ACCOUNT_GUEST = iota
@@ -108,7 +108,7 @@ func (self *Account) Dispatch() (string, string, *session_utils.Session, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
 
-	reply, err := ConnectRpcClient.DispatchPlayer(ctx, &pb.DispatchRequest{
+	reply, err := ConnectRpcClient.DispatchPlayer(ctx, &proto.DispatchRequest{
 		AccountId: self.Uuid,
 		GroupId:   self.GroupId,
 	})
@@ -124,7 +124,7 @@ func (self *Account) Dispatch() (string, string, *session_utils.Session, error) 
 	return reply.GetConnectAppHost(), reply.GetConnectAppPort(), session, nil
 }
 
-func (self *Account) updateSession(reply *pb.DispatchReply) (*session_utils.Session, error) {
+func (self *Account) updateSession(reply *proto.DispatchReply) (*session_utils.Session, error) {
 	var session *session_utils.Session
 	var err error
 	session, err = session_utils.Find(self.Uuid)
@@ -146,12 +146,9 @@ func (self *Account) updateSession(reply *pb.DispatchReply) (*session_utils.Sess
 }
 
 func (self *Account) createSession() (*session_utils.Session, error) {
-	return session_utils.Create(map[string]string{
-		"accountId":    self.Uuid,
-		"serverId":     self.GroupId,
-		"sceneId":      "",
-		"connectAppId": "",
-		"gameAppId":    "",
-		"token":        secure.SessionToken(),
+	return session_utils.Create(&session_utils.Session{
+		AccountId: self.Uuid,
+		ServerId:  self.GroupId,
+		Token:     secure.SessionToken(),
 	})
 }

@@ -155,9 +155,9 @@ func setGameAppIdToSession(accountId string, gameAppId string) error {
 		return err
 	}
 	if session == nil {
-		session, err = session_utils.Create(map[string]string{
-			"accountId": accountId,
-			"gameAppId": gameAppId,
+		session, err = session_utils.Create(&session_utils.Session{
+			AccountId: accountId,
+			GameAppId: gameAppId,
 		})
 		return err
 	} else {

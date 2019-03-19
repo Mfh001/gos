@@ -6,13 +6,20 @@ import (
 )
 
 type Session struct {
-	Uuid         string
-	AccountId    string
-	ServerId     string
-	SceneId      string
-	ConnectAppId string
-	GameAppId    string
-	Token        string
+	Uuid      string
+	AccountId string
+	Token     string // Token which identify player authed
+
+	ServerId string
+
+	ConnectAppId string // AgentServer which served client socket
+
+	GameAppId string // GameServer which served scenes
+	SceneId   string // Scene which served player GS logic
+
+	RoomAppId string // RoomServer which served rooms
+	RoomId    string // Room which served player ROOM logic
+
 }
 
 func Find(accountId string) (*Session, error) {
@@ -29,28 +36,23 @@ func Find(accountId string) (*Session, error) {
 	return parseSession(sessionMap), nil
 }
 
-func Create(params map[string]string) (*Session, error) {
-	uuid := "session:" + params["accountId"]
-	params["uuid"] = uuid
-	setParams := make(map[string]interface{})
-	for k, v := range params {
-		setParams[k] = v
-	}
-	_, err := redisdb.Instance().HMSet(uuid, setParams).Result()
-	if err != nil {
-		logger.ERR("Create session failed: ", err)
-	}
-	return parseSession(params), err
+func Create(session *Session) (*Session, error) {
+	uuid := "session:" + session.AccountId
+	session.Uuid = uuid
+	return session, session.Save()
 }
 
 func (self *Session) Save() error {
 	params := make(map[string]interface{})
-	params["accountId"] = self.AccountId
-	params["serverId"] = self.ServerId
-	params["sceneId"] = self.SceneId
-	params["connectAppId"] = self.ConnectAppId
-	params["gameAppId"] = self.GameAppId
-	params["token"] = self.Token
+	params["Uuid"] = self.Uuid
+	params["AccountId"] = self.AccountId
+	params["ServerId"] = self.ServerId
+	params["SceneId"] = self.SceneId
+	params["ConnectAppId"] = self.ConnectAppId
+	params["GameAppId"] = self.GameAppId
+	params["RoomAppId"] = self.RoomAppId
+	params["RoomId"] = self.RoomId
+	params["Token"] = self.Token
 	_, err := redisdb.Instance().HMSet(self.Uuid, params).Result()
 	if err != nil {
 		logger.ERR("Save session failed: ", err)
@@ -62,12 +64,14 @@ func parseSession(params map[string]string) *Session {
 	uuid := "session:" + params["accountId"]
 	return &Session{
 		Uuid:         uuid,
-		AccountId:    params["accountId"],
-		ServerId:     params["serverId"],
-		SceneId:      params["sceneId"],
-		ConnectAppId: params["connectAppId"],
-		GameAppId:    params["gameAppId"],
-		Token:        params["token"],
+		AccountId:    params["AccountId"],
+		ServerId:     params["ServerId"],
+		SceneId:      params["SceneId"],
+		ConnectAppId: params["ConnectAppId"],
+		GameAppId:    params["GameAppId"],
+		RoomAppId:    params["RoomAppId"],
+		RoomId:       params["RoomId"],
+		Token:        params["Token"],
 	}
 }
 

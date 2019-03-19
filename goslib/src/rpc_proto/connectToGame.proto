@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package connectApp;
+option go_package = "proto";
+
+service RouteConnectGame {
+    // A Bidirectional streaming RPC.
+    rpc AgentStream(stream RouteMsg) returns (stream RouteMsg) {}
+
+    rpc DeployScene(DeploySceneRequest) returns (DeploySceneReply) {}
+    rpc RequestPlayer(RequestPlayerRequest) returns (RequestPlayerReply) {}
+}
+
+message RouteMsg {
+    int32 category = 2;
+    bytes data = 3;
+}
+
+message RegisterMsg {
+    string accountId = 1;
+    string connectAppId = 2;
+    bool isRegister = 3;
+}
+
+message RegisterReply {
+    bool status = 1;
+}
+
+message DeploySceneRequest {
+    string sceneId = 1;
+}
+
+message DeploySceneReply {
+    bool success = 1;
+}
+
+message RequestPlayerRequest {
+    string accountId = 1;
+    bytes data = 2;
+}
+
+message RequestPlayerReply {
+    bytes data = 1;
+}

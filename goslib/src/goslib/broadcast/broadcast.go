@@ -4,6 +4,8 @@ import (
 	"goslib/gen_server"
 )
 
+const BROADCAST_SERVER_ID = "__broadcast_server__"
+
 type BroadcastMsg struct {
 	Category string
 	Channel  string
@@ -13,6 +15,28 @@ type BroadcastMsg struct {
 
 type Broadcast struct {
 	channels map[string](map[string]bool)
+}
+
+func Start() {
+	gen_server.Start(BROADCAST_SERVER_ID, new(Broadcast))
+}
+
+func JoinChannel(playerId, channel string) {
+	gen_server.Cast(BROADCAST_SERVER_ID, "JoinChannel", playerId, channel)
+}
+
+func LeaveChannel(playerId, channel string) {
+	gen_server.Cast(BROADCAST_SERVER_ID, "LeaveChannel", playerId, channel)
+}
+
+func PublishChannelMsg(playerId, channel, category string, data interface{}) {
+	msg := &BroadcastMsg{
+		Category: category,
+		Channel:  channel,
+		SenderId: playerId,
+		Data:     data,
+	}
+	gen_server.Cast(BROADCAST_SERVER_ID, "Publish", msg)
 }
 
 /*

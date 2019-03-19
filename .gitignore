@@ -27,4 +27,4 @@ world/bin/world
 .ruby-version
 ~$*.xlsx
 
-game/src/app/game_data/gen
+goslib/src/gen
