@@ -13,7 +13,7 @@ end
 defines = protocols
 
 package = "jsonapi"
-proto_dir = "../goslib/src/gen/api/#{package}"
+proto_dir = "../src/goslib/src/gen/api/#{package}"
 `mkdir -p #{proto_dir}`
 
 target = "#{proto_dir}/decoder.go"

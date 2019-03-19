@@ -21,7 +21,7 @@ header = %Q{\
 # Generate protobuf files
 #
 package = "pt"
-proto_dir = "../goslib/src/gen/api/#{package}"
+proto_dir = "../src/goslib/src/gen/api/#{package}"
 `mkdir -p #{proto_dir}`
 target = "#{proto_dir}/protocol.proto"
 
@@ -60,7 +60,7 @@ end
 #
 # Generate api map
 #
-target = "../goslib/src/gen/api/pt/api_map.go"
+target = "../src/goslib/src/gen/api/pt/api_map.go"
 File.open(target, "w") do |io|
   consts = []
 

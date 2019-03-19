@@ -20,7 +20,7 @@ COMMON_TYPE = ['bool', 'byte', 'string',
 PROTOCOL_TYPE = defines.keys
 
 package = "rawapi"
-proto_dir = "../goslib/src/gen/api/#{package}"
+proto_dir = "../src/goslib/src/gen/api/#{package}"
 `mkdir -p #{proto_dir}`
 
 #

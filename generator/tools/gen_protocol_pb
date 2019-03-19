@@ -15,7 +15,7 @@ defines = protocols
 PROTOCOL_TYPE = defines.keys
 
 package = "pbapi"
-proto_dir = "../goslib/src/gen/api/#{package}"
+proto_dir = "../src/goslib/src/gen/api/#{package}"
 `mkdir -p #{proto_dir}`
 
 header = %Q{\

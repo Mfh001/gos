@@ -13,13 +13,16 @@
 */pkg/darwin_amd64
 
 # builds
-auth/bin/auth
-agent/bin/agent
-game/bin/game
-world/bin/world
+src/auth/bin/auth
+src/agent/bin/agent
+src/game/bin/game
+src/world/bin/world
+
+# generators
+src/goslib/src/gen
 
 # deps
-/vendor
+src/vendor
 
 .DS_Store
 *.log
@@ -27,4 +30,3 @@ world/bin/world
 .ruby-version
 ~$*.xlsx
 
-goslib/src/gen

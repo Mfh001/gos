@@ -3,8 +3,8 @@
 require "yaml"
 
 source = "./config/routes.yml"
-`mkdir -p ../goslib/src/gen/register`
-target = "../goslib/src/gen/register/register_routes.go"
+`mkdir -p ../src/goslib/src/gen/register`
+target = "../src/goslib/src/gen/register/register_routes.go"
 
 defines = YAML.load_file(source)
 

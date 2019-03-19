@@ -125,8 +125,8 @@ func (self *#{struct_name}Model) SqlForRec(status int8) string {
       #{struct_to_table_name}
     }
   }
-  `mkdir -p ../goslib/src/gen/consts`
-  path = "../goslib/src/gen/consts/tables.go"
+  `mkdir -p ../src/goslib/src/gen/consts`
+  path = "../src/goslib/src/gen/consts/tables.go"
   File.open(path, "w") { |io| io.write structs_content }
   `go fmt #{path}`
 
@@ -134,8 +134,8 @@ func (self *#{struct_name}Model) SqlForRec(status int8) string {
   #################################################
   # Generate register_tables
   #################################################
-  `mkdir -p ../goslib/src/gen/register/tables`
-  path = "../goslib/src/gen/register/tables/register_tables.go"
+  `mkdir -p ../src/goslib/src/gen/register/tables`
+  path = "../src/goslib/src/gen/register/tables/register_tables.go"
   File.open(path, "w") do |io| 
     io.write %Q{\
 #{header}
@@ -156,7 +156,7 @@ func RegisterTables(dbInstance *gorp.DbMap) {
   #################################################
   # Generate data_loader
   #################################################
-  path = "../goslib/src/gen/register/data_loader.go"
+  path = "../src/goslib/src/gen/register/data_loader.go"
   File.open(path, "w") do |io|
     io.write %Q{\
 #{header}
@@ -178,9 +178,9 @@ func RegisterDataLoader() {\
   #################################################
   # Generate models
   #################################################
-  `mkdir -p ../goslib/src/gen/models`
+  `mkdir -p ../src/goslib/src/gen/models`
   models.each do |model_name, content|
-    path = "../goslib/src/gen/models/#{model_name}_gen.go"
+    path = "../src/goslib/src/gen/models/#{model_name}_gen.go"
     File.open(path, "w") do |io|
       io.write %Q{\
       #{header}
