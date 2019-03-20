@@ -64,16 +64,16 @@ sh dep_install.sh
 cd goslib && protoc -I src/gos_rpc_proto --go_out=plugins=grpc:src/gos_rpc_proto src/gos_rpc_proto/*.proto
 
 # 生成路由信息
-cd game && ./tools/gen_routes
+cd generator && ./tools/gen_routes
 
 # 生成通讯协议
-cd game && ./tools/gen_protocol
+cd generator && ./tools/gen_protocol
 
 # 导出配置文件
-cd game && bundle exec rake generate_config
+cd generator && bundle exec rake generate_config
 
 # 根据数据库表导出Model
-cd game && bundle exec rake generate_tables
+cd generator && bundle exec rake generate_tables
 
 # 编译游戏模块并打包成docker的image
 make build_docker_images
