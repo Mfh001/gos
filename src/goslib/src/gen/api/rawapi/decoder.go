@@ -5,100 +5,208 @@
 package rawapi
 
 import (
+	"errors"
 	"gen/api/pt"
 	"goslib/packet"
 )
 
-func decodeSessionAuthParams(buffer *packet.Packet) interface{} {
+func decodeSessionAuthParams(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.SessionAuthParams{}
-	data.AccountId = buffer.ReadString()
-	data.Token = buffer.ReadString()
-	return data
+	data.AccountId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.Token, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeSessionAuthResponse(buffer *packet.Packet) interface{} {
+func decodeSessionAuthResponse(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.SessionAuthResponse{}
-	data.Success = buffer.ReadBool()
-	return data
+	data.Success, err = buffer.ReadBool()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeOk(buffer *packet.Packet) interface{} {
+func decodeOk(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.Ok{}
-	data.OK = buffer.ReadBool()
-	return data
+	data.OK, err = buffer.ReadBool()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeFail(buffer *packet.Packet) interface{} {
+func decodeFail(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.Fail{}
-	data.Fail = buffer.ReadString()
-	return data
+	data.Fail, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeEquipLoadParams(buffer *packet.Packet) interface{} {
+func decodeEquipLoadParams(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.EquipLoadParams{}
-	data.PlayerID = buffer.ReadString()
-	data.EquipId = buffer.ReadString()
-	data.HeroId = buffer.ReadString()
-	return data
+	data.PlayerID, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.EquipId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.HeroId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeEquipLoadResponse(buffer *packet.Packet) interface{} {
+func decodeEquipLoadResponse(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.EquipLoadResponse{}
-	data.PlayerID = buffer.ReadString()
-	data.EquipId = buffer.ReadString()
-	data.Level = buffer.ReadUint32()
-	return data
+	data.PlayerID, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.EquipId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.Level, err = buffer.ReadUint32()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeEquipUnLoadParams(buffer *packet.Packet) interface{} {
+func decodeEquipUnLoadParams(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.EquipUnLoadParams{}
-	data.PlayerID = buffer.ReadString()
-	data.EquipId = buffer.ReadString()
-	data.HeroId = buffer.ReadString()
-	return data
+	data.PlayerID, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.EquipId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.HeroId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeEquipUnLoadResponse(buffer *packet.Packet) interface{} {
+func decodeEquipUnLoadResponse(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.EquipUnLoadResponse{}
-	data.PlayerID = buffer.ReadString()
-	data.EquipId = buffer.ReadString()
-	data.Level = buffer.ReadUint32()
-	return data
+	data.PlayerID, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.EquipId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.Level, err = buffer.ReadUint32()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeLoginResponse(buffer *packet.Packet) interface{} {
+func decodeLoginResponse(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.LoginResponse{}
-	data.Uuid = buffer.ReadString()
-	data.Level = buffer.ReadUint32()
-	data.Exp = buffer.ReadFloat32()
-
-	for i := 0; i < int(buffer.ReadUint16()); i++ {
-		data.Equips = append(data.Equips, decodeEquipLoadResponse(buffer).(*pt.EquipLoadResponse))
+	data.Uuid, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.Level, err = buffer.ReadUint32()
+	if err != nil {
+		return nil, err
+	}
+	data.Exp, err = buffer.ReadFloat32()
+	if err != nil {
+		return nil, err
 	}
 
-	for i := 0; i < int(buffer.ReadUint16()); i++ {
-		data.Friends = append(data.Friends, buffer.ReadString())
+	EquipsLen, err := buffer.ReadUint16()
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < int(EquipsLen); i++ {
+		elem, err := decodeEquipLoadResponse(buffer)
+		if err != nil {
+			return nil, err
+		}
+		data.Equips = append(data.Equips, elem.(*pt.EquipLoadResponse))
 	}
 
-	for i := 0; i < int(buffer.ReadUint16()); i++ {
-		data.Ages = append(data.Ages, buffer.ReadInt32())
+	valueHeadEquip, err := decodeEquipLoadParams(buffer)
+	if err != nil {
+		return nil, err
 	}
-	return data
+	data.HeadEquip = valueHeadEquip.(*pt.EquipLoadParams)
+
+	FriendsLen, err := buffer.ReadUint16()
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < int(FriendsLen); i++ {
+		elem, err := buffer.ReadString()
+		if err != nil {
+			return nil, err
+		}
+		data.Friends = append(data.Friends, elem)
+	}
+
+	AgesLen, err := buffer.ReadUint16()
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < int(AgesLen); i++ {
+		elem, err := buffer.ReadInt32()
+		if err != nil {
+			return nil, err
+		}
+		data.Ages = append(data.Ages, elem)
+	}
+	return data, err
 }
 
-func decodeJoinParams(buffer *packet.Packet) interface{} {
+func decodeJoinParams(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.JoinParams{}
-	data.RoomId = buffer.ReadString()
-	return data
+	data.RoomId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-func decodeJoinResponse(buffer *packet.Packet) interface{} {
+func decodeJoinResponse(buffer *packet.Packet) (interface{}, error) {
+	var err error
 	data := &pt.JoinResponse{}
-	data.Success = buffer.ReadBool()
-	return data
+	data.Success, err = buffer.ReadBool()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
-type DecodeHandler func(buffer *packet.Packet) interface{}
+type DecodeHandler func(buffer *packet.Packet) (interface{}, error)
 
 var decode_handlers = map[string]DecodeHandler{
 	"SessionAuthParams":   decodeSessionAuthParams,
@@ -113,10 +221,10 @@ var decode_handlers = map[string]DecodeHandler{
 	"JoinParams":          decodeJoinParams,
 	"JoinResponse":        decodeJoinResponse}
 
-func Decode(decode_method string, buffer *packet.Packet) interface{} {
+func Decode(decode_method string, buffer *packet.Packet) (interface{}, error) {
 	if handler, ok := decode_handlers[decode_method]; ok {
 		return handler(buffer)
 	} else {
-		return nil
+		return nil, errors.New("decode handler not found")
 	}
 }

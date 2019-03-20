@@ -4,7 +4,7 @@ import (
 	"app/custom_register"
 	"gen/consts"
 	"gen/models"
-	"gen/register/tables"
+	"gen/register"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"goslib/memstore"
@@ -12,10 +12,10 @@ import (
 )
 
 var _ = Describe("Game", func() {
-	custom_register.Load()
-	memstore.InitDB()
+	custom_register.RegisterCustomDataLoader()
+	memstore.StartDB()
 	memstore.StartDBPersister()
-	tables.RegisterTables(memstore.GetSharedDBInstance())
+	register.RegisterTables(memstore.GetSharedDBInstance())
 
 	It("should startup", func() {
 		playerId := "fake_user_id"

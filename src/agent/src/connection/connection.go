@@ -136,9 +136,10 @@ func (self *Connection) proxyRequest(data []byte) error {
 }
 
 func (self *Connection) getStream(data []byte) (proto.RouteConnectGame_AgentStreamClient, error) {
-	reader := packet.Reader(data)
-	protocol := reader.ReadUint16()
-	protocolType := pt.IdToType[protocol]
+	protocolType, err := api.ParseProtolType(data)
+	if err != nil {
+		return nil, err
+	}
 
 	stream, ok := self.streams[protocolType]
 	if !ok {
@@ -173,7 +174,11 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 	self.processed++
 	// INFO("Processed: ", self.processed, " Response Data: ", response_data)
 	if self.agent != nil {
-		err = self.agent.SendMessage(writer.GetSendData())
+		data, err := writer.GetSendData()
+		if err != nil {
+			return false, err
+		}
+		err = self.agent.SendMessage(data)
 	}
 
 	return success, err
@@ -181,7 +186,10 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 
 func decodeAuthData(data []byte) (*pt.SessionAuthParams, error) {
 	reader := packet.Reader(data)
-	protocol := reader.ReadUint16()
+	protocol, err := reader.ReadUint16()
+	if err != nil {
+		return nil, err
+	}
 	decode_method := pt.IdToName[protocol]
 
 	if decode_method != "SessionAuthParams" {

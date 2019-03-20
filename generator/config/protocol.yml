@@ -40,6 +40,7 @@ GS:
     Level: uint32
     Exp: float32
     Equips: array-EquipLoadResponse
+    HeadEquip: EquipLoadParams
     Friends: array-string
     Ages: array-int32
 

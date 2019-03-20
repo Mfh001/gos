@@ -5,40 +5,43 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"errors"
+	"goslib/logger"
 	"io"
 )
 
 var iv = []byte("wmc2fkkhev8juffi")
 var key = []byte("01234567890123456789012345678901")
 
-func Encrypt(plaintext []byte) []byte {
+func Encrypt(plaintext []byte) ([]byte, error) {
 	plaintext = PKCS7Padding(plaintext)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		logger.ERR("encrypt data failed:", err)
+		return nil, err
 	}
 
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	mode := cipher.NewCBCEncrypter(block, iv)
 	mode.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
 
-	return ciphertext
+	return ciphertext, nil
 }
 
-func Decrypt(ciphertext []byte) []byte {
+func Decrypt(ciphertext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if len(ciphertext) < aes.BlockSize {
-		panic("ciphertext too short")
+		return nil, errors.New("ciphertext too short")
 	}
 
 	iv := ciphertext[:aes.BlockSize]
@@ -49,7 +52,7 @@ func Decrypt(ciphertext []byte) []byte {
 	mode.CryptBlocks(ciphertext, ciphertext)
 
 	ciphertext = UnPKCS7Padding(ciphertext)
-	return ciphertext
+	return ciphertext, nil
 }
 
 func PKCS7Padding(data []byte) []byte {

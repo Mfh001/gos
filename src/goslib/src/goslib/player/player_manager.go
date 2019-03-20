@@ -15,7 +15,7 @@ const SERVER = "__player_manager_server__"
 type PlayerManager struct {
 }
 
-func StartPlayerManager() {
+func StartManager() {
 	gen_server.Start(SERVER, new(PlayerManager))
 }
 

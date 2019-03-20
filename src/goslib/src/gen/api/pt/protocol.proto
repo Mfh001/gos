@@ -48,8 +48,9 @@ package pt;
     uint32 Level = 2;
     float Exp = 3;
     repeated EquipLoadResponse Equips = 4;
-    repeated string Friends = 5;
-    repeated int32 Ages = 6;
+    EquipLoadParams HeadEquip = 5;
+    repeated string Friends = 6;
+    repeated int32 Ages = 7;
   }
   
   message JoinParams {

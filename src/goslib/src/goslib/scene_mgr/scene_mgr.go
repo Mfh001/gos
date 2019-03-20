@@ -19,7 +19,7 @@ const SERVER = "__scene_mgr__"
 
 var loadedScenes *sync.Map
 
-func StartSceneMgr() {
+func Start() {
 	gen_server.Start(SERVER, new(SceneMgr))
 }
 

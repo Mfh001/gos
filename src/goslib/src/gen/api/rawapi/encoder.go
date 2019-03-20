@@ -69,6 +69,8 @@ func encodeLoginResponse(buffer *packet.Packet, value interface{}) {
 		encodeEquipLoadResponse(buffer, v.Equips[i])
 	}
 
+	encodeEquipLoadParams(buffer, v.HeadEquip)
+
 	buffer.WriteUint16(uint16(len(v.Friends)))
 	for i := 0; i < len(v.Friends); i++ {
 		buffer.WriteString(v.Friends[i])

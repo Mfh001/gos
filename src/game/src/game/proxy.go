@@ -89,7 +89,7 @@ func (s *StreamServer) startReceiver(stream proto.RouteConnectGame_AgentStreamSe
 	}
 
 	accountConnectMap.Store(actorId, stream)
-	player.PlayerConnected(actorId, stream)
+	player.Connected(actorId, stream)
 	atomic.AddInt32(&onlinePlayers, 1)
 
 	// Receiving client msg
@@ -110,7 +110,7 @@ func (s *StreamServer) startReceiver(stream proto.RouteConnectGame_AgentStreamSe
 	}
 
 	accountConnectMap.Delete(actorId)
-	player.PlayerDisconnected(actorId)
+	player.Disconnected(actorId)
 	atomic.AddInt32(&onlinePlayers, -1)
 
 	return err

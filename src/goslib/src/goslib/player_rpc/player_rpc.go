@@ -3,7 +3,6 @@ package player_rpc
 import (
 	"context"
 	"fmt"
-	"gen/api/pt"
 	"gen/proto"
 	"google.golang.org/grpc"
 	"gosconf"
@@ -29,7 +28,7 @@ const PLAYER_RPC_SERVER = "__PLAYER_RPC__"
 
 var rpcClients = &sync.Map{}
 
-func StartPlayerRPC() {
+func Start() {
 	gen_server.Start(PLAYER_RPC_SERVER, new(PlayerRPC))
 }
 
@@ -49,7 +48,10 @@ func RequestPlayer(targetPlayerId string, encode_method string, params interface
 		logger.ERR("EncodeResponseData failed: ", err)
 		return nil, err
 	}
-	data := writer.GetSendData()
+	data, err := writer.GetSendData()
+	if err != nil {
+		return nil, err
+	}
 	return crossRequestPlayer(session, data)
 }
 
@@ -174,10 +176,8 @@ func connectGame(sceneId string, game *game_utils.Game) (proto.RouteConnectGameC
 
 func parseData(requestData []byte) (decode_method string, params interface{}, err error) {
 	reader := packet.Reader(requestData)
-	reader.ReadUint16() // read data length
-	protocol := reader.ReadUint16()
-	decode_method = pt.IdToName[protocol]
-	params, err = api.Decode(decode_method, reader)
+	reader.ReadDataLength()
+	decode_method, params, err = api.ParseRequestData(reader.RemainData())
 	if err != nil {
 		logger.ERR("player_rpc parseData failed: ", err)
 		return decode_method, nil, err

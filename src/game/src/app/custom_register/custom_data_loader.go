@@ -8,7 +8,7 @@ import (
 )
 
 // For overwirte auto generate data_loader
-func CustomRegisterDataLoader() {
+func RegisterCustomDataLoader() {
 	// store.RegisterDataLoader("equips", func(playerId string, ctx interface{}) interface{} {
 	// 	var datas []Equip
 	// 	var models []*EquipModel

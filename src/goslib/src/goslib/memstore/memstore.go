@@ -2,6 +2,7 @@ package memstore
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	. "goslib/base_model"
@@ -35,12 +36,13 @@ type MemStore struct {
 
 var sharedDBInstance *gorp.DbMap
 
-func InitDB() {
+func StartDB() error {
 	db, err := sql.Open("mysql", "root:@/gos_server_development")
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 	sharedDBInstance = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8"}}
+	return nil
 }
 
 func GetSharedDBInstance() *gorp.DbMap {
@@ -147,23 +149,28 @@ func (e *MemStore) Count(namespaces []string) int {
  * Persist all tables in []string{"models"} namespaces
  * Example: Persist([]string{"models"})
  */
-func (e *MemStore) Persist(namespaces []string) {
+func (e *MemStore) Persist(namespaces []string) error {
+	var err error
 	sqls := make([]string, 0)
 	for tableName, tableCtx := range e.getCtx(namespaces) {
 		statusMap, ok := e.tableStatus(tableName)
 		logger.INFO("tableName: ", tableName, " ok: ", ok)
 		if ok {
-			sqls = genTableSqls(sqls, statusMap, tableCtx.(Store))
+			sqls, err = genTableSqls(sqls, statusMap, tableCtx.(Store))
+			if err != nil {
+				return err
+			}
 		}
 	}
 	if len(sqls) > 0 {
 		err := AddPersistTask(e.playerId, time.Now().Unix(), sqls)
 		if err != nil {
 			logger.ERR("AddPersitTask failed, player: ", e.playerId, " err: ", err)
-			return
+			return err
 		}
 		e.cleanStatus()
 	}
+	return nil
 }
 
 func (e *MemStore) getCtx(namespaces []string) Store {
@@ -249,7 +256,7 @@ func (e *MemStore) cleanStatus() {
 	e.storeStatus = make(StoreStatus)
 }
 
-func genTableSqls(sqls []string, statusMap TableStatus, tableCtx Store) []string {
+func genTableSqls(sqls []string, statusMap TableStatus, tableCtx Store) ([]string, error) {
 	for uuid, modelStatus := range statusMap {
 		model := tableCtx[uuid].(ModelInterface)
 		var status int8
@@ -261,7 +268,7 @@ func genTableSqls(sqls []string, statusMap TableStatus, tableCtx Store) []string
 				status = modelStatus.Current
 				break
 			case STATUS_CREATE:
-				panic("genTableSqls should not STATUS_CREATE!")
+				return nil, errors.New("genTableSqls should not STATUS_CREATE!")
 			}
 		} else if modelStatus.Origin == STATUS_EMPTY {
 			switch modelStatus.Current {
@@ -271,12 +278,12 @@ func genTableSqls(sqls []string, statusMap TableStatus, tableCtx Store) []string
 				status = STATUS_CREATE
 				break
 			case STATUS_ORIGIN, STATUS_EMPTY:
-				panic("genTableSqls should not STATUS_ORIGIN or STATUS_EMPTY!")
+				return nil, errors.New("genTableSqls should not STATUS_ORIGIN or STATUS_EMPTY!")
 			}
 		}
 		query := model.SqlForRec(status)
 		logger.INFO("genTableSqls: ", query)
 		sqls = append(sqls, query)
 	}
-	return sqls
+	return sqls, nil
 }

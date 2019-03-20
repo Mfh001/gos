@@ -57,12 +57,12 @@ func Create(params map[string]string) (*Game, error) {
 
 func (self *Game) Save() error {
 	params := make(map[string]interface{})
-	params["uuid"] = self.Uuid
-	params["host"] = self.Host
-	params["port"] = self.Port
-	params["ccu"] = self.Ccu
-	params["ccuMax"] = self.CcuMax
-	params["activeAt"] = self.ActiveAt
+	params["Uuid"] = self.Uuid
+	params["Host"] = self.Host
+	params["Port"] = self.Port
+	params["Ccu"] = self.Ccu
+	params["CcuMax"] = self.CcuMax
+	params["ActiveAt"] = self.ActiveAt
 	_, err := redisdb.Instance().HMSet(self.Uuid, params).Result()
 	if err != nil {
 		logger.ERR("Save game failed: ", err)
@@ -71,13 +71,13 @@ func (self *Game) Save() error {
 }
 
 func parseObject(params map[string]string) *Game {
-	Ccu, _ := strconv.Atoi(params["ccu"])
-	CcuMax, _ := strconv.Atoi(params["ccuMax"])
-	ActiveAt, _ := strconv.Atoi(params["activeAt"])
+	Ccu, _ := strconv.Atoi(params["Ccu"])
+	CcuMax, _ := strconv.Atoi(params["CcuMax"])
+	ActiveAt, _ := strconv.Atoi(params["ActiveAt"])
 	return &Game{
-		Uuid:     params["uuid"],
-		Host:     params["host"],
-		Port:     params["port"],
+		Uuid:     params["Uuid"],
+		Host:     params["Host"],
+		Port:     params["Port"],
 		Ccu:      int32(Ccu),
 		CcuMax:   int32(CcuMax),
 		ActiveAt: int64(ActiveAt),

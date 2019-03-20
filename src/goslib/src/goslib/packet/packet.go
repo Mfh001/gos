@@ -1,6 +1,7 @@
 package packet
 
 import (
+	"errors"
 	"goslib/logger"
 	"goslib/secure"
 	"math"
@@ -37,19 +38,23 @@ func (p *Packet) Seek(n uint) {
 }
 
 //=============================================== Readers
-func (p *Packet) ReadBool() (ret bool) {
-	b := p.ReadByte()
-
-	if b != byte(1) {
-		return false
+func (p *Packet) ReadBool() (ret bool, err error) {
+	b, err := p.ReadByte()
+	if err != nil {
+		return
 	}
 
-	return true
+	if b != byte(1) {
+		return false, nil
+	}
+
+	return true, nil
 }
 
-func (p *Packet) ReadByte() (ret byte) {
+func (p *Packet) ReadByte() (ret byte, err error) {
 	if p.pos >= uint(len(p.data)) {
-		panic("read byte failed")
+		err = errors.New("read byte failed")
+		return
 	}
 
 	ret = p.data[p.pos]
@@ -57,13 +62,18 @@ func (p *Packet) ReadByte() (ret byte) {
 	return
 }
 
-func (p *Packet) ReadBytes() (ret []byte) {
+func (p *Packet) ReadBytes() (ret []byte, err error) {
 	if p.pos+2 > uint(len(p.data)) {
-		panic("read bytes header failed")
+		err = errors.New("read bytes header failed")
+		return
 	}
-	size := p.ReadUint16()
+	size, err := p.ReadUint16()
+	if err != nil {
+		return
+	}
 	if p.pos+uint(size) > uint(len(p.data)) {
-		panic("read bytes data failed")
+		err = errors.New("read bytes data failed")
+		return
 	}
 
 	ret = p.data[p.pos : p.pos+uint(size)]
@@ -71,14 +81,19 @@ func (p *Packet) ReadBytes() (ret []byte) {
 	return
 }
 
-func (p *Packet) ReadString() (ret string) {
+func (p *Packet) ReadString() (ret string, err error) {
 	if p.pos+2 > uint(len(p.data)) {
-		panic("read string header failed")
+		err = errors.New("read string header failed")
+		return
 	}
 
-	size := p.ReadUint16()
+	size, err := p.ReadUint16()
+	if err != nil {
+		return
+	}
 	if p.pos+uint(size) > uint(len(p.data)) {
-		panic("read string data failed")
+		err = errors.New("read string data failed")
+		return
 	}
 
 	bytes := p.data[p.pos : p.pos+uint(size)]
@@ -87,9 +102,10 @@ func (p *Packet) ReadString() (ret string) {
 	return
 }
 
-func (p *Packet) ReadUint16() (ret uint16) {
+func (p *Packet) ReadUint16() (ret uint16, err error) {
 	if p.pos+2 > uint(len(p.data)) {
-		panic("read uint16 failed")
+		err = errors.New("read uint16 failed")
+		return
 	}
 
 	buf := p.data[p.pos : p.pos+2]
@@ -98,15 +114,19 @@ func (p *Packet) ReadUint16() (ret uint16) {
 	return
 }
 
-func (p *Packet) ReadInt16() (ret int16) {
-	_ret := p.ReadUint16()
+func (p *Packet) ReadInt16() (ret int16, err error) {
+	_ret, err := p.ReadUint16()
+	if err != nil {
+		return
+	}
 	ret = int16(_ret)
 	return
 }
 
-func (p *Packet) ReadUint24() (ret uint32) {
+func (p *Packet) ReadUint24() (ret uint32, err error) {
 	if p.pos+3 > uint(len(p.data)) {
-		panic("read uint24 failed")
+		err = errors.New("read uint24 failed")
+		return
 	}
 
 	buf := p.data[p.pos : p.pos+3]
@@ -115,15 +135,19 @@ func (p *Packet) ReadUint24() (ret uint32) {
 	return
 }
 
-func (p *Packet) ReadInt24() (ret int32) {
-	_ret := p.ReadUint24()
+func (p *Packet) ReadInt24() (ret int32, err error) {
+	_ret, err := p.ReadUint24()
+	if err != nil {
+		return
+	}
 	ret = int32(_ret)
 	return
 }
 
-func (p *Packet) ReadUint32() (ret uint32) {
+func (p *Packet) ReadUint32() (ret uint32, err error) {
 	if p.pos+4 > uint(len(p.data)) {
-		panic("read uint32 failed")
+		err = errors.New("read uint32 failed")
+		return
 	}
 
 	buf := p.data[p.pos : p.pos+4]
@@ -132,15 +156,19 @@ func (p *Packet) ReadUint32() (ret uint32) {
 	return
 }
 
-func (p *Packet) ReadInt32() (ret int32) {
-	_ret := p.ReadUint32()
+func (p *Packet) ReadInt32() (ret int32, err error) {
+	_ret, err := p.ReadUint32()
+	if err != nil {
+		return
+	}
 	ret = int32(_ret)
 	return
 }
 
-func (p *Packet) ReadUint64() (ret uint64) {
+func (p *Packet) ReadUint64() (ret uint64, err error) {
 	if p.pos+8 > uint(len(p.data)) {
-		panic("read uint64 failed")
+		err = errors.New("read uint64 failed")
+		return
 	}
 
 	ret = 0
@@ -152,31 +180,38 @@ func (p *Packet) ReadUint64() (ret uint64) {
 	return
 }
 
-func (p *Packet) ReadInt64() (ret int64) {
-	_ret := p.ReadInt64()
+func (p *Packet) ReadInt64() (ret int64, err error) {
+	_ret, _err := p.ReadUint64()
 	ret = int64(_ret)
+	err = _err
 	return
 }
 
-func (p *Packet) ReadFloat32() (ret float32) {
-	bits := p.ReadUint32()
+func (p *Packet) ReadFloat32() (ret float32, err error) {
+	bits, err := p.ReadUint32()
+	if err != nil {
+		return
+	}
 
 	ret = math.Float32frombits(bits)
 	if math.IsNaN(float64(ret)) || math.IsInf(float64(ret), 0) {
-		return 0
+		return 0, nil
 	}
 
-	return ret
+	return ret, nil
 }
 
-func (p *Packet) ReadFloat64() (ret float64) {
-	bits := p.ReadUint64()
+func (p *Packet) ReadFloat64() (ret float64, err error) {
+	bits, err := p.ReadUint64()
+	if err != nil {
+		return
+	}
 	ret = math.Float64frombits(bits)
 	if math.IsNaN(ret) || math.IsInf(ret, 0) {
-		return 0
+		return 0, nil
 	}
 
-	return ret
+	return ret, nil
 }
 
 //================================================ Writers
@@ -279,18 +314,25 @@ func Writer() *Packet {
 
 var encrypt = false
 
-func (p *Packet) Send(conn net.Conn) {
-	n, err := conn.Write(p.GetSendData())
+func (p *Packet) Send(conn net.Conn, err error) {
+	data, err := p.GetSendData()
+	if err != nil {
+		return
+	}
+	n, err := conn.Write(data)
 	if err != nil {
 		logger.ERR("Error send reply, bytes:", n, "reason:", err)
 		return
 	}
 }
 
-func (p *Packet) GetSendData() []byte {
+func (p *Packet) GetSendData() ([]byte, error) {
 	writer := Writer()
 	if encrypt {
-		data := secure.Encrypt(p.Data())
+		data, err := secure.Encrypt(p.Data())
+		if err != nil {
+			return nil, err
+		}
 		writer.WriteUint16(uint16(len(data)))
 		writer.WriteRawBytes(data)
 	} else {
@@ -298,5 +340,9 @@ func (p *Packet) GetSendData() []byte {
 		writer.WriteRawBytes(p.Data())
 	}
 
-	return writer.Data()
+	return writer.Data(), nil
+}
+
+func (p *Packet) ReadDataLength() (uint16, error) {
+	return p.ReadUint16()
 }

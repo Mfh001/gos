@@ -1,21 +1,19 @@
 package player
 
 import (
+	"errors"
 	"fmt"
 	"gen/api/pt"
 	"gen/proto"
-	"github.com/kataras/iris/core/errors"
 	"gosconf"
 	"goslib/api"
 	"goslib/broadcast"
 	"goslib/gen_server"
 	"goslib/logger"
 	"goslib/memstore"
-	"goslib/packet"
 	"goslib/routes"
-	"goslib/session_utils"
-	//"gslib"
 	"goslib/scene_mgr"
+	"goslib/session_utils"
 	"runtime"
 	"time"
 )
@@ -40,11 +38,11 @@ const EXPIRE_DURATION = 1800
 var BroadcastHandler func(*Player, *broadcast.BroadcastMsg) = nil
 var CurrentGameAppId string
 
-func PlayerConnected(accountId string, stream proto.RouteConnectGame_AgentStreamServer) {
+func Connected(accountId string, stream proto.RouteConnectGame_AgentStreamServer) {
 	CastPlayer(accountId, "connected", stream)
 }
 
-func PlayerDisconnected(accountId string) {
+func Disconnected(accountId string) {
 	CastPlayer(accountId, "disconnected")
 }
 
@@ -53,7 +51,7 @@ func HandleRequest(accountId string, requestData []byte) {
 }
 
 func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
-	handler, params, err := ParseRequestData(requestData)
+	handler, params, err := api.ParseRequestDataForHander(requestData)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +179,11 @@ func (self *Player) SendData(encode_method string, msg interface{}) error {
 	if err != nil {
 		return err
 	}
-	return self.sendToClient(writer.GetSendData())
+	data, err := writer.GetSendData()
+	if err != nil {
+		return err
+	}
+	return self.sendToClient(data)
 }
 
 func (self *Player) handleRequest(data []byte) {
@@ -194,7 +196,7 @@ func (self *Player) handleRequest(data []byte) {
 		}()
 	}
 
-	handler, params, err := ParseRequestData(data)
+	handler, params, err := api.ParseRequestDataForHander(data)
 	if err != nil {
 		logger.ERR(err)
 		data, err := failMsgData("error_route_not_found")
@@ -220,25 +222,12 @@ func (self *Player) handleRPCCall(handler routes.Handler, params interface{}) (*
 }
 
 func (self *Player) handleRPCCast(data []byte) {
-	handler, params, err := ParseRequestData(data)
+	handler, params, err := api.ParseRequestDataForHander(data)
 	if err != nil {
 		logger.ERR("handleRPCCast failed: ", err)
 		return
 	}
 	self.processRequest(handler, params)
-}
-
-func ParseRequestData(data []byte) (routes.Handler, interface{}, error) {
-	reader := packet.Reader(data)
-	protocol := reader.ReadUint16()
-	decode_method := pt.IdToName[protocol]
-	handler, err := routes.Route(decode_method)
-	logger.INFO("handelRequest: ", decode_method)
-	if err != nil {
-		return nil, nil, err
-	}
-	params, err := api.Decode(decode_method, reader)
-	return handler, params, err
 }
 
 func EncodeResponseData(encode_method string, response interface{}) ([]byte, error) {
@@ -247,7 +236,7 @@ func EncodeResponseData(encode_method string, response interface{}) ([]byte, err
 		logger.ERR("EncodeResponseData failed: ", err)
 		return nil, err
 	}
-	return writer.GetSendData(), nil
+	return writer.GetSendData()
 }
 
 func (self *Player) processRequest(handler routes.Handler, params interface{}) ([]byte, error) {
@@ -269,7 +258,7 @@ func (self *Player) sendToClient(data []byte) error {
 			return nil
 		}
 	} else {
-		errMsg := "sendToClient failed, connectAppId is nil!"
+		errMsg := "sendToClient failed, connectAppId is nil"
 		logger.WARN(errMsg)
 		return errors.New(errMsg)
 	}
@@ -329,5 +318,5 @@ func failMsgData(errorMsg string) ([]byte, error) {
 		logger.ERR("Encode msg failed: ", err)
 		return nil, err
 	}
-	return writer.GetSendData(), nil
+	return writer.GetSendData()
 }

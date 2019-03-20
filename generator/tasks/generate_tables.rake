@@ -134,12 +134,12 @@ func (self *#{struct_name}Model) SqlForRec(status int8) string {
   #################################################
   # Generate register_tables
   #################################################
-  `mkdir -p ../src/goslib/src/gen/register/tables`
-  path = "../src/goslib/src/gen/register/tables/register_tables.go"
+  `mkdir -p ../src/goslib/src/gen/register`
+  path = "../src/goslib/src/gen/register/register_tables.go"
   File.open(path, "w") do |io| 
     io.write %Q{\
 #{header}
-package tables
+package register
 
 import (
     . "gen/consts"
@@ -156,7 +156,7 @@ func RegisterTables(dbInstance *gorp.DbMap) {
   #################################################
   # Generate data_loader
   #################################################
-  path = "../src/goslib/src/gen/register/data_loader.go"
+  path = "../src/goslib/src/gen/register/register_data_loader.go"
   File.open(path, "w") do |io|
     io.write %Q{\
 #{header}

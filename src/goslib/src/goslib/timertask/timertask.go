@@ -35,7 +35,10 @@ func Add(key string, runAt int64, playerId string, encode_method string, params 
 	if err != nil {
 		return err
 	}
-	data := writer.GetSendData()
+	data, err := writer.GetSendData()
+	if err != nil {
+		return err
+	}
 	content := fmt.Sprintf("%s:%s", playerId, string(data))
 	gen_server.Cast(SERVER, "add", key, runAt, content)
 	return nil

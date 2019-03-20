@@ -40,7 +40,7 @@ import (
 	"goslib/routes"
 )
 
-func Load() {
+func RegisterRoutes() {
 #{contents}
 }
 }

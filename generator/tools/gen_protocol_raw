@@ -19,6 +19,8 @@ COMMON_TYPE = ['bool', 'byte', 'string',
                'float32', 'float64']
 PROTOCOL_TYPE = defines.keys
 
+ERR_RETURN = "if err != nil {return nil, err}"
+
 package = "rawapi"
 proto_dir = "../src/goslib/src/gen/api/#{package}"
 `mkdir -p #{proto_dir}`
@@ -32,7 +34,8 @@ def common_protocol(field_type, variable, code)
   if code == "write"
     "buffer.Write#{field_type.capitalize}(v.#{variable})"
   elsif code == "read"
-    "data.#{variable} = buffer.Read#{field_type.capitalize}()"
+    %Q{data.#{variable}, err = buffer.Read#{field_type.capitalize}() 
+       #{ERR_RETURN}}
   else
     assert(false, "Invalid code!")
   end
@@ -55,14 +58,22 @@ defines.each do |protocol, define|
       decode_fields << common_protocol(type, field, "read")
       encode_fields << common_protocol(type, field, "write")
     elsif PROTOCOL_TYPE.include?(type)
-      decode_fields << %Q{data.#{field} = encode#{type}(buffer)}
+      decode_fields << %Q{
+        value#{field}, err := decode#{type}(buffer) 
+        #{ERR_RETURN}
+        data.#{field} = value#{field}.(*pt.#{type})
+      }
       encode_fields << %Q{encode#{type}(buffer, v.#{field})}
     elsif type.index("array-") == 0
       sub_type = type.split('-')[1]
       if COMMON_TYPE.include?(sub_type)
         decode_fields << %Q{
-    for i := 0; i < int(buffer.ReadUint16()); i++ {
-        data.#{field} = append(data.#{field}, buffer.Read#{sub_type.capitalize}())
+    #{field}Len, err := buffer.ReadUint16()
+    #{ERR_RETURN}
+    for i := 0; i < int(#{field}Len); i++ {
+        elem, err := buffer.Read#{sub_type.capitalize}()
+        #{ERR_RETURN}
+        data.#{field} = append(data.#{field}, elem)
     }}
         encode_fields << %Q{
     buffer.WriteUint16(uint16(len(v.#{field})))
@@ -71,22 +82,29 @@ defines.each do |protocol, define|
     }}
       else
         decode_fields << %Q{
-    for i := 0; i < int(buffer.ReadUint16()); i++ {
-        data.#{field} = append(data.#{field}, decode#{sub_type}(buffer).(*pt.#{sub_type}))
-    }}
+          #{field}Len, err := buffer.ReadUint16()
+          #{ERR_RETURN}
+          for i := 0; i < int(#{field}Len); i++ {
+              elem, err := decode#{sub_type}(buffer)
+              #{ERR_RETURN}
+              data.#{field} = append(data.#{field}, elem.(*pt.#{sub_type}))
+          }
+        }
         encode_fields << %Q{
-    buffer.WriteUint16(uint16(len(v.#{field})))
-    for i := 0; i < len(v.#{field}); i++ {
-        encode#{sub_type}(buffer, v.#{field}[i])
-    }}
+          buffer.WriteUint16(uint16(len(v.#{field})))
+          for i := 0; i < len(v.#{field}); i++ {
+              encode#{sub_type}(buffer, v.#{field}[i])
+          }
+        }
       end
     end
   end
   decode_handlers << %Q{
-func decode#{protocol}(buffer *packet.Packet) interface{} {
+func decode#{protocol}(buffer *packet.Packet) (interface{}, error) {
+    var err error
     data := &pt.#{protocol}{}
     #{decode_fields.join("\n    ")}
-    return data
+    return data, err
 }}
   encode_handlers << %Q{
 func encode#{protocol}(buffer *packet.Packet, value interface{}) {
@@ -104,23 +122,24 @@ File.open(target, "w") do |io|
 package #{package}
 
 import (
-        "gen/api/pt"
-	"goslib/packet"
+    "errors"
+    "gen/api/pt"
+    "goslib/packet"
 )
 
 #{decode_handlers.join("\n")}
 
-type DecodeHandler func(buffer *packet.Packet) interface{}
+type DecodeHandler func(buffer *packet.Packet) (interface{}, error)
 
 var decode_handlers = map[string]DecodeHandler{
     #{defines.keys.map{|protocol| "\"#{protocol}\": decode#{protocol}"}.join(",\n    ")}}
 
-func Decode(decode_method string, buffer *packet.Packet) interface{} {
-	if handler, ok := decode_handlers[decode_method]; ok {
-		return handler(buffer)
-	} else {
-		return nil
-	}
+func Decode(decode_method string, buffer *packet.Packet) (interface{}, error) {
+    if handler, ok := decode_handlers[decode_method]; ok {
+        return handler(buffer)
+    } else {
+        return nil, errors.New("decode handler not found")
+    }
 }
 }
 end
