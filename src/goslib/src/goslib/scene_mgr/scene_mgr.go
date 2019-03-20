@@ -24,8 +24,10 @@ func Start() {
 }
 
 func TryLoadScene(sceneId string) bool {
-	if loaded, ok := loadedScenes.Load(sceneId); !ok || !(loaded.(bool)) {
-		gen_server.Call(SERVER, "LoadScene", sceneId)
+	if sceneId != "" {
+		if loaded, ok := loadedScenes.Load(sceneId); !ok || !(loaded.(bool)) {
+			gen_server.Call(SERVER, "LoadScene", sceneId)
+		}
 	}
 	return true
 }
