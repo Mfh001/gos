@@ -20,11 +20,8 @@ type DispatchInfo struct {
 }
 
 /*
- * 关于游戏服务的路由思考
- *  如果sceneId为空，直接挑选得分最高的GameCell
- *	如果sceneId不为空
- *    scene已创建：直接路由到scene所在GameCell
- *    scene未创建：路由scene至得分最高的GameCell
+ * players with same sceneId will be dispatched to same game server by sceneId,
+ * or will be dispatched to best score game server.
  */
 func dispatchGame(accountId, sceneId string) (*DispatchInfo, error) {
 	if sceneId != "" {
@@ -72,7 +69,34 @@ func defaultDispatch(accountId string) (*DispatchInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = setGameAppIdToSession(accountId, game.Uuid)
+	lockKey := "defaultDispatch:" + accountId
+	locked, err := redisdb.Instance().SetNX(lockKey, "uuid", 10*time.Second).Result()
+	if locked {
+		session, err := session_utils.Find(accountId)
+		if session != nil && session.GameAppId != "" {
+			return dispatchInfo(session.GameAppId)
+		}
+		err = setGameAppIdToSession(accountId, game.Uuid)
+		redisdb.Instance().Del(lockKey)
+		if err != nil {
+			return nil, err
+		}
+		return &DispatchInfo{
+			AppId:   game.Uuid,
+			AppHost: game.Host,
+			AppPort: game.Port,
+		}, nil
+	} else {
+		time.Sleep(1 * time.Second)
+		session, err := session_utils.Find(accountId)
+		if session != nil && session.GameAppId != "" {
+			return dispatchInfo(session.GameAppId)
+		}
+	}
+}
+
+func dispatchInfo(gameId string) (*DispatchInfo, error) {
+	game, err := game_utils.Find(gameId)
 	if err != nil {
 		return nil, err
 	}

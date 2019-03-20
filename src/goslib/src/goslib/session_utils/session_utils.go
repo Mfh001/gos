@@ -16,7 +16,7 @@ type Session struct {
 	ConnectAppId string // AgentServer which served client socket
 
 	GameAppId string // GameServer which served scenes
-	SceneId   string // Scene which served player GS logic
+	SceneId   string // Scene is logic space, the players with same sceneId stay in same GameServer
 
 	RoomAppId string // RoomServer which served rooms
 	RoomId    string // Room which served player ROOM logic
