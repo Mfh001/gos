@@ -89,8 +89,13 @@ func defaultDispatch(accountId string) (*DispatchInfo, error) {
 	} else {
 		time.Sleep(1 * time.Second)
 		session, err := session_utils.Find(accountId)
+		if err != nil {
+			return nil, err
+		}
 		if session != nil && session.GameAppId != "" {
 			return dispatchInfo(session.GameAppId)
+		} else {
+			return nil, nil
 		}
 	}
 }
