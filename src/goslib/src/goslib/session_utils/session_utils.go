@@ -1,6 +1,7 @@
 package session_utils
 
 import (
+	"github.com/go-redis/redis"
 	"goslib/logger"
 	"goslib/redisdb"
 )
@@ -25,11 +26,11 @@ type Session struct {
 func Find(accountId string) (*Session, error) {
 	uuid := "session:" + accountId
 	sessionMap, err := redisdb.Instance().HGetAll(uuid).Result()
+	if err == redis.Nil {
+		return nil, nil
+	}
 	if err != nil {
 		logger.ERR("Find session failed: ", err)
-		return nil, err
-	}
-	if len(sessionMap) == 0 {
 		return nil, err
 	}
 

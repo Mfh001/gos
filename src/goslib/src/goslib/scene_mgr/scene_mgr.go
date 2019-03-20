@@ -57,6 +57,7 @@ func doLoadScene(sceneId string) {
 	valueMap, err := redisdb.Instance().HGetAll(sceneId).Result()
 	if err != nil {
 		logger.ERR("LoadScene failed: ", sceneId, " err: ", err)
+		return
 	}
 	sceneType := valueMap["sceneType"]
 	sceneConfigId := valueMap["sceneConfigId"]

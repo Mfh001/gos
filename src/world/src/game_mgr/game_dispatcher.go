@@ -87,8 +87,6 @@ func dispatchScene(sceneId string) (*scene_utils.Scene, error) {
 		scene, err := scene_utils.CreateScene(&scene_utils.Scene{
 			Uuid:        scene_utils.GenUuid(sceneId),
 			GameAppId:   game.Uuid,
-			GameAppHost: game.Host,
-			GameAppPort: game.Port,
 		})
 		redisdb.Instance().Del(lockKey)
 		return scene, err

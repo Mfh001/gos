@@ -1,6 +1,7 @@
 package game_utils
 
 import (
+	"github.com/go-redis/redis"
 	"gosconf"
 	"goslib/logger"
 	"goslib/redisdb"
@@ -18,11 +19,11 @@ type Game struct {
 
 func Find(uuid string) (*Game, error) {
 	valueMap, err := redisdb.Instance().HGetAll(uuid).Result()
+	if err == redis.Nil {
+		return nil, nil
+	}
 	if err != nil {
 		logger.ERR("Find game failed: ", err)
-		return nil, err
-	}
-	if len(valueMap) == 0 {
 		return nil, err
 	}
 
@@ -31,6 +32,9 @@ func Find(uuid string) (*Game, error) {
 
 func LoadGames(apps map[string]*Game) error {
 	ids, err := redisdb.Instance().SMembers(gosconf.RK_GAME_APP_IDS).Result()
+	if err == redis.Nil {
+		return nil
+	}
 	if err != nil {
 		logger.ERR("Redis load games failed: ", err)
 		return err

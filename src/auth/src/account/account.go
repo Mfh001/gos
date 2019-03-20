@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gen/proto"
+	"github.com/go-redis/redis"
 	"gosconf"
 	"goslib/logger"
 	"goslib/redisdb"
@@ -33,16 +34,15 @@ type Account struct {
  */
 func Lookup(username string) (*Account, error) {
 	values, err := redisdb.Instance().HGetAll(username).Result()
+	if err == redis.Nil {
+		return nil, nil
+	}
 	if err != nil {
 		log.Println("Account Lookup Error: %v", err)
 		return nil, err
 	}
 
 	fmt.Println("values: ", values)
-
-	if values["uuid"] == "" {
-		return nil, nil
-	}
 
 	category, err := strconv.Atoi(values["category"])
 

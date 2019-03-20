@@ -13,7 +13,6 @@ import (
 	"goslib/packet"
 	"goslib/player"
 	"goslib/routes"
-	"goslib/scene_utils"
 	"goslib/session_utils"
 	"sync"
 )
@@ -91,18 +90,21 @@ func internalRequestPlayer(targetPlayerId string, encode_method string, params i
 }
 
 func crossRequestPlayer(session *session_utils.Session, data []byte) (interface{}, error) {
-	client, err := getClient(session.SceneId)
+	client, err := getClient(session.GameAppId)
 	if err != nil {
-		delClient(session.SceneId)
+		delClient(session.GameAppId)
 		return nil, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
-	reply, err := client.RequestPlayer(ctx, &proto.RequestPlayerRequest{session.AccountId, data})
+	reply, err := client.RequestPlayer(ctx, &proto.RequestPlayerRequest{
+		AccountId: session.AccountId,
+		Data:      data,
+	})
 	if err != nil {
 		logger.ERR("RequestPlayer failed: ", err)
-		delClient(session.SceneId)
+		delClient(session.GameAppId)
 		return nil, err
 	}
 
@@ -113,13 +115,13 @@ func crossRequestPlayer(session *session_utils.Session, data []byte) (interface{
 	return params, nil
 }
 
-func getClient(sceneId string) (proto.RouteConnectGameClient, error) {
-	if client, ok := rpcClients.Load(sceneId); ok {
+func getClient(gameId string) (proto.RouteConnectGameClient, error) {
+	if client, ok := rpcClients.Load(gameId); ok {
 		return client.(proto.RouteConnectGameClient), nil
 	}
-	client, err := gen_server.Call(PLAYER_RPC_SERVER, "connectScene", sceneId)
+	client, err := gen_server.Call(PLAYER_RPC_SERVER, "connectGame", gameId)
 	if err != nil {
-		logger.ERR("connectScene failed: ", err)
+		logger.ERR("connectGame failed: ", err)
 		return nil, err
 	}
 	return client.(proto.RouteConnectGameClient), nil
@@ -138,20 +140,13 @@ func (self *PlayerRPC) HandleCast(args []interface{}) {
 
 func (self *PlayerRPC) HandleCall(args []interface{}) (interface{}, error) {
 	handle := args[0].(string)
-	if handle == "connectScene" {
-		sceneId := args[1].(string)
-		if client, ok := rpcClients.Load(sceneId); ok {
-			return client, nil
-		}
-		scene, err := scene_utils.FindScene(sceneId)
+	if handle == "connectGame" {
+		gameId := args[1].(string)
+		game, err := game_utils.Find(gameId)
 		if err != nil {
 			return nil, err
 		}
-		game, err := game_utils.Find(scene.GameAppId)
-		if err != nil {
-			return nil, err
-		}
-		client, err := connectGame(sceneId, game)
+		client, err := connectGame(game)
 		return client, err
 	}
 	return nil, nil
@@ -161,7 +156,7 @@ func (self *PlayerRPC) Terminate(reason string) (err error) {
 	return nil
 }
 
-func connectGame(sceneId string, game *game_utils.Game) (proto.RouteConnectGameClient, error) {
+func connectGame(game *game_utils.Game) (proto.RouteConnectGameClient, error) {
 	conf := gosconf.RPC_FOR_CONNECT_APP_MGR
 	addr := fmt.Sprintf("%s:%s", game.Host, game.Port)
 	conn, err := grpc.Dial(addr, conf.DialOptions...)
@@ -170,17 +165,20 @@ func connectGame(sceneId string, game *game_utils.Game) (proto.RouteConnectGameC
 		return nil, err
 	}
 	client := proto.NewRouteConnectGameClient(conn)
-	rpcClients.Store(sceneId, client)
+	rpcClients.Store(game.Uuid, client)
 	return client, nil
 }
 
 func parseData(requestData []byte) (decode_method string, params interface{}, err error) {
 	reader := packet.Reader(requestData)
-	reader.ReadDataLength()
+	_, err = reader.ReadDataLength()
+	if err != nil {
+		return
+	}
 	decode_method, params, err = api.ParseRequestData(reader.RemainData())
 	if err != nil {
 		logger.ERR("player_rpc parseData failed: ", err)
-		return decode_method, nil, err
+		return
 	}
-	return decode_method, params, nil
+	return
 }

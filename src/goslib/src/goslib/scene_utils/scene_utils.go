@@ -1,16 +1,15 @@
 package scene_utils
 
 import (
+	"github.com/go-redis/redis"
 	"gosconf"
 	"goslib/logger"
 	"goslib/redisdb"
 )
 
 type Scene struct {
-	Uuid        string
-	GameAppId   string
-	GameAppHost string
-	GameAppPort string
+	Uuid      string
+	GameAppId string
 }
 
 func GenUuid(sceneId string) string {
@@ -34,12 +33,12 @@ func LoadScenes(mapScenes map[string]*Scene) {
 
 func FindScene(sceneId string) (*Scene, error) {
 	sceneMap, err := redisdb.Instance().HGetAll(sceneId).Result()
+	if err == redis.Nil {
+		return nil, nil
+	}
 	if err != nil {
 		logger.ERR("findScene: ", sceneId, " failed: ", err)
 		return nil, err
-	}
-	if len(sceneMap) == 0 {
-		return nil, nil
 	}
 	return parseScene(sceneMap), nil
 }
@@ -58,8 +57,6 @@ func (self *Scene) Save() error {
 	params := make(map[string]interface{})
 	params["uuid"] = self.Uuid
 	params["gameAppId"] = self.GameAppId
-	params["gameAppHost"] = self.GameAppHost
-	params["gameAppPort"] = self.GameAppPort
 	_, err := redisdb.Instance().HMSet(self.Uuid, params).Result()
 	if err != nil {
 		logger.ERR("Save game failed: ", err)
@@ -72,9 +69,7 @@ func parseScene(valueMap map[string]string) *Scene {
 		return nil
 	}
 	return &Scene{
-		Uuid:        valueMap["uuid"],
-		GameAppId:   valueMap["gameAppId"],
-		GameAppHost: valueMap["gameAppHost"],
-		GameAppPort: valueMap["gameAppPort"],
+		Uuid:      valueMap["uuid"],
+		GameAppId: valueMap["gameAppId"],
 	}
 }

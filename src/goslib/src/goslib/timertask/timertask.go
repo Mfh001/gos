@@ -124,6 +124,9 @@ func (t *TimerTask) add(key string, runAt int64, content string) error {
 
 func (t *TimerTask) update(key string, runAt int64) error {
 	score, err := redisdb.Instance().ZScore(KEY, key).Result()
+	if err == redis.Nil {
+		return nil
+	}
 	if err != nil {
 		return err
 	}
@@ -167,6 +170,9 @@ func (t *TimerTask) del(key string) error {
 
 func (t *TimerTask) handleTask(key string) error {
 	content, err := redisdb.Instance().Get(mfa_key(key)).Result()
+	if err == redis.Nil {
+		return nil
+	}
 	if err != nil {
 		return err
 	}
