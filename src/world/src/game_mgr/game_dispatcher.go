@@ -39,6 +39,7 @@ func fastDispatch(accountId, sceneId string) (*DispatchInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if scene == nil {
 		scene, err = dispatchScene(sceneId)
 		if err != nil {
@@ -48,14 +49,21 @@ func fastDispatch(accountId, sceneId string) (*DispatchInfo, error) {
 			return nil, errors.New("scene not found")
 		}
 	}
+
 	err = setGameAppIdToSession(accountId, scene.GameAppId)
 	if err != nil {
 		return nil, err
 	}
+
+	game, err := game_utils.Find(scene.GameAppId)
+	if err != nil {
+		return nil, err
+	}
+
 	return &DispatchInfo{
-		AppId:   scene.GameAppId,
-		AppHost: scene.GameAppHost,
-		AppPort: scene.GameAppPort,
+		AppId:   game.Uuid,
+		AppHost: game.Host,
+		AppPort: game.Port,
 	}, nil
 }
 
@@ -85,8 +93,8 @@ func dispatchScene(sceneId string) (*scene_utils.Scene, error) {
 	locked, err := redisdb.Instance().SetNX(lockKey, "uuid", 10*time.Second).Result()
 	if locked {
 		scene, err := scene_utils.CreateScene(&scene_utils.Scene{
-			Uuid:        scene_utils.GenUuid(sceneId),
-			GameAppId:   game.Uuid,
+			Uuid:      scene_utils.GenUuid(sceneId),
+			GameAppId: game.Uuid,
 		})
 		redisdb.Instance().Del(lockKey)
 		return scene, err
