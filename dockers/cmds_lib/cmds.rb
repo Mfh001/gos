@@ -4,7 +4,7 @@ class Cmds
     File.open(docker_filename, "w") do |io|
       io.write(%Q{\
   FROM alpine
-  ADD ./#{app_name}/bin/#{app_name} /
+  ADD ./src/#{app_name}/bin/#{app_name} /
   CMD ["/#{app_name}"]
   })
     end

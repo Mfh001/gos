@@ -1,28 +1,17 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: gos-game-service
-  labels:
-    app: gos-game-service
-spec:
-  ports:
-  - port: 50053
-    name: tcp
-  clusterIP: None
-  selector:
-    app: gos-game-app
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: gos-game-app
+  annotations:
+    service-per-pod-label: statefulset.kubernetes.io/pod-name
+    service-per-pod-ports: "4000:4000"
 spec:
-  podManagementPolicy: Parallel
-  serviceName: "gos-game-service"
   selector:
     matchLabels:
       app: gos-game-app
-  replicas: 3
+  serviceName: gos-game-app
+  podManagementPolicy: Parallel
+  replicas: 1
   template:
     metadata:
       labels:
@@ -34,8 +23,10 @@ spec:
         image: savin198/gos-game-app
         imagePullPolicy: Always
         ports:
-        - containerPort: 50053
+        - containerPort: 4000
           name: tcp
+        - containerPort: 50053
+          name: rpc
         volumeMounts:
         - name: tcp
           mountPath: /usr/share/apps/gos-game

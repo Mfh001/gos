@@ -64,14 +64,20 @@ func encodeLoginResponse(buffer *packet.Packet, value interface{}) error {
 	return err
 }
 
-func encodeJoinParams(buffer *packet.Packet, value interface{}) error {
-	data, err := proto.Marshal(value.(*pt.JoinParams))
+func encodeRoomJoinParams(buffer *packet.Packet, value interface{}) error {
+	data, err := proto.Marshal(value.(*pt.RoomJoinParams))
 	buffer.WriteBytes(data)
 	return err
 }
 
-func encodeJoinResponse(buffer *packet.Packet, value interface{}) error {
-	data, err := proto.Marshal(value.(*pt.JoinResponse))
+func encodeRoomJoinResponse(buffer *packet.Packet, value interface{}) error {
+	data, err := proto.Marshal(value.(*pt.RoomJoinResponse))
+	buffer.WriteBytes(data)
+	return err
+}
+
+func encodeRoomJoinNotice(buffer *packet.Packet, value interface{}) error {
+	data, err := proto.Marshal(value.(*pt.RoomJoinNotice))
 	buffer.WriteBytes(data)
 	return err
 }
@@ -88,8 +94,9 @@ var encode_handlers = map[string]EncodeHandler{
 	"EquipUnLoadParams":   encodeEquipUnLoadParams,
 	"EquipUnLoadResponse": encodeEquipUnLoadResponse,
 	"LoginResponse":       encodeLoginResponse,
-	"JoinParams":          encodeJoinParams,
-	"JoinResponse":        encodeJoinResponse}
+	"RoomJoinParams":      encodeRoomJoinParams,
+	"RoomJoinResponse":    encodeRoomJoinResponse,
+	"RoomJoinNotice":      encodeRoomJoinNotice}
 
 func Encode(encode_method string, v interface{}) (*packet.Packet, error) {
 	protocol := pt.NameToId[encode_method]

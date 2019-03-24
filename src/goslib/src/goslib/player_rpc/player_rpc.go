@@ -115,16 +115,16 @@ func crossRequestPlayer(session *session_utils.Session, data []byte) (interface{
 	return params, nil
 }
 
-func getClient(gameId string) (proto.RouteConnectGameClient, error) {
+func getClient(gameId string) (proto.GameRpcServerClient, error) {
 	if client, ok := rpcClients.Load(gameId); ok {
-		return client.(proto.RouteConnectGameClient), nil
+		return client.(proto.GameRpcServerClient), nil
 	}
 	client, err := gen_server.Call(PLAYER_RPC_SERVER, "connectGame", gameId)
 	if err != nil {
 		logger.ERR("connectGame failed: ", err)
 		return nil, err
 	}
-	return client.(proto.RouteConnectGameClient), nil
+	return client.(proto.GameRpcServerClient), nil
 }
 
 func delClient(gameAppId string) {
@@ -156,15 +156,15 @@ func (self *PlayerRPC) Terminate(reason string) (err error) {
 	return nil
 }
 
-func connectGame(game *game_utils.Game) (proto.RouteConnectGameClient, error) {
+func connectGame(game *game_utils.Game) (proto.GameRpcServerClient, error) {
 	conf := gosconf.RPC_FOR_CONNECT_APP_MGR
-	addr := fmt.Sprintf("%s:%s", game.Host, game.Port)
+	addr := fmt.Sprintf("%s:%s", game.Host, game.RpcPort)
 	conn, err := grpc.Dial(addr, conf.DialOptions...)
 	if err != nil {
 		logger.ERR("connect AgentMgr failed: ", err)
 		return nil, err
 	}
-	client := proto.NewRouteConnectGameClient(conn)
+	client := proto.NewGameRpcServerClient(conn)
 	rpcClients.Store(game.Uuid, client)
 	return client, nil
 }

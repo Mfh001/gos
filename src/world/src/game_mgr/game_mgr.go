@@ -19,7 +19,7 @@ func Start() {
 
 func startGameAppMgrRPC() {
 	conf := gosconf.RPC_FOR_GAME_APP_MGR
-	lis, err := net.Listen(conf.ListenNet, conf.ListenAddr)
+	lis, err := net.Listen(conf.ListenNet, net.JoinHostPort("", conf.ListenPort))
 	if err != nil {
 		logger.ERR("failed to listen: ", err)
 	}
@@ -34,7 +34,7 @@ func startGameAppMgrRPC() {
 
 // DispatchPlayer implements connectAppProto.DispatchPlayer
 func (s *gameAppMgr) DispatchGame(ctx context.Context, in *proto.DispatchGameRequest) (*proto.DispatchGameReply, error) {
-	info, err := dispatchGame(in.AccountId, in.SceneId)
+	info, err := DispatchGame(in.AccountId, in.SceneId)
 	if err != nil {
 		return nil, err
 	}

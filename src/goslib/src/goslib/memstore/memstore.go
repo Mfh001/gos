@@ -37,7 +37,7 @@ type MemStore struct {
 var sharedDBInstance *gorp.DbMap
 
 func StartDB() error {
-	db, err := sql.Open("mysql", "root:@/gos_server_development")
+	db, err := sql.Open("mysql", "root:euQRdwMgb1@tcp(single-mysql.default.svc.cluster.local)/gos_server_development")
 	if err != nil {
 		return err
 	}

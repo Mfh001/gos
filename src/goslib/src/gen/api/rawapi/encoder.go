@@ -82,14 +82,21 @@ func encodeLoginResponse(buffer *packet.Packet, value interface{}) {
 	}
 }
 
-func encodeJoinParams(buffer *packet.Packet, value interface{}) {
-	v := value.(*pt.JoinParams)
+func encodeRoomJoinParams(buffer *packet.Packet, value interface{}) {
+	v := value.(*pt.RoomJoinParams)
 	buffer.WriteString(v.RoomId)
+	buffer.WriteString(v.PlayerId)
 }
 
-func encodeJoinResponse(buffer *packet.Packet, value interface{}) {
-	v := value.(*pt.JoinResponse)
+func encodeRoomJoinResponse(buffer *packet.Packet, value interface{}) {
+	v := value.(*pt.RoomJoinResponse)
 	buffer.WriteBool(v.Success)
+}
+
+func encodeRoomJoinNotice(buffer *packet.Packet, value interface{}) {
+	v := value.(*pt.RoomJoinNotice)
+	buffer.WriteString(v.RoomId)
+	buffer.WriteString(v.NewPlayerId)
 }
 
 type EncodeHandler func(buffer *packet.Packet, value interface{})
@@ -104,8 +111,9 @@ var encode_handlers = map[string]EncodeHandler{
 	"EquipUnLoadParams":   encodeEquipUnLoadParams,
 	"EquipUnLoadResponse": encodeEquipUnLoadResponse,
 	"LoginResponse":       encodeLoginResponse,
-	"JoinParams":          encodeJoinParams,
-	"JoinResponse":        encodeJoinResponse}
+	"RoomJoinParams":      encodeRoomJoinParams,
+	"RoomJoinResponse":    encodeRoomJoinResponse,
+	"RoomJoinNotice":      encodeRoomJoinNotice}
 
 func Encode(encode_method string, v interface{}) *packet.Packet {
 	protocol := pt.NameToId[encode_method]

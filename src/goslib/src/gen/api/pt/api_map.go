@@ -14,8 +14,9 @@ var NameToId = map[string]uint16{
 	"EquipUnLoadParams":   uint16(7),
 	"EquipUnLoadResponse": uint16(8),
 	"LoginResponse":       uint16(9),
-	"JoinParams":          uint16(10),
-	"JoinResponse":        uint16(11),
+	"RoomJoinParams":      uint16(10),
+	"RoomJoinResponse":    uint16(11),
+	"RoomJoinNotice":      uint16(12),
 }
 
 var IdToName = map[uint16]string{
@@ -28,8 +29,9 @@ var IdToName = map[uint16]string{
 	uint16(7):  "EquipUnLoadParams",
 	uint16(8):  "EquipUnLoadResponse",
 	uint16(9):  "LoginResponse",
-	uint16(10): "JoinParams",
-	uint16(11): "JoinResponse",
+	uint16(10): "RoomJoinParams",
+	uint16(11): "RoomJoinResponse",
+	uint16(12): "RoomJoinNotice",
 }
 
 var IdToType = map[uint16]int{
@@ -44,6 +46,7 @@ var IdToType = map[uint16]int{
 	uint16(9):  PT_TYPE_GS,
 	uint16(10): PT_TYPE_ROOM,
 	uint16(11): PT_TYPE_ROOM,
+	uint16(12): PT_TYPE_ROOM,
 }
 
 const (
@@ -56,8 +59,9 @@ const (
 	PT_EquipUnLoadParams   = "EquipUnLoadParams"
 	PT_EquipUnLoadResponse = "EquipUnLoadResponse"
 	PT_LoginResponse       = "LoginResponse"
-	PT_JoinParams          = "JoinParams"
-	PT_JoinResponse        = "JoinResponse"
+	PT_RoomJoinParams      = "RoomJoinParams"
+	PT_RoomJoinResponse    = "RoomJoinResponse"
+	PT_RoomJoinNotice      = "RoomJoinNotice"
 )
 
 const (

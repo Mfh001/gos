@@ -1,6 +1,7 @@
 package scene_mgr
 
 import (
+	"github.com/go-redis/redis"
 	"goslib/gen_server"
 	"goslib/logger"
 	"goslib/redisdb"
@@ -57,6 +58,10 @@ func (self *SceneMgr) Terminate(reason string) (err error) {
 
 func doLoadScene(sceneId string) {
 	valueMap, err := redisdb.Instance().HGetAll(sceneId).Result()
+	if err == redis.Nil || len(valueMap) == 0 {
+		logger.ERR("LoadScene failed: scene not found ", sceneId)
+		return
+	}
 	if err != nil {
 		logger.ERR("LoadScene failed: ", sceneId, " err: ", err)
 		return

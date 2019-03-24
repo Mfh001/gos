@@ -186,20 +186,38 @@ func decodeLoginResponse(buffer *packet.Packet) (interface{}, error) {
 	return data, err
 }
 
-func decodeJoinParams(buffer *packet.Packet) (interface{}, error) {
+func decodeRoomJoinParams(buffer *packet.Packet) (interface{}, error) {
 	var err error
-	data := &pt.JoinParams{}
+	data := &pt.RoomJoinParams{}
 	data.RoomId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.PlayerId, err = buffer.ReadString()
 	if err != nil {
 		return nil, err
 	}
 	return data, err
 }
 
-func decodeJoinResponse(buffer *packet.Packet) (interface{}, error) {
+func decodeRoomJoinResponse(buffer *packet.Packet) (interface{}, error) {
 	var err error
-	data := &pt.JoinResponse{}
+	data := &pt.RoomJoinResponse{}
 	data.Success, err = buffer.ReadBool()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
+}
+
+func decodeRoomJoinNotice(buffer *packet.Packet) (interface{}, error) {
+	var err error
+	data := &pt.RoomJoinNotice{}
+	data.RoomId, err = buffer.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	data.NewPlayerId, err = buffer.ReadString()
 	if err != nil {
 		return nil, err
 	}
@@ -218,8 +236,9 @@ var decode_handlers = map[string]DecodeHandler{
 	"EquipUnLoadParams":   decodeEquipUnLoadParams,
 	"EquipUnLoadResponse": decodeEquipUnLoadResponse,
 	"LoginResponse":       decodeLoginResponse,
-	"JoinParams":          decodeJoinParams,
-	"JoinResponse":        decodeJoinResponse}
+	"RoomJoinParams":      decodeRoomJoinParams,
+	"RoomJoinResponse":    decodeRoomJoinResponse,
+	"RoomJoinNotice":      decodeRoomJoinNotice}
 
 func Decode(decode_method string, buffer *packet.Packet) (interface{}, error) {
 	if handler, ok := decode_handlers[decode_method]; ok {

@@ -66,14 +66,20 @@ func decodeLoginResponse(buffer *packet.Packet) (interface{}, error) {
 	return data, err
 }
 
-func decodeJoinParams(buffer *packet.Packet) (interface{}, error) {
-	data := &pt.JoinParams{}
+func decodeRoomJoinParams(buffer *packet.Packet) (interface{}, error) {
+	data := &pt.RoomJoinParams{}
 	err := json.Unmarshal(buffer.RemainData(), data)
 	return data, err
 }
 
-func decodeJoinResponse(buffer *packet.Packet) (interface{}, error) {
-	data := &pt.JoinResponse{}
+func decodeRoomJoinResponse(buffer *packet.Packet) (interface{}, error) {
+	data := &pt.RoomJoinResponse{}
+	err := json.Unmarshal(buffer.RemainData(), data)
+	return data, err
+}
+
+func decodeRoomJoinNotice(buffer *packet.Packet) (interface{}, error) {
+	data := &pt.RoomJoinNotice{}
 	err := json.Unmarshal(buffer.RemainData(), data)
 	return data, err
 }
@@ -90,8 +96,9 @@ var decode_handlers = map[string]DecodeHandler{
 	"EquipUnLoadParams":   decodeEquipUnLoadParams,
 	"EquipUnLoadResponse": decodeEquipUnLoadResponse,
 	"LoginResponse":       decodeLoginResponse,
-	"JoinParams":          decodeJoinParams,
-	"JoinResponse":        decodeJoinResponse}
+	"RoomJoinParams":      decodeRoomJoinParams,
+	"RoomJoinResponse":    decodeRoomJoinResponse,
+	"RoomJoinNotice":      decodeRoomJoinNotice}
 
 func Decode(decode_method string, buffer *packet.Packet) (interface{}, error) {
 	if handler, ok := decode_handlers[decode_method]; ok {

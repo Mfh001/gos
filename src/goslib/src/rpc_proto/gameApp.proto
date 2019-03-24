@@ -1,6 +1,3 @@
-// Generate Proto At ./AuthApp
-// protoc -I src/connectAppProto --go_out=plugins=grpc:src/connectAppProto src/connectAppProto/connectApp.proto
-
 syntax = "proto3";
 
 package connectApp;
@@ -13,8 +10,7 @@ service GameDispatcher {
 
 message DispatchGameRequest {
     string accountId = 1;
-    string serverId = 2;
-    string sceneId = 3;
+    string sceneId   = 3;
 }
 
 message DispatchGameReply {

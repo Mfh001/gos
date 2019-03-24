@@ -53,11 +53,17 @@ package pt;
     repeated int32 Ages = 7;
   }
   
-  message JoinParams {
+  message RoomJoinParams {
       string RoomId = 1;
+    string PlayerId = 2;
   }
   
-  message JoinResponse {
+  message RoomJoinResponse {
       bool Success = 1;
+  }
+  
+  message RoomJoinNotice {
+      string RoomId = 1;
+    string NewPlayerId = 2;
   }
   

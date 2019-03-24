@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"gen/api/pt"
-	"gen/proto"
 	"gosconf"
 	"goslib/api"
 	"goslib/broadcast"
+	"goslib/game_server/interfaces"
 	"goslib/gen_server"
 	"goslib/logger"
 	"goslib/memstore"
@@ -21,7 +21,7 @@ import (
 type Player struct {
 	PlayerId     string
 	Store        *memstore.MemStore
-	stream       proto.RouteConnectGame_AgentStreamServer
+	Agents       map[string]interfaces.AgentBehavior
 	processed    int
 	activeTimer  *time.Timer
 	persistTimer *time.Timer
@@ -38,16 +38,16 @@ const EXPIRE_DURATION = 1800
 var BroadcastHandler func(*Player, *broadcast.BroadcastMsg) = nil
 var CurrentGameAppId string
 
-func Connected(accountId string, stream proto.RouteConnectGame_AgentStreamServer) {
-	CastPlayer(accountId, "connected", stream)
+func Connected(accountId string, agentId string, agent interfaces.AgentBehavior) error {
+	return CastPlayer(accountId, "connected", agentId, agent)
 }
 
-func Disconnected(accountId string) {
-	CastPlayer(accountId, "disconnected")
+func Disconnected(accountId, agentId string) error {
+	return CastPlayer(accountId, "disconnected", agentId)
 }
 
-func HandleRequest(accountId string, requestData []byte) {
-	CastPlayer(accountId, "handleRequest", requestData)
+func HandleRequest(accountId, agentId string, requestData []byte) error {
+	return CastPlayer(accountId, "handleRequest", agentId, requestData)
 }
 
 func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
@@ -64,10 +64,6 @@ func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
 	return EncodeResponseData(reply.EncodeMethod, reply.Response)
 }
 
-func HandleRPCCast(accountId string, requestData []byte) {
-	CastPlayer(accountId, "handleRPCCast", requestData)
-}
-
 func CallPlayer(accountId string, args ...interface{}) (interface{}, error) {
 	if !gen_server.Exists(accountId) {
 		err := StartPlayer(accountId)
@@ -78,11 +74,14 @@ func CallPlayer(accountId string, args ...interface{}) (interface{}, error) {
 	return gen_server.Call(accountId, args...)
 }
 
-func CastPlayer(accountId string, args ...interface{}) {
+func CastPlayer(accountId string, args ...interface{}) error {
 	if !gen_server.Exists(accountId) {
-		StartPlayer(accountId)
+		err := StartPlayer(accountId)
+		if err != nil {
+			return err
+		}
 	}
-	gen_server.Cast(accountId, args...)
+	return gen_server.Cast(accountId, args...)
 }
 
 /*
@@ -94,6 +93,7 @@ func (self *Player) Init(args []interface{}) (err error) {
 	self.PlayerId = name
 	self.Store = memstore.New(name, self)
 	self.lastActive = time.Now().Unix()
+	self.Agents = make(map[string]interfaces.AgentBehavior)
 	self.startActiveCheck()
 	self.startPersistTimer()
 
@@ -109,14 +109,17 @@ func (self *Player) Init(args []interface{}) (err error) {
 
 func (self *Player) startPersistTimer() {
 	self.persistTimer = time.AfterFunc(300*time.Second, func() {
-		gen_server.Cast(self.PlayerId, "PersistData")
+		err := gen_server.Cast(self.PlayerId, "PersistData")
+		if err != nil {
+			logger.ERR("Start PersistData failed: ", err)
+		}
 	})
 }
 
 func (self *Player) HandleCast(args []interface{}) {
 	method_name := args[0].(string)
 	if method_name == "handleRequest" {
-		self.handleRequest(args[1].([]byte))
+		self.handleRequest(args[1].(string), args[2].([]byte))
 	} else if method_name == "handleRPCCast" {
 		self.handleRPCCast(args[1].([]byte))
 	} else if method_name == "handleWrap" {
@@ -124,16 +127,22 @@ func (self *Player) HandleCast(args []interface{}) {
 	} else if method_name == "handleAsyncWrap" {
 		self.handleAsyncWrap(args[0].(func()))
 	} else if method_name == "PersistData" {
-		self.Store.Persist([]string{"models"})
+		err := self.Store.Persist([]string{"models"})
+		if err != nil {
+			logger.ERR("PersistData failed: ", err)
+		}
 		self.startPersistTimer()
 	} else if method_name == "removeConn" {
 		//self.Conn = nil
 	} else if method_name == "broadcast" {
 		self.handleBroadcast(args[1].(*broadcast.BroadcastMsg))
 	} else if method_name == "connected" {
-		self.stream = args[1].(proto.RouteConnectGame_AgentStreamServer)
+		agentId := args[1].(string)
+		agent := args[2].(interfaces.AgentBehavior)
+		self.Agents[agentId] = agent
 	} else if method_name == "disconnected" {
-		self.stream = nil
+		agentId := args[1].(string)
+		delete(self.Agents, agentId)
 	}
 }
 
@@ -151,16 +160,22 @@ func (self *Player) Terminate(reason string) (err error) {
 	fmt.Println("callback Termiante!")
 	self.activeTimer.Stop()
 	self.persistTimer.Stop()
-	self.Store.Persist([]string{"models"})
-	if ok := memstore.EnsurePersisted(self.PlayerId); !ok {
-		return errors.New("Persist player data failed!")
+	err = self.Store.Persist([]string{"models"})
+	if err != nil {
+		logger.ERR("Persist data failed: ", err)
+		return
 	}
-	return nil
+	if ok := memstore.EnsurePersisted(self.PlayerId); !ok {
+		err = errors.New("persist player data failed")
+		return
+	}
+	return
 }
 
 func (self *Player) startActiveCheck() {
 	if (self.lastActive + EXPIRE_DURATION) < time.Now().Unix() {
-		gen_server.Stop(self.PlayerId, "Shutdown inActive player!")
+		err := gen_server.Stop(self.PlayerId, "Shutdown inActive player!")
+		logger.ERR("Stop gen_server failed: ", err)
 	} else {
 		self.activeTimer = time.AfterFunc(10*time.Second, self.startActiveCheck)
 	}
@@ -174,19 +189,11 @@ func (self *Player) SystemInfo() int {
 	return runtime.NumCPU()
 }
 
-func (self *Player) SendData(encode_method string, msg interface{}) error {
-	writer, err := api.Encode(encode_method, msg)
-	if err != nil {
-		return err
-	}
-	data, err := writer.GetSendData()
-	if err != nil {
-		return err
-	}
-	return self.sendToClient(data)
+func (self *Player) SendData(agentId, encode_method string, msg interface{}) error {
+	return self.sendDataToStream(agentId, encode_method, msg)
 }
 
-func (self *Player) handleRequest(data []byte) {
+func (self *Player) handleRequest(agentId string, data []byte) error {
 	self.lastActive = time.Now().Unix()
 	if !gosconf.IS_DEBUG {
 		defer func() {
@@ -198,21 +205,11 @@ func (self *Player) handleRequest(data []byte) {
 
 	handler, params, err := api.ParseRequestDataForHander(data)
 	if err != nil {
-		logger.ERR(err)
-		data, err := failMsgData("error_route_not_found")
-		if err == nil {
-			self.sendToClient(data)
-		}
+		logger.ERR("ParseRequestDataForHander failed: ", err)
+		return self.sendDataToStream(agentId, pt.PT_Fail, &pt.Fail{Fail: "error_route_not_found"})
 	} else {
-		data, err := self.processRequest(handler, params)
-		if err != nil {
-			data, err := failMsgData("error_msg_encoding_failed")
-			if err == nil {
-				self.sendToClient(data)
-			}
-		} else {
-			self.sendToClient(data)
-		}
+		encode_method, msg := self.processRequest(handler, params)
+		return self.sendDataToStream(agentId, encode_method, msg)
 	}
 }
 
@@ -239,29 +236,11 @@ func EncodeResponseData(encode_method string, response interface{}) ([]byte, err
 	return writer.GetSendData()
 }
 
-func (self *Player) processRequest(handler routes.Handler, params interface{}) ([]byte, error) {
+func (self *Player) processRequest(handler routes.Handler, params interface{}) (string, interface{}) {
 	encode_method, response := handler(self, params)
 	self.processed++
 	logger.INFO("Processed: ", self.processed, " Response Data: ", response)
-	return EncodeResponseData(encode_method, response)
-}
-
-func (self *Player) sendToClient(data []byte) error {
-	if self.stream != nil {
-		err := self.stream.Send(&proto.RouteMsg{
-			Data: data,
-		})
-		if err != nil {
-			logger.ERR("sendToClient failed: ", err)
-			return err
-		} else {
-			return nil
-		}
-	} else {
-		errMsg := "sendToClient failed, connectAppId is nil"
-		logger.WARN(errMsg)
-		return errors.New(errMsg)
-	}
+	return encode_method, response
 }
 
 func (self *Player) handleWrap(fun func(ctx *Player) interface{}) interface{} {
@@ -296,27 +275,47 @@ func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
 	if self.PlayerId == targetPlayerId {
 		self.handleAsyncWrap(fun)
 	} else {
-		CastPlayer(targetPlayerId, "HandleAsyncWrap", fun)
+		err := CastPlayer(targetPlayerId, "HandleAsyncWrap", fun)
+		if err != nil {
+			logger.ERR("HandleAsyncWrap failed: ", err)
+		}
 	}
 }
 
-func (self *Player) JoinChannel(channel string) {
-	broadcast.JoinChannel(self.PlayerId, channel)
-}
-
-func (self *Player) LeaveChannel(channel string) {
-	broadcast.LeaveChannel(self.PlayerId, channel)
-}
-
-func (self *Player) PublishChannelMsg(channel, category string, data interface{}) {
-	broadcast.PublishChannelMsg(self.PlayerId, channel, category, data)
-}
-
-func failMsgData(errorMsg string) ([]byte, error) {
-	writer, err := api.Encode("Fail", &pt.Fail{Fail: errorMsg})
+func (self *Player) sendDataToStream(agentId, encode_method string, msg interface{}) error {
+	agent, ok := self.Agents[agentId]
+	if !ok {
+		for key, _ := range self.Agents {
+			logger.INFO("have agentId: ", key)
+		}
+		errMsg := fmt.Sprintf("sendDataToStream failed, agent not exists: ", agentId)
+		return errors.New(errMsg)
+	}
+	writer, err := api.Encode(encode_method, msg)
 	if err != nil {
-		logger.ERR("Encode msg failed: ", err)
-		return nil, err
+		logger.ERR("encode data failed: ", err)
+		return err
 	}
-	return writer.GetSendData()
+	data, err := writer.GetSendData()
+	if err != nil {
+		logger.ERR("encrypt data failed: ", err)
+		return err
+	}
+	return sendToClient(data, agent)
+}
+
+func sendToClient(data []byte, agent interfaces.AgentBehavior) error {
+	if agent != nil {
+		err := agent.SendMessage(data)
+		if err != nil {
+			logger.ERR("sendToClient failed: ", err)
+			return err
+		} else {
+			return nil
+		}
+	} else {
+		errMsg := "sendToClient failed, connectAppId is nil"
+		logger.WARN(errMsg)
+		return errors.New(errMsg)
+	}
 }

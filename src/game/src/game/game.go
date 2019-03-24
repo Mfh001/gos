@@ -3,14 +3,14 @@ package main
 import (
 	"app/custom_register"
 	"app/custom_register/callbacks"
-	"gosconf"
+	"app/gen_register"
 	"goslib/game_server"
 )
 
 func main() {
-	game_server.Start(gosconf.GAME_DOMAIN, func() {
+	game_server.Start(func() {
+		gen_register.RegisterRoutes()
 		custom_register.RegisterCustomDataLoader()
-		callbacks.RegisterBroadcast()
 		callbacks.RegisterSceneLoad()
 	})
 }

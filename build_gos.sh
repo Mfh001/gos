@@ -1,18 +1,10 @@
 #!/usr/bin/env bash
-basePath=$(pwd)/src/vendor
-
-# Build auth
-export GOPATH=$basePath:$(pwd)/src/auth:$(pwd)/src/goslib
-go install auth
-
-# Build agent
-export GOPATH=$basePath:$(pwd)/src/agent:$(pwd)/src/goslib:$(pwd)/src/game
-go install agent
+basePath=$(pwd)/src/vendor:$(pwd)/src/goslib
 
 # Build game
-export GOPATH=$basePath:$(pwd)/src/game:$(pwd)/src/goslib
+export GOPATH=$basePath:$(pwd)/src/game
 go install game
 
 # Build world
-export GOPATH=$basePath:$(pwd)/src/world:$(pwd)/src/goslib
+export GOPATH=$basePath:$(pwd)/src/world
 go install world

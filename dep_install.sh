@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-basePath=$(pwd)/vendor
+basePath=$(pwd)/src/vendor
 
 mkdir -p $basePath
 export GOPATH=$basePath
@@ -47,3 +47,5 @@ go get -u github.com/awa/go-iap/playstore
 
 # Websocket
 go get github.com/gorilla/websocket
+
+go get -u k8s.io/client-go/...

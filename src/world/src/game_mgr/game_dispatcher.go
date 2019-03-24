@@ -23,11 +23,11 @@ type DispatchInfo struct {
  * players with same sceneId will be dispatched to same game server by sceneId,
  * or will be dispatched to best score game server.
  */
-func dispatchGame(accountId, sceneId string) (*DispatchInfo, error) {
+func DispatchGame(accountId, sceneId string) (*DispatchInfo, error) {
 	if sceneId != "" {
 		return fastDispatch(accountId, sceneId)
 	} else {
-		return defaultDispatch(accountId)
+		return defaultDispatch(accountId, sceneId)
 	}
 }
 
@@ -47,7 +47,7 @@ func fastDispatch(accountId, sceneId string) (*DispatchInfo, error) {
 		}
 	}
 
-	err = setGameAppIdToSession(accountId, scene.GameAppId)
+	err = setGameAppIdToSession(accountId, scene.GameAppId, sceneId)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func fastDispatch(accountId, sceneId string) (*DispatchInfo, error) {
 	}, nil
 }
 
-func defaultDispatch(accountId string) (*DispatchInfo, error) {
+func defaultDispatch(accountId, sceneId string) (*DispatchInfo, error) {
 	game, err := chooseGameApp()
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func defaultDispatch(accountId string) (*DispatchInfo, error) {
 		if session != nil && session.GameAppId != "" {
 			return dispatchInfo(session.GameAppId)
 		}
-		err = setGameAppIdToSession(accountId, game.Uuid)
+		err = setGameAppIdToSession(accountId, game.Uuid, sceneId)
 		redisdb.Instance().Del(lockKey)
 		if err != nil {
 			return nil, err
@@ -140,7 +140,7 @@ type GameCompare struct {
 }
 
 func chooseGameApp() (*game_utils.Game, error) {
-	var games map[string]*game_utils.Game
+	games := make(map[string]*game_utils.Game)
 	err := game_utils.LoadGames(games)
 	if err != nil {
 		return nil, err
@@ -151,11 +151,13 @@ func chooseGameApp() (*game_utils.Game, error) {
 	}
 
 	list := make([]*GameCompare, len(games))
+	idx := 0
 	for _, game := range games {
-		list[len(list)] = &GameCompare{
+		list[idx] = &GameCompare{
 			Uuid:  game.Uuid,
 			Score: gameAppScore(game),
 		}
+		idx++
 	}
 
 	// Sort games by score from best to bad
@@ -184,7 +186,7 @@ func gameAppScore(game *game_utils.Game) int {
 	return int(ccuScore * 100)
 }
 
-func setGameAppIdToSession(accountId string, gameAppId string) error {
+func setGameAppIdToSession(accountId, gameAppId, sceneId string) error {
 	session, err := session_utils.Find(accountId)
 	if err != nil {
 		return err
@@ -193,10 +195,12 @@ func setGameAppIdToSession(accountId string, gameAppId string) error {
 		session, err = session_utils.Create(&session_utils.Session{
 			AccountId: accountId,
 			GameAppId: gameAppId,
+			SceneId:   sceneId,
 		})
 		return err
 	} else {
 		session.GameAppId = gameAppId
+		session.SceneId = sceneId
 		return session.Save()
 	}
 }

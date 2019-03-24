@@ -21,17 +21,17 @@ const (
 )
 
 const (
-	AGENT_PROTOCOL = AGENT_PROTOCOL_WS
-	AGENT_ENCODING = PROTOCOL_ENCODING_JSON
+	AGENT_PROTOCOL = AGENT_PROTOCOL_TCP
+	AGENT_ENCODING = PROTOCOL_ENCODING_RAW
 )
 
 var REDIS_CLUSTERS = []string{
-	"redis-cluster-0.redis-cluster.default.svc.cluster.local",
-	"redis-cluster-1.redis-cluster.default.svc.cluster.local",
-	"redis-cluster-2.redis-cluster.default.svc.cluster.local",
-	"redis-cluster-3.redis-cluster.default.svc.cluster.local",
-	"redis-cluster-4.redis-cluster.default.svc.cluster.local",
-	"redis-cluster-5.redis-cluster.default.svc.cluster.local",
+	"redis-cluster-0.redis-cluster.default.svc.cluster.local:6379",
+	"redis-cluster-1.redis-cluster.default.svc.cluster.local:6379",
+	"redis-cluster-2.redis-cluster.default.svc.cluster.local:6379",
+	"redis-cluster-3.redis-cluster.default.svc.cluster.local:6379",
+	"redis-cluster-4.redis-cluster.default.svc.cluster.local:6379",
+	"redis-cluster-5.redis-cluster.default.svc.cluster.local:6379",
 }
 
 const (
@@ -40,12 +40,10 @@ const (
 )
 
 const (
-	TCP_READ_TIMEOUT      = 60 * time.Second
-	HEARTBEAT             = 5 * time.Second
-	SERVICE_DEAD_DURATION = 16
-	RPC_REQUEST_TIMEOUT   = 5 * time.Second
-	AGENT_CCU_MAX         = 20000
-	GAME_CCU_MAX          = 6000
+	TCP_READ_TIMEOUT    = 60 * time.Second
+	HEARTBEAT           = 5 * time.Second
+	RPC_REQUEST_TIMEOUT = 5 * time.Second
+	GAME_CCU_MAX        = 6000
 )
 
 const (
@@ -77,7 +75,7 @@ type TCP struct {
 	Address string
 }
 
-var TCP_SERVER_CONNECT_APP = &TCP{
+var TCP_SERVER_GAME = &TCP{
 	Packet:  2,
 	Address: ":4000",
 }
@@ -87,21 +85,21 @@ Rpc Servers
 */
 type Rpc struct {
 	ListenNet   string // must be "tcp", "tcp4", "tcp6", "unix" or "unixpacket"
-	ListenAddr  string
+	ListenPort  string
 	DialAddress string
 	DialOptions []grpc.DialOption
 }
 
 var RPC_FOR_CONNECT_APP_MGR = &Rpc{
 	ListenNet:   "tcp4",
-	ListenAddr:  ":50051",
+	ListenPort:  "50051",
 	DialAddress: WORLD_SERVER_IP + ":50051",
 	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
 }
 
 var RPC_FOR_GAME_APP_MGR = &Rpc{
 	ListenNet:   "tcp4",
-	ListenAddr:  ":50052",
+	ListenPort:  "50052",
 	DialAddress: WORLD_SERVER_IP + ":50052",
 	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
 }
@@ -109,7 +107,15 @@ var RPC_FOR_GAME_APP_MGR = &Rpc{
 // Dial addresses are dynamic dispatched by GameAppMgr
 var RPC_FOR_GAME_APP_STREAM = &Rpc{
 	ListenNet:   "tcp4",
-	ListenAddr:  ":50053",
+	ListenPort:  "50053",
+	DialAddress: "",
+	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
+}
+
+// Dial addresses are dynamic dispatched by GameAppMgr
+var RPC_FOR_GAME_APP_RPC = &Rpc{
+	ListenNet:   "tcp4",
+	ListenPort:  "50054",
 	DialAddress: "",
 	DialOptions: []grpc.DialOption{grpc.WithInsecure()},
 }

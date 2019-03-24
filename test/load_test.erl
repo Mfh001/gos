@@ -86,7 +86,7 @@ bench(N, I) ->
     bench(N, I, undefined).
 
 bench(N, I, Session) ->
-    Sock = connect(4000),
+    Sock = connect(32171),
     Udid = "tt",
     StartTimeStamp = os:timestamp(),
 
@@ -117,7 +117,7 @@ bench(N, I, Session) ->
 
     run(N, I, Sock, Udid),
     StopTimeStamp = os:timestamp(),
-    result(StartTimeStamp, StopTimeStamp),
+    %result(StartTimeStamp, StopTimeStamp),
     exit(normal).
 
 connect(Port) ->
@@ -147,11 +147,11 @@ run(N, I, Sock, Udid) ->
                                        <<1:16>>, <<"b">>,
                                        <<1:16>>, <<"c">>])),
 
-    ets:update_counter(?TAB, sent, 1),
+    %ets:update_counter(?TAB, sent, 1),
     case gen_tcp:recv(Sock, 0) of
         {ok, Packet} -> 
-            % error_logger:info_msg("Response: ~p~n", [Packet]),
-            ets:update_counter(?TAB, count, 1),
+            error_logger:info_msg("Response: ~p~n", [Packet]),
+            %ets:update_counter(?TAB, count, 1),
             run(N-1, I, Sock, Udid);
         Error -> 
             case ?CLOSE_SOCKET of
@@ -159,8 +159,8 @@ run(N, I, Sock, Udid) ->
                     gen_tcp:close(Sock);
                 false -> do_nothing
             end,
-            error_logger:info_msg("error: ~p~n", [Error]),
-            ets:update_counter(?TAB, error, 1)
+            error_logger:info_msg("error: ~p~n", [Error])
+            %ets:update_counter(?TAB, error, 1)
     end.
 
 result(StartTimeStamp, StopTimeStamp) ->

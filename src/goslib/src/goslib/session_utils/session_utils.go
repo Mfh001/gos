@@ -13,20 +13,17 @@ type Session struct {
 
 	ServerId string
 
-	ConnectAppId string // AgentServer which served client socket
-
 	GameAppId string // GameServer which served scenes
 	SceneId   string // Scene is logic space, the players with same sceneId stay in same GameServer
 
 	RoomAppId string // RoomServer which served rooms
 	RoomId    string // Room which served player ROOM logic
-
 }
 
 func Find(accountId string) (*Session, error) {
 	uuid := "session:" + accountId
 	sessionMap, err := redisdb.Instance().HGetAll(uuid).Result()
-	if err == redis.Nil {
+	if err == redis.Nil || len(sessionMap) == 0 {
 		return nil, nil
 	}
 	if err != nil {
@@ -49,11 +46,14 @@ func (self *Session) Save() error {
 	params["AccountId"] = self.AccountId
 	params["ServerId"] = self.ServerId
 	params["SceneId"] = self.SceneId
-	params["ConnectAppId"] = self.ConnectAppId
 	params["GameAppId"] = self.GameAppId
 	params["RoomAppId"] = self.RoomAppId
 	params["RoomId"] = self.RoomId
 	params["Token"] = self.Token
+	logger.INFO("save session: ")
+	for k, v := range params {
+		logger.INFO(k, ":", v.(string))
+	}
 	_, err := redisdb.Instance().HMSet(self.Uuid, params).Result()
 	if err != nil {
 		logger.ERR("Save session failed: ", err)
@@ -62,17 +62,16 @@ func (self *Session) Save() error {
 }
 
 func parseSession(params map[string]string) *Session {
-	uuid := "session:" + params["accountId"]
+	uuid := "session:" + params["AccountId"]
 	return &Session{
-		Uuid:         uuid,
-		AccountId:    params["AccountId"],
-		ServerId:     params["ServerId"],
-		SceneId:      params["SceneId"],
-		ConnectAppId: params["ConnectAppId"],
-		GameAppId:    params["GameAppId"],
-		RoomAppId:    params["RoomAppId"],
-		RoomId:       params["RoomId"],
-		Token:        params["Token"],
+		Uuid:      uuid,
+		AccountId: params["AccountId"],
+		ServerId:  params["ServerId"],
+		SceneId:   params["SceneId"],
+		GameAppId: params["GameAppId"],
+		RoomAppId: params["RoomAppId"],
+		RoomId:    params["RoomId"],
+		Token:     params["Token"],
 	}
 }
 

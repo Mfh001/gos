@@ -9,17 +9,20 @@ import (
 )
 
 type Game struct {
-	Uuid     string
-	Host     string
-	Port     string
-	Ccu      int32
-	CcuMax   int32
-	ActiveAt int64
+	Uuid       string
+	Host       string
+	Port       string
+	RpcHost    string
+	RpcPort    string
+	StreamPort string
+	Ccu        int32
+	CcuMax     int32
+	ActiveAt   int64
 }
 
 func Find(uuid string) (*Game, error) {
 	valueMap, err := redisdb.Instance().HGetAll(uuid).Result()
-	if err == redis.Nil {
+	if err == redis.Nil || len(valueMap) == 0 {
 		return nil, nil
 	}
 	if err != nil {
@@ -64,6 +67,9 @@ func (self *Game) Save() error {
 	params["Uuid"] = self.Uuid
 	params["Host"] = self.Host
 	params["Port"] = self.Port
+	params["RpcHost"] = self.RpcHost
+	params["RpcPort"] = self.RpcPort
+	params["StreamPort"] = self.StreamPort
 	params["Ccu"] = self.Ccu
 	params["CcuMax"] = self.CcuMax
 	params["ActiveAt"] = self.ActiveAt
@@ -79,12 +85,15 @@ func parseObject(params map[string]string) *Game {
 	CcuMax, _ := strconv.Atoi(params["CcuMax"])
 	ActiveAt, _ := strconv.Atoi(params["ActiveAt"])
 	return &Game{
-		Uuid:     params["Uuid"],
-		Host:     params["Host"],
-		Port:     params["Port"],
-		Ccu:      int32(Ccu),
-		CcuMax:   int32(CcuMax),
-		ActiveAt: int64(ActiveAt),
+		Uuid:       params["Uuid"],
+		Host:       params["Host"],
+		Port:       params["Port"],
+		RpcHost:    params["RpcHost"],
+		RpcPort:    params["RpcPort"],
+		StreamPort: params["StreamPort"],
+		Ccu:        int32(Ccu),
+		CcuMax:     int32(CcuMax),
+		ActiveAt:   int64(ActiveAt),
 	}
 }
 

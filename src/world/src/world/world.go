@@ -1,12 +1,11 @@
 package main
 
 import (
-	"agent_mgr"
+	"auth"
 	"game_mgr"
-	//"RootMgr"
 )
 
 func main() {
-	go agent_mgr.Start()
+	auth.Start()
 	game_mgr.Start()
 }

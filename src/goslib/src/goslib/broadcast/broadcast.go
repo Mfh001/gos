@@ -2,9 +2,8 @@ package broadcast
 
 import (
 	"goslib/gen_server"
+	"goslib/logger"
 )
-
-const BROADCAST_SERVER_ID = "__broadcast_server__"
 
 type BroadcastMsg struct {
 	Category string
@@ -13,46 +12,55 @@ type BroadcastMsg struct {
 	Data     interface{}
 }
 
+type MsgHandler func(msg *BroadcastMsg)
+
 type Broadcast struct {
-	channels map[string](map[string]bool)
+	subscribers map[string]MsgHandler
 }
 
-func Start() {
-	gen_server.Start(BROADCAST_SERVER_ID, new(Broadcast))
+func Join(channel, playerId string, handler MsgHandler) error {
+	return castChannel(channel, "Join", playerId, handler)
 }
 
-func JoinChannel(playerId, channel string) {
-	gen_server.Cast(BROADCAST_SERVER_ID, "JoinChannel", playerId, channel)
+func Leave(channel, playerId string) error {
+	return castChannel(channel, "Leave", playerId)
 }
 
-func LeaveChannel(playerId, channel string) {
-	gen_server.Cast(BROADCAST_SERVER_ID, "LeaveChannel", playerId, channel)
-}
-
-func PublishChannelMsg(playerId, channel, category string, data interface{}) {
+func Publish(channel, playerId, category string, data interface{}) error {
 	msg := &BroadcastMsg{
 		Category: category,
 		Channel:  channel,
 		SenderId: playerId,
 		Data:     data,
 	}
-	gen_server.Cast(BROADCAST_SERVER_ID, "Publish", msg)
+	return castChannel(channel, "Publish", msg)
+}
+
+func castChannel(channel string, args ...interface{}) error {
+	if !gen_server.Exists(channel) {
+		err := StartChannel(channel)
+		if err != nil {
+			logger.ERR("start channel failed: ", err)
+			return err
+		}
+	}
+	return gen_server.Cast(channel, args...)
 }
 
 /*
    GenServer Callbacks
 */
 func (self *Broadcast) Init(args []interface{}) (err error) {
-	self.channels = make(map[string](map[string]bool))
+	self.subscribers = make(map[string]MsgHandler)
 	return nil
 }
 
 func (self *Broadcast) HandleCast(args []interface{}) {
 	method_name := args[0].(string)
-	if method_name == "JoinChannel" {
-		self.handleJoinChannel(args[1].(string), args[2].(string))
-	} else if method_name == "LeaveChannel" {
-		self.handleLeaveChannel(args[1].(string), args[2].(string))
+	if method_name == "Join" {
+		self.handleJoin(args[1].(string), args[1].(MsgHandler))
+	} else if method_name == "Leave" {
+		self.handleLeave(args[1].(string))
 	} else if method_name == "Publish" {
 		self.handlePublish(args[1].(*BroadcastMsg))
 	}
@@ -63,7 +71,7 @@ func (self *Broadcast) HandleCall(args []interface{}) (interface{}, error) {
 }
 
 func (self *Broadcast) Terminate(reason string) (err error) {
-	self.channels = nil
+	self.subscribers = nil
 	return nil
 }
 
@@ -71,31 +79,18 @@ func (self *Broadcast) Terminate(reason string) (err error) {
    Callback Handlers
 */
 
-func (self *Broadcast) handleJoinChannel(playerId, channel string) {
-	if v, ok := self.channels[channel]; ok {
-		v[playerId] = true
-	} else {
-		m := map[string]bool{}
-		m[playerId] = true
-		self.channels[channel] = m
-	}
+func (self *Broadcast) handleJoin(playerId string, handler MsgHandler) {
+	self.subscribers[playerId] = handler
 }
 
-func (self *Broadcast) handleLeaveChannel(playerId, channel string) {
-	if v, ok := self.channels[channel]; ok {
-		delete(v, playerId)
+func (self *Broadcast) handleLeave(playerId string) {
+	if _, ok := self.subscribers[playerId]; ok {
+		delete(self.subscribers, playerId)
 	}
 }
 
 func (self *Broadcast) handlePublish(msg *BroadcastMsg) {
-	channel := msg.Channel
-	if v, ok := self.channels[channel]; ok {
-		for id, _ := range v {
-			if _, ok := gen_server.GetGenServer(id); ok {
-				gen_server.Cast(id, "broadcast", msg)
-			} else {
-				delete(self.channels[channel], id)
-			}
-		}
+	for _, handler := range self.subscribers {
+		handler(msg)
 	}
 }

@@ -46,7 +46,11 @@ GS:
 
 # Room messages
 ROOM:
-  JoinParams:
+  RoomJoinParams:
     RoomId: string
-  JoinResponse:
+    PlayerId: string
+  RoomJoinResponse:
     Success: bool
+  RoomJoinNotice:
+    RoomId: string
+    NewPlayerId: string

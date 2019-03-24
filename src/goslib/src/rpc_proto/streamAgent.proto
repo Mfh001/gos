@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "proto";
+
+service GameStreamAgent {
+    // A Bidirectional streaming RPC.
+    rpc GameStream(stream StreamAgentMsg) returns (stream StreamAgentMsg) {}
+}
+
+message StreamAgentMsg {
+    int32 category = 2;
+    bytes data = 3;
+}

@@ -337,9 +337,10 @@ func (self *Server) setMemberData(memberId string, data MemberData) (string, err
 
 func (self *Server) getMemberData(memberId string) (MemberData, error) {
 	data, err := redisdb.Instance().HGetAll(memberDataKey(self.name, memberId)).Result()
-	if err == redis.Nil {
+	if err == redis.Nil || len(data) == 0 {
 		return data, nil
 	}
+	return data, err
 }
 
 func memberDataKey(leaderboard string, memberId string) string {

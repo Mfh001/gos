@@ -33,7 +33,7 @@ func LoadScenes(mapScenes map[string]*Scene) {
 
 func FindScene(sceneId string) (*Scene, error) {
 	sceneMap, err := redisdb.Instance().HGetAll(sceneId).Result()
-	if err == redis.Nil {
+	if err == redis.Nil || len(sceneMap) == 0 {
 		return nil, nil
 	}
 	if err != nil {
