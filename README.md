@@ -69,23 +69,34 @@ make push_docker_images
 ## Setup k8s
 ```bash
 #安装Helm
-brew install kubernetes-helm
+  brew install kubernetes-helm
 
-#部署Redis集群
-kubectl apply -f k8s/deps/redis-cluster.yml
-kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 \
-$(kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 ')
+#部署Redis
+  kubectl apply -f k8s/deps/redis/redis-cluster.yaml
+  kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 \
+  $(kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 ')
 
-#部署MySQL
-helm install stable/mysql --name single-mysql
+#部署Mysql
+  helm install stable/mysql --name single-mysql
 
 #部署Ingress-nginx
-helm install stable/nginx-ingress --name nginx-ingress
+  helm install stable/nginx-ingress --name nginx-ingress
+
+#部署ServicePerPod
+  # Create metacontroller namespace.
+  kubectl create namespace metacontroller
+  # Create metacontroller service account and role/binding.
+  kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/metacontroller/master/manifests/metacontroller-rbac.yaml
+  # Create CRDs for Metacontroller APIs, and the Metacontroller StatefulSet.
+  kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/metacontroller/master/manifests/metacontroller.yaml  
+
+  kubectl create configmap service-per-pod-hooks -n metacontroller --from-file=k8s/deps/service-per-pod/hooks
+  kubectl apply -f k8s/deps/service-per-pod/service-per-pod.yaml
+  
 
 #部署游戏服务
-kubectl apply -f dockers/k8s/depoyments/auth-service.yaml
-kubectl apply -f dockers/k8s/depoyments/connect-service.yaml
-kubectl apply -f dockers/k8s/depoyments/game-deployment.yaml
+  kubectl apply -f k8s/deployments/game-deployment.yaml
+  kubectl apply -f k8s/deployments/world-service.yaml
 ```
 
 ## TODO
