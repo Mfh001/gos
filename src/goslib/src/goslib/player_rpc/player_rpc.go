@@ -157,7 +157,7 @@ func (self *PlayerRPC) Terminate(reason string) (err error) {
 }
 
 func connectGame(game *game_utils.Game) (proto.GameRpcServerClient, error) {
-	conf := gosconf.RPC_FOR_CONNECT_APP_MGR
+	conf := gosconf.RPC_FOR_GAME_APP_RPC
 	addr := fmt.Sprintf("%s:%s", game.Host, game.RpcPort)
 	conn, err := grpc.Dial(addr, conf.DialOptions...)
 	if err != nil {

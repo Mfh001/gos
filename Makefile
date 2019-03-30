@@ -2,11 +2,17 @@
 setup:
 	sh dep_install.sh
 	mkdir -p src/goslib/src/gen/proto
+	mkdir -p src/goslib/src/gen/db
+	protoc -I src/game/src/protos --go_out=src/goslib/src/gen/schema src/game/src/protos/schema.proto
 	cd src/goslib && protoc -I src/rpc_proto --go_out=plugins=grpc:src/gen/proto src/rpc_proto/*.proto
 	cd generator && ./tools/gen_routes
 	cd generator && ./tools/gen_protocol
 	cd generator && bundle exec rake generate_config
 	cd generator && bundle exec rake generate_tables
+
+gen_player_schema:
+	mkdir -p src/goslib/src/gen/db
+	protoc -I src/game/src/protos --go_out=src/goslib/src/gen/db src/game/src/protos/schema.proto
 
 # Install dependent go packages
 dep_install:

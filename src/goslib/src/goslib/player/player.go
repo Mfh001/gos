@@ -4,13 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"gen/api/pt"
+	"gen/db"
 	"gosconf"
 	"goslib/api"
 	"goslib/broadcast"
 	"goslib/game_server/interfaces"
 	"goslib/gen_server"
 	"goslib/logger"
-	"goslib/memstore"
+	"goslib/player_data"
 	"goslib/routes"
 	"goslib/scene_mgr"
 	"goslib/session_utils"
@@ -20,7 +21,8 @@ import (
 
 type Player struct {
 	PlayerId     string
-	Store        *memstore.MemStore
+	ProcessDict  map[string]interface{}
+	Data         *db.PlayerData
 	Agents       map[string]interfaces.AgentBehavior
 	processed    int
 	activeTimer  *time.Timer
@@ -91,7 +93,12 @@ func (self *Player) Init(args []interface{}) (err error) {
 	name := args[0].(string)
 	fmt.Println("Player: ", name, " started!")
 	self.PlayerId = name
-	self.Store = memstore.New(name, self)
+	self.ProcessDict = make(map[string]interface{})
+	self.Data, err = player_data.Load(self.PlayerId)
+	if err != nil {
+		logger.ERR("Start player failed, cannot load PlayerData: ", err)
+		return err
+	}
 	self.lastActive = time.Now().Unix()
 	self.Agents = make(map[string]interfaces.AgentBehavior)
 	self.startActiveCheck()
@@ -119,7 +126,7 @@ func (self *Player) startPersistTimer() {
 func (self *Player) HandleCast(args []interface{}) {
 	method_name := args[0].(string)
 	if method_name == "handleRequest" {
-		self.handleRequest(args[1].(string), args[2].([]byte))
+		_ = self.handleRequest(args[1].(string), args[2].([]byte))
 	} else if method_name == "handleRPCCast" {
 		self.handleRPCCast(args[1].([]byte))
 	} else if method_name == "handleWrap" {
@@ -127,7 +134,8 @@ func (self *Player) HandleCast(args []interface{}) {
 	} else if method_name == "handleAsyncWrap" {
 		self.handleAsyncWrap(args[0].(func()))
 	} else if method_name == "PersistData" {
-		err := self.Store.Persist([]string{"models"})
+		//err := self.Store.Persist([]string{"models"})
+		err := player_data.Persist(self.PlayerId, self.Data)
 		if err != nil {
 			logger.ERR("PersistData failed: ", err)
 		}
@@ -160,13 +168,9 @@ func (self *Player) Terminate(reason string) (err error) {
 	fmt.Println("callback Termiante!")
 	self.activeTimer.Stop()
 	self.persistTimer.Stop()
-	err = self.Store.Persist([]string{"models"})
+	err = player_data.Return(self.PlayerId, self.Data)
 	if err != nil {
 		logger.ERR("Persist data failed: ", err)
-		return
-	}
-	if ok := memstore.EnsurePersisted(self.PlayerId); !ok {
-		err = errors.New("persist player data failed")
 		return
 	}
 	return
@@ -285,10 +289,10 @@ func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
 func (self *Player) sendDataToStream(agentId, encode_method string, msg interface{}) error {
 	agent, ok := self.Agents[agentId]
 	if !ok {
-		for key, _ := range self.Agents {
+		for key := range self.Agents {
 			logger.INFO("have agentId: ", key)
 		}
-		errMsg := fmt.Sprintf("sendDataToStream failed, agent not exists: ", agentId)
+		errMsg := fmt.Sprintf("sendDataToStream failed, agent not exists: %s", agentId)
 		return errors.New(errMsg)
 	}
 	writer, err := api.Encode(encode_method, msg)

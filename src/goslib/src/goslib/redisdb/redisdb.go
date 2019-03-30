@@ -7,12 +7,15 @@ import (
 
 var clusterClient *redis.ClusterClient
 
-func Instance() *redis.ClusterClient {
+func StartClient() {
 	if clusterClient == nil {
 		clusterClient = redis.NewClusterClient(&redis.ClusterOptions{
 			Addrs: gosconf.REDIS_CLUSTERS,
 		})
 	}
+}
+
+func Instance() *redis.ClusterClient {
 	return clusterClient
 }
 

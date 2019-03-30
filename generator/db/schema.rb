@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_05_02_060707) do
+ActiveRecord::Schema.define(version: 2019_03_29_163827) do
 
   create_table "equips", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.string "uuid"
@@ -21,6 +21,13 @@ ActiveRecord::Schema.define(version: 2018_05_02_060707) do
     t.string "equips"
     t.integer "exp"
     t.index ["uuid"], name: "index_equips_on_uuid", unique: true
+  end
+
+  create_table "player_datas", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.string "uuid"
+    t.text "content", limit: 16777215
+    t.integer "updated_at"
+    t.index ["uuid"], name: "index_player_datas_on_uuid", unique: true
   end
 
   create_table "schema_persistances", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|

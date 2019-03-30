@@ -7,8 +7,9 @@ import (
 	"goslib/game_server/agent"
 	"goslib/game_utils"
 	"goslib/logger"
-	"goslib/memstore"
+	"goslib/mysqldb"
 	"goslib/player"
+	"goslib/player_data"
 	"goslib/player_rpc"
 	"goslib/redisdb"
 	"goslib/scene_mgr"
@@ -33,15 +34,13 @@ type NodeInfo struct {
 func Start(customRegister func()) {
 	go utils.SysRoutine()
 
-	register.RegisterDataLoader()
 	customRegister()
 
-	err := memstore.StartDB()
+	err := mysqldb.StartClient()
 	if err != nil {
 		panic(err.Error())
 	}
-	memstore.StartDBPersister()
-	register.RegisterTables(memstore.GetSharedDBInstance())
+	register.RegisterTables(mysqldb.Instance())
 
 	broadcast.StartMgr()
 
@@ -51,6 +50,8 @@ func Start(customRegister func()) {
 	player_rpc.Start()
 
 	timertask.Start()
+
+	player_data.Start()
 
 	StartRpcStream()
 	agent.Start()

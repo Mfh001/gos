@@ -19,13 +19,11 @@ func (*RoomsController) Join(roomCtx *player.Player, params *pt.RoomJoinParams) 
 			Fail: "join room failed",
 		}
 	}
-	playerIds := roomCtx.Store.Get([]string{""}, "players")
-	if playerIds != nil {
-		err = broadcast.Publish(params.RoomId, params.PlayerId, pt.PT_RoomJoinNotice, &pt.RoomJoinNotice{
-			RoomId:      params.RoomId,
-			NewPlayerId: params.PlayerId,
-		})
-		logger.ERR("broadcast join msg failed: ", err)
-	}
+
+	err = broadcast.Publish(params.RoomId, params.PlayerId, pt.PT_RoomJoinNotice, &pt.RoomJoinNotice{
+		RoomId:      params.RoomId,
+		NewPlayerId: params.PlayerId,
+	})
+	logger.ERR("broadcast join msg failed: ", err)
 	return pt.PT_RoomJoinResponse, &pt.RoomJoinResponse{Success: true}
 }

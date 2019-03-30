@@ -10,8 +10,6 @@ task :generate_tables => :environment do
   structs_content = "#{header}package consts\n"
   struct_to_table_name = ""
   register_content = ""
-  data_loader = []
-  models = {}
 
   ActiveRecord::Base.connection.tables.each do |table_name|
     next if table_name == 'schema_migrations'
@@ -36,85 +34,6 @@ task :generate_tables => :environment do
     structs_content << "}\n"
     struct_to_table_name << %Q{"#{struct_name}": "#{table_name}",\n}
     register_content << %Q{    dbInstance.AddTableWithName(#{struct_name}{}, "#{table_name}").SetKeys(false, "uuid")\n}
-    data_loader << %Q{
-  memstore.RegisterDataLoader("#{table_name}", func(playerId string, ets *memstore.MemStore) {
-    var datas []#{struct_name}
-    ets.Db.Select(&datas, "SELECT * FROM #{table_name} where user_id=?", playerId)
-    for i := 0; i < len(datas); i++ {
-      data := datas[i]
-      model := &#{struct_name}Model{
-          Ctx: ets.Ctx.(*player.Player),
-          Data: &data,
-      }
-      ets.Load([]string{"models", "#{table_name}"}, data.Uuid, model)
-    }
-  })
-}
-
-    models[struct_name.downcase] = %Q{
-package models
-
-import (
-    . "gen/consts"
-    "fmt"
-    "goslib/player"
-    . "goslib/base_model"
-    "github.com/rs/xid"
-)
-type #{struct_name}Model struct {
-	Ctx *player.Player
-	Data *#{struct_name}
-}
-
-func Find#{struct_name}(ctx *player.Player, uuid string) *#{struct_name}Model {
-    if model := ctx.Store.Get([]string{"models", "#{table_name}"}, uuid); model != nil {
-        return model.(*#{struct_name}Model)
-    }
-	return nil
-}
-
-func Create#{struct_name}(ctx *player.Player, data *#{struct_name}) *#{struct_name}Model {
-    if data.Uuid == "" {
-        data.Uuid = xid.New().String()
-    }
-	model := &#{struct_name}Model{
-		Ctx: ctx,
-		Data: data,
-	}
-	ctx.Store.Set([]string{"models", "#{table_name}"}, data.Uuid, model)
-	return model
-}
-
-func (self *#{struct_name}Model) GetUuid() string {
-	return self.Data.Uuid
-}
-
-func (self *#{struct_name}Model) GetTableName() string {
-	return "#{table_name}"
-}
-
-func (self *#{struct_name}Model) Save() {
-	self.Ctx.Store.UpdateStatus("#{table_name}", self.GetUuid(), STATUS_UPDATE)
-}
-
-func (self *#{struct_name}Model) Delete() {
-	self.Ctx.Store.Del([]string{"models", "#{table_name}"}, self.GetUuid())
-	self.Ctx.Store.UpdateStatus("#{table_name}", self.GetUuid(), STATUS_DELETE)
-}
-
-func (self *#{struct_name}Model) SqlForRec(status int8) string {
-	data := self.Data
-	switch status {
-	case STATUS_DELETE:
-		return fmt.Sprintf("DELETE FROM `#{table_name}` WHERE `uuid`='%s'", data.Uuid)
-	case STATUS_CREATE:
-        return fmt.Sprintf("INSERT INTO `#{table_name}` (uuid, #{field_names.join(", ")}) VALUES ('%s', #{field_types.join(", ")})", data.Uuid, #{field_values.join(", ")})
-	case STATUS_UPDATE:
-        return fmt.Sprintf("UPDATE `#{table_name}` SET #{field_formatters.join(", ")} WHERE `uuid`='%s'", #{field_values.join(", ")}, data.Uuid)
-	}
-	return ""
-} 
-}
   end
 
   #################################################
@@ -151,42 +70,4 @@ func RegisterTables(dbInstance *gorp.DbMap) {
 }}
   end
   `go fmt #{path}`
-
-
-  #################################################
-  # Generate data_loader
-  #################################################
-  path = "../src/goslib/src/gen/register/register_data_loader.go"
-  File.open(path, "w") do |io|
-    io.write %Q{\
-#{header}
-package register
-
-import (
-  . "gen/consts"
-  . "gen/models"
-  "goslib/memstore"
-  "goslib/player"
-)
-
-func RegisterDataLoader() {\
-#{data_loader.join("\n")}
-}}
-  end
-  `go fmt #{path}`
-
-  #################################################
-  # Generate models
-  #################################################
-  `mkdir -p ../src/goslib/src/gen/models`
-  models.each do |model_name, content|
-    path = "../src/goslib/src/gen/models/#{model_name}_gen.go"
-    File.open(path, "w") do |io|
-      io.write %Q{\
-      #{header}
-      #{content}
-  }
-    end
-    `go fmt #{path}`
-  end
 end

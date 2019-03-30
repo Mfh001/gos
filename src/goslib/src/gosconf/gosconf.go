@@ -90,7 +90,7 @@ type Rpc struct {
 	DialOptions []grpc.DialOption
 }
 
-var RPC_FOR_CONNECT_APP_MGR = &Rpc{
+var RPC_FOR_CACHE_MGR = &Rpc{
 	ListenNet:   "tcp4",
 	ListenPort:  "50051",
 	DialAddress: WORLD_SERVER_IP + ":50051",

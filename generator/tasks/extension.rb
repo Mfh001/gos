@@ -1,14 +1,16 @@
 def convert_define(type)
-    case type.to_s
-    when 'integer'
-        'int'
-    when 'boolean'
-        'bool'
-    when 'float'
-        'float32'
-    else
-        type.to_s
-    end
+  case type.to_s
+  when 'integer'
+    'int'
+  when 'boolean'
+    'bool'
+  when 'float'
+    'float32'
+  when 'text'
+    'string'
+  else
+    type.to_s
+  end
 end
 
 def type_formatter(type)
@@ -20,7 +22,7 @@ def type_formatter(type)
     '%d'
   when 'bool'
     '%t'
-  when 'string'
+  when 'string', 'text'
     "'%s'"
   else
     raise "invalid type: #{type}"
@@ -28,7 +30,7 @@ def type_formatter(type)
 end
 
 def get_struct_name(table_name)
-    table_name.singularize.camelize
+  table_name.singularize.camelize
 end
 
 class String
@@ -41,15 +43,15 @@ class String
 end
 
 def gen_struct(table_name, field_names, field_types, db_tag = false)
-    struct_content = "type #{get_struct_name(table_name)} struct{\n"
-    field_names.each_with_index do |field_name, index|
-      field_type = field_types[index]
-      if db_tag
-        struct_content << %Q{    #{field_name.camelize} #{convert_define(field_type)} `db:"#{c.name}"`\n}
-      else
-        struct_content << %Q{    #{field_name.camelize} #{convert_define(field_type)}\n}
-      end
+  struct_content = "type #{get_struct_name(table_name)} struct{\n"
+  field_names.each_with_index do |field_name, index|
+    field_type = field_types[index]
+    if db_tag
+      struct_content << %Q{    #{field_name.camelize} #{convert_define(field_type)} `db:"#{c.name}"`\n}
+    else
+      struct_content << %Q{    #{field_name.camelize} #{convert_define(field_type)}\n}
     end
-    struct_content << "}"
-    return struct_content
+  end
+  struct_content << "}"
+  return struct_content
 end
