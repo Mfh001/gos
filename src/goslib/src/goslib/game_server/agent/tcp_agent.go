@@ -7,6 +7,7 @@ import (
 	"goslib/logger"
 	"io"
 	"net"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -19,12 +20,25 @@ type TCPAgent struct {
 
 func StartTCPAgent() {
 	tcpConf := gosconf.TCP_SERVER_GAME
-	l, err := net.Listen("tcp", tcpConf.Address)
+	var l net.Listener
+	var err error
+	switch gosconf.START_TYPE {
+	case gosconf.START_TYPE_ALL_IN_ONE:
+		l, err = net.Listen("tcp", net.JoinHostPort("", tcpConf.ListenPort))
+		break
+	case gosconf.START_TYPE_CLUSTER:
+		l, err = net.Listen("tcp", ":0")
+		break
+	case gosconf.START_TYPE_K8S:
+		l, err = net.Listen("tcp", net.JoinHostPort("", tcpConf.ListenPort))
+		break
+	}
+	AgentPort = strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
 	if err != nil {
 		logger.ERR("Connection listen failed: ", err)
 		panic(err)
 	}
-	logger.INFO("TcpAgent lis: ", tcpConf.Address)
+	logger.INFO("TcpAgent lis: ", AgentPort)
 
 	go acceptor(l)
 }
@@ -39,6 +53,10 @@ func acceptor(l net.Listener) {
 		logger.INFO("TCPAgent accepted new conn")
 		if err != nil {
 			logger.ERR("Connection accept failed: ", err)
+		}
+
+		if !enableAcceptConn {
+			break
 		}
 
 		go tcpHandler(conn)
@@ -60,6 +78,9 @@ func tcpHandler(conn net.Conn) {
 	atomic.AddInt32(&OnlinePlayers, 1)
 	for {
 		data, err := agent.receiveRequest(header)
+		if !enableAcceptMsg {
+			break
+		}
 		if err != nil {
 			break
 		}

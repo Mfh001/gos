@@ -44,7 +44,8 @@ func castChannel(channel string, args ...interface{}) error {
 			return err
 		}
 	}
-	return gen_server.Cast(channel, args...)
+	gen_server.Cast(channel, args...)
+	return nil
 }
 
 /*

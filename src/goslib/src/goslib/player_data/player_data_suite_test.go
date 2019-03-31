@@ -1,4 +1,4 @@
-package main
+package player_data
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestWorld(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "World Suite")
+	RunSpecs(t, "PlayerData Suite")
 }

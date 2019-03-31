@@ -27,6 +27,7 @@ ActiveRecord::Schema.define(version: 2019_03_29_163827) do
     t.string "uuid"
     t.text "content", limit: 16777215
     t.integer "updated_at"
+    t.index ["updated_at"], name: "index_player_datas_on_updated_at"
     t.index ["uuid"], name: "index_player_datas_on_uuid", unique: true
   end
 

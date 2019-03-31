@@ -12,6 +12,7 @@ import (
 	"gosconf"
 	"goslib/logger"
 	"io"
+	"net"
 	"time"
 )
 
@@ -20,7 +21,7 @@ var rpcClient proto_rpc.CacheRpcServerClient
 func Start() {
 	conf := gosconf.RPC_FOR_CACHE_MGR
 	for {
-		conn, err := grpc.Dial(conf.DialAddress, conf.DialOptions...)
+		conn, err := grpc.Dial(net.JoinHostPort(gosconf.GetWorldIP(), conf.ListenPort), conf.DialOptions...)
 		if err != nil {
 			logger.ERR("Start connect to cache_mgr failed: ", err)
 			time.Sleep(gosconf.HEARTBEAT)
@@ -89,6 +90,12 @@ func Compress(playerData *db.PlayerData) (string, error) {
 	writer := zlib.NewWriter(&in)
 	_, err = writer.Write(data)
 	if err != nil {
+		logger.INFO("player_data compress failed: ", err)
+		return "", err
+	}
+	err = writer.Close()
+	if err != nil {
+		logger.INFO("player_data compress close failed: ", err)
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(in.Bytes()), nil

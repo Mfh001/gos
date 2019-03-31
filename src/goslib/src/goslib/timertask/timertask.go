@@ -26,8 +26,13 @@ type TimerTask struct {
 const SERVER = "__TIMERTASK_SERVER__"
 const KEY = "TIMERTASK_KEYS"
 
-func Start() {
-	gen_server.Start(SERVER, new(TimerTask))
+func Start() error {
+	_, err := gen_server.Start(SERVER, new(TimerTask))
+	return err
+}
+
+func Stop() error {
+	return gen_server.Stop(SERVER, "shutdown")
 }
 
 func Add(key string, runAt int64, playerId string, encode_method string, params interface{}) error {
@@ -61,7 +66,10 @@ func (t *TimerTask) Init(args []interface{}) (err error) {
 	t.retry = make(map[string]int)
 	go func() {
 		for range t.taskTicker.C {
-			gen_server.Call(SERVER, "tickerTask")
+			_, err = gen_server.Call(SERVER, "tickerTask")
+			if err != nil {
+				logger.ERR("timertask tickerTask failed: ", err)
+			}
 		}
 	}()
 	return nil
@@ -73,7 +81,7 @@ func (t *TimerTask) HandleCall(args []interface{}) (interface{}, error) {
 }
 
 func (t *TimerTask) HandleCast(args []interface{}) {
-	t.handleCallAndCast(args)
+	_ = t.handleCallAndCast(args)
 }
 
 func (t *TimerTask) handleCallAndCast(args []interface{}) error {
@@ -194,6 +202,10 @@ func (t *TimerTask) tickerTask() {
 		return
 	}
 	for _, member := range members {
-		t.finish(member.Member.(string))
+		key := member.Member.(string)
+		err = t.finish(key)
+		if err != nil {
+			logger.ERR("finish timertask failed: ", key, err)
+		}
 	}
 }

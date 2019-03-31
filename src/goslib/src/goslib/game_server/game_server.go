@@ -18,7 +18,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -32,13 +35,16 @@ type NodeInfo struct {
 }
 
 func Start(customRegister func()) {
+	stopChan := make(chan os.Signal)
+	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
+
 	go utils.SysRoutine()
 
 	customRegister()
 
 	err := mysqldb.StartClient()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	register.RegisterTables(mysqldb.Instance())
 
@@ -46,10 +52,16 @@ func Start(customRegister func()) {
 
 	scene_mgr.Start()
 
-	player.StartManager()
+	err = player.StartManager()
+	if err != nil {
+		panic(err)
+	}
 	player_rpc.Start()
 
-	timertask.Start()
+	if err = timertask.Start(); err != nil {
+		logger.ERR("start timertask failed: ", err)
+		return
+	}
 
 	player_data.Start()
 
@@ -64,17 +76,98 @@ func Start(customRegister func()) {
 
 	player.CurrentGameAppId = hostname
 
-	for {
-		if nodeInfo, err := getNodeInfo(hostname); err == nil {
-			if err := reportGameInfo(nodeInfo); err != nil {
-				logger.ERR("reportGameInfo failed: ", err)
+	go func() {
+		for {
+			if nodeInfo, err := getNodeInfo(hostname); err == nil {
+				if err := reportGameInfo(nodeInfo); err != nil {
+					logger.ERR("reportGameInfo failed: ", err)
+				}
 			}
+			time.Sleep(gosconf.HEARTBEAT)
 		}
-		time.Sleep(gosconf.HEARTBEAT)
+	}()
+
+	<-stopChan // wait for SIGINT or SIGTERM
+	logger.INFO("Shutting down game server...")
+
+	shutdown()
+
+	logger.INFO("game server stopped")
+}
+
+func shutdown() {
+	// Stop tcp acceptor
+	logger.INFO("Stop acceptor")
+	agent.StopAcceptor()
+
+	// Stop receiving requests
+	logger.INFO("Stop accept message")
+	agent.StopAcceptMsg()
+
+	// Stop timertask
+	logger.INFO("Stop timertask")
+	if err := timertask.Stop(); err != nil {
+		logger.ERR("timertask stop failed: ", err)
 	}
+
+	// Stop players
+	logger.INFO("Stopping players")
+	player.EnsureShutdown()
 }
 
 func getNodeInfo(hostname string) (*NodeInfo, error) {
+	switch gosconf.START_TYPE {
+	case gosconf.START_TYPE_ALL_IN_ONE:
+		return getNodeInfoForAllInOne(hostname)
+	case gosconf.START_TYPE_CLUSTER:
+		return getNodeInfoForCluster(hostname)
+	case gosconf.START_TYPE_K8S:
+		return getNodeInfoForK8s(hostname)
+	}
+	return nil, nil
+}
+
+func getNodeInfoForAllInOne(hostname string) (*NodeInfo, error) {
+	rpcHost := "127.0.0.1"
+	rpcPort := gosconf.RPC_FOR_GAME_APP_RPC.ListenPort
+	streamPort := gosconf.RPC_FOR_GAME_APP_STREAM.ListenPort
+
+	return &NodeInfo{
+		Hostname:   hostname,
+		NodeHost:   "127.0.0.1",
+		NodePort:   agent.AgentPort,
+		RpcHost:    rpcHost,
+		RpcPort:    rpcPort,
+		StreamPort: streamPort,
+	}, nil
+}
+
+func getNodeInfoForCluster(hostname string) (*NodeInfo, error) {
+	rpcHost, err := utils.GetLocalIp()
+	if err != nil {
+		logger.ERR("get localIP failed: ", err)
+		panic(err)
+	}
+	rpcPort := gosconf.RPC_FOR_GAME_APP_RPC.ListenPort
+	streamPort := gosconf.RPC_FOR_GAME_APP_STREAM.ListenPort
+
+	nodeHost, err := utils.GetPublicIP()
+	if err != nil {
+		logger.ERR("get publicIP failed: ", err)
+		panic(err)
+	}
+
+	return &NodeInfo{
+		Hostname:   hostname,
+		NodeHost:   nodeHost,
+		NodePort:   agent.AgentPort,
+		RpcHost:    rpcHost,
+		RpcPort:    rpcPort,
+		StreamPort: streamPort,
+	}, nil
+}
+
+func getNodeInfoForK8s(hostname string) (*NodeInfo, error) {
 	var externalIP string
 	var internalIP string
 	var nodePort string
@@ -151,8 +244,6 @@ func reportGameInfo(nodeInfo *NodeInfo) error {
 		heartbeat(app)
 		time.Sleep(gosconf.HEARTBEAT)
 	}
-
-	return nil
 }
 
 func addGame(nodeInfo *NodeInfo) (*game_utils.Game, error) {

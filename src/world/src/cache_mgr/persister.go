@@ -22,12 +22,22 @@ type Persister struct {
 
 const SERVER = "__PERSISTER__"
 
-func startPersister() {
+func StartPersister() {
 	gen_server.Start(SERVER, new(Persister))
 }
 
-func persistToMySQL(playerId, content string, version int64, needExpire bool) error {
-	return gen_server.Cast(SERVER, "persist", playerId, &Task{
+func EnsurePersistered() {
+	for {
+		count, err := gen_server.Call(SERVER, "remainTasks")
+		if err == nil && count.(int) == 0 {
+			return
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func persistToMySQL(playerId, content string, version int64, needExpire bool) {
+	gen_server.Cast(SERVER, "persist", playerId, &Task{
 		Content:    content,
 		Version:    version,
 		NeedExpire: needExpire,
@@ -64,6 +74,8 @@ func (self *Persister) HandleCall(args []interface{}) (interface{}, error) {
 		self.tickerPersist()
 	} else if handle == "tickerPersist" {
 		self.tickerPersist()
+	} else if handle == "remainTasks" {
+		return len(self.queue), nil
 	}
 	return nil, nil
 }
@@ -88,9 +100,9 @@ func (self *Persister) tickerPersist() {
 
 func persist(playerId string, task *Task) (err error) {
 	var lastVersion int
-	err = mysqldb.Instance().Db.QueryRow("SELECT updated_at FROM players WHERE uuid=?", playerId).Scan(&lastVersion)
+	err = mysqldb.Instance().Db.QueryRow("SELECT updated_at FROM player_datas WHERE uuid=?", playerId).Scan(&lastVersion)
 	if err == sql.ErrNoRows {
-		query := "INSERT INTO players (uuid, content, updated_at) VALUES (?, ?, ?)"
+		query := "INSERT INTO player_datas (uuid, content, updated_at) VALUES (?, ?, ?)"
 		_, err = mysqldb.Instance().Db.Exec(query, playerId, task.Content, task.Version)
 		return
 	}
@@ -99,7 +111,7 @@ func persist(playerId string, task *Task) (err error) {
 		return
 	}
 	if int64(lastVersion) < task.Version {
-		query := "UPDATE players SET content=?, updated_at=? WHERE uuid=? and updated_at < ?"
+		query := "UPDATE player_datas SET content=?, updated_at=? WHERE uuid=? and updated_at < ?"
 		_, err = mysqldb.Instance().Db.Exec(query, task.Content, task.Version, playerId, task.Version)
 		return
 	}

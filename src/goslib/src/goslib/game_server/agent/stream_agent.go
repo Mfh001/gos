@@ -16,9 +16,12 @@ type StreamAgent struct {
 	stream  proto.GameStreamAgent_GameStreamServer
 }
 
+var streamListener net.Listener
+
 func StartStreamAgent() {
+	var err error
 	conf := gosconf.RPC_FOR_GAME_APP_STREAM
-	lis, err := net.Listen(conf.ListenNet, net.JoinHostPort("", conf.ListenPort))
+	streamListener, err = net.Listen(conf.ListenNet, net.JoinHostPort("", conf.ListenPort))
 	logger.INFO("StreamAgent lis: ", conf.ListenNet, " port: ", conf.ListenPort)
 	if err != nil {
 		logger.ERR("failed to listen: ", err)
@@ -27,7 +30,7 @@ func StartStreamAgent() {
 	grpcServer := grpc.NewServer()
 	proto.RegisterGameStreamAgentServer(grpcServer, &StreamAgent{})
 	logger.INFO("GameApp started!")
-	go grpcServer.Serve(lis)
+	go grpcServer.Serve(streamListener)
 }
 
 // Per stream for per goroutine
@@ -53,12 +56,14 @@ func (s *StreamAgent) GameStream(stream proto.GameStreamAgent_GameStreamServer) 
 	atomic.AddInt32(&OnlinePlayers, 1)
 	for {
 		in, err = stream.Recv()
-		if err != nil {
-			logger.ERR("GameAgent err: ", err)
-			break
-		}
-		if err = agent.OnMessage(in.GetData()); err != nil {
-			break
+		if !enableAcceptMsg {
+			if err != nil {
+				logger.ERR("GameAgent err: ", err)
+				break
+			}
+			if err = agent.OnMessage(in.GetData()); err != nil {
+				break
+			}
 		}
 	}
 	atomic.AddInt32(&OnlinePlayers, -1)

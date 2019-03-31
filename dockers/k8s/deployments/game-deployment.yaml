@@ -17,7 +17,7 @@ spec:
       labels:
         app: gos-game-app
     spec:
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 60
       containers:
       - name: gos-game-app
         image: savin198/gos-game-app

@@ -5,7 +5,7 @@ class Cmds
       io.write(%Q{\
   FROM alpine
   ADD ./src/#{app_name}/bin/#{app_name} /
-  CMD ["/#{app_name}"]
+  CMD ["/bin/bash", "-c", "/#{app_name}"]
   })
     end
   end

@@ -7,7 +7,8 @@ import (
 	"goslib/logger"
 )
 
-var SIGN_STOP int = 1
+const SIGN_STOP = 1
+
 var ServerRegisterMap = cmap.NewCMap()
 
 const (
@@ -66,7 +67,7 @@ func delGenServer(name string) {
 	ServerRegisterMap.Delete(name)
 }
 
-func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server *GenServer) {
+func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server *GenServer, err error) {
 	gen_server, exists := GetGenServer(server_name)
 	if !exists {
 		msgChannel := make(chan []interface{}, 1024)
@@ -78,7 +79,10 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 			msgChannel:  msgChannel,
 			signChannel: signChannel}
 
-		gen_server.callback.Init(args)
+		if err = gen_server.callback.Init(args); err != nil {
+			logger.ERR("gen_server start failed: ", err)
+			return
+		}
 
 		go loop(gen_server) // Enter infinity loop
 
@@ -86,7 +90,7 @@ func Start(server_name string, module GenServerBehavior, args ...interface{}) (g
 	} else {
 		fmt.Println(server_name, " is already exists!")
 	}
-	return gen_server
+	return
 }
 
 func Stop(server_name, reason string) error {
@@ -100,7 +104,7 @@ func Stop(server_name, reason string) error {
 		response := <-response_channel
 		return response.err
 	} else {
-		fmt.Println(server_name, " not found!")
+		logger.WARN(server_name, " not found!")
 		return nil
 	}
 }
@@ -116,21 +120,16 @@ func Call(server_name string, args ...interface{}) (interface{}, error) {
 		packet := <-response_channel
 		return packet.result, packet.err
 	} else {
-		errMsg := fmt.Sprintf("GenServer call failed: ", server_name, " server not found!")
+		errMsg := fmt.Sprintf("GenServer call failed: %s %s", server_name, " server not found!")
 		logger.ERR(errMsg)
 		return nil, errors.New(errMsg)
 	}
 }
 
-func Cast(server_name string, args ...interface{}) error {
+func Cast(server_name string, args ...interface{}) {
 	if gen_server, exists := GetGenServer(server_name); exists {
 		args = append(args, CAST)
 		gen_server.msgChannel <- args
-		return nil
-	} else {
-		errMsg := fmt.Sprintf("GenServer cast failed: ", server_name, " server not found!")
-		logger.ERR(errMsg)
-		return errors.New(errMsg)
 	}
 }
 

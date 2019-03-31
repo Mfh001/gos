@@ -10,11 +10,17 @@ import (
 	"net"
 )
 
+var rpcServer *grpc.Server
+
 type gameAppMgr struct {
 }
 
 func Start() {
-	startGameAppMgrRPC()
+	go startGameAppMgrRPC()
+}
+
+func Stop() {
+	rpcServer.GracefulStop()
 }
 
 func startGameAppMgrRPC() {
@@ -22,11 +28,13 @@ func startGameAppMgrRPC() {
 	lis, err := net.Listen(conf.ListenNet, net.JoinHostPort("", conf.ListenPort))
 	if err != nil {
 		logger.ERR("failed to listen: ", err)
+		panic(err)
 	}
-	rpcServer := grpc.NewServer()
+	logger.INFO("GameAppMgr lis: ", conf.ListenNet, " port: ", conf.ListenPort)
+
+	rpcServer = grpc.NewServer()
 	proto.RegisterGameDispatcherServer(rpcServer, &gameAppMgr{})
 	reflection.Register(rpcServer)
-	logger.INFO("GameAppMgr started!")
 	if err := rpcServer.Serve(lis); err != nil {
 		logger.ERR("failed to serve: ", err)
 	}

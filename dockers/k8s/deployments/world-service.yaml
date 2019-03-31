@@ -57,6 +57,7 @@ spec:
       labels:
         app: gos-world-app
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
       - name: gos-world-app
         image: savin198/gos-world-app

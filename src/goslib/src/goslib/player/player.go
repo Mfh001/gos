@@ -83,7 +83,8 @@ func CastPlayer(accountId string, args ...interface{}) error {
 			return err
 		}
 	}
-	return gen_server.Cast(accountId, args...)
+	gen_server.Cast(accountId, args...)
+	return nil
 }
 
 /*
@@ -116,10 +117,7 @@ func (self *Player) Init(args []interface{}) (err error) {
 
 func (self *Player) startPersistTimer() {
 	self.persistTimer = time.AfterFunc(300*time.Second, func() {
-		err := gen_server.Cast(self.PlayerId, "PersistData")
-		if err != nil {
-			logger.ERR("Start PersistData failed: ", err)
-		}
+		gen_server.Cast(self.PlayerId, "PersistData")
 	})
 }
 

@@ -11,15 +11,26 @@ package auth
 
 import (
 	"auth/account"
+	"context"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 	"gosconf"
 	gl "goslib/logger"
+	"net/http"
+	"time"
 )
+
+var app *iris.Application
 
 func Start() {
 	go startHttpServer()
+}
+
+func Stop() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	app.Shutdown(ctx)
 }
 
 /*
@@ -27,7 +38,7 @@ func Start() {
  * serve client request: register|login|loginByGuest
  */
 func startHttpServer() {
-	app := iris.New()
+	app = iris.New()
 
 	// Optionally, add two built'n handlers
 	// that can recover from any http-relative panics
@@ -37,7 +48,12 @@ func startHttpServer() {
 
 	registerHandlers(app)
 
-	app.Run(iris.Addr(":" + gosconf.AUTH_SERVICE_PORT))
+	err := app.Run(iris.Addr(":" + gosconf.AUTH_SERVICE_PORT))
+
+	if err != nil && err != http.ErrServerClosed {
+		gl.ERR("Start auth service failed: ", err)
+		panic(err)
+	}
 }
 
 func registerHandlers(app *iris.Application) {

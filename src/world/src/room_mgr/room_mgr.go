@@ -10,7 +10,7 @@ import (
 	"net"
 )
 
-type gameAppMgr struct {
+type roomMgr struct {
 }
 
 func Start() {
@@ -24,7 +24,7 @@ func startGameAppMgrRPC() {
 		logger.ERR("failed to listen: ", err)
 	}
 	rpcServer := grpc.NewServer()
-	proto.RegisterGameDispatcherServer(rpcServer, &gameAppMgr{})
+	proto.RegisterGameDispatcherServer(rpcServer, &roomMgr{})
 	reflection.Register(rpcServer)
 	logger.INFO("GameAppMgr started!")
 	if err := rpcServer.Serve(lis); err != nil {
@@ -33,7 +33,7 @@ func startGameAppMgrRPC() {
 }
 
 // DispatchPlayer implements connectAppProto.DispatchPlayer
-func (s *gameAppMgr) DispatchGame(ctx context.Context, in *proto.DispatchGameRequest) (*proto.DispatchGameReply, error) {
+func (s *roomMgr) DispatchGame(ctx context.Context, in *proto.DispatchGameRequest) (*proto.DispatchGameReply, error) {
 	info, err := dispatchGame(in.AccountId, in.SceneId)
 	if err != nil {
 		return nil, err
