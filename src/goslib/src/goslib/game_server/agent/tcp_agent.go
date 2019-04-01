@@ -68,6 +68,7 @@ func tcpHandler(conn net.Conn) {
 	connIns := connection.New(agent)
 
 	defer func() {
+		conn.Close()
 		connIns.Cleanup()
 	}()
 
@@ -88,6 +89,7 @@ func tcpHandler(conn net.Conn) {
 			break
 		}
 	}
+
 	atomic.AddInt32(&OnlinePlayers, -1)
 
 	agent.OnDisconnected()

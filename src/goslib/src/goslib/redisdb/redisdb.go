@@ -9,6 +9,9 @@ import (
 var clusterClient *redis.ClusterClient
 
 func StartClient() {
+	if clusterClient != nil {
+		return
+	}
 	if flag.Lookup("test.v") == nil {
 		var addrs []string
 		switch gosconf.START_TYPE {

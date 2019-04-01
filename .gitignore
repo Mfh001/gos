@@ -33,3 +33,4 @@ src/vendor
 *.log
 .ruby-version
 ~$*.xlsx
+dockers/images/*

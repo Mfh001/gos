@@ -57,6 +57,19 @@ spec:
       labels:
         app: gos-world-app
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - gos-world-app
+                        - gos-game-app
+                topologyKey: kubernetes.io/hostname
       terminationGracePeriodSeconds: 60
       containers:
       - name: gos-world-app
@@ -69,3 +82,12 @@ spec:
           containerPort: 50051
         - name: game
           containerPort: 50052
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 3000
+            httpHeaders:
+              - name: Custom-Header
+                value: Awesome
+          initialDelaySeconds: 3
+          periodSeconds: 3

@@ -64,3 +64,11 @@ run_dockers:
 
 load_docker_images:
 	cd dockers && ./load-images
+
+delete_k8s:
+	kubectl delete -f dockers/k8s/deployments/world-service.yaml
+	kubectl delete -f dockers/k8s/deployments/game-deployment.yaml
+
+apply_k8s:
+	kubectl apply -f dockers/k8s/deployments/world-service.yaml
+	kubectl apply -f dockers/k8s/deployments/game-deployment.yaml

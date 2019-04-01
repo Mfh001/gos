@@ -57,9 +57,14 @@ func startHttpServer() {
 }
 
 func registerHandlers(app *iris.Application) {
+	app.Get("/healthz", k8sHealthHandler)
 	app.Post("/register", registerHandler)
 	app.Post("/login", loginHandler)
 	app.Post("/loginByGuest", loginByGuestHandler)
+}
+
+func k8sHealthHandler(ctx iris.Context) {
+	ctx.Text("ok")
 }
 
 func registerHandler(ctx iris.Context) {

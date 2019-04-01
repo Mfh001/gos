@@ -17,6 +17,20 @@ spec:
       labels:
         app: gos-game-app
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - gos-game-app
+                  - gos-world-app
+                  - redis-cluster
+              topologyKey: kubernetes.io/hostname
       terminationGracePeriodSeconds: 60
       containers:
       - name: gos-game-app
@@ -30,6 +44,11 @@ spec:
         volumeMounts:
         - name: tcp
           mountPath: /usr/share/apps/gos-game
+        livenessProbe:
+          tcpSocket:
+            port: 4000
+          initialDelaySeconds: 15
+          periodSeconds: 20
   volumeClaimTemplates:
   - metadata:
       name: tcp
