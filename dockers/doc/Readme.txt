@@ -33,5 +33,5 @@
   kubectl apply -f k8s/deployments/world-service.yaml
 
 触发image更新（每次设置不同数字）
-  kubectl patch statefulsets.apps gos-game-app -p '{"spec":{"template":{"spec":{"terminationGracePeriodSeconds":18}}}}'
-  kubectl patch deployment gos-world-app -p '{"spec":{"template":{"spec":{"terminationGracePeriodSeconds":18}}}}'
+  kubectl patch statefulsets.apps gos-game-app -p '{"spec":{"template":{"spec":{"terminationGracePeriodSeconds":61}}}}'
+  kubectl patch deployment gos-world-app -p '{"spec":{"template":{"spec":{"terminationGracePeriodSeconds":61}}}}'
