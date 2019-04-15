@@ -100,19 +100,24 @@ make push_docker_images
 ```
 
 ## 消息结构
--------------------------------
-length|reqId|protocol|payload
--------------------------------
+length | reqId | protocol | payload
 length:   
+    
     desc: 消息长度
     type: int32
+    
 reqId:    
+    
     desc: 请求编号
     type: int32
+    
 protocol: 
+   
     desc: 消息名字
     type: uint16
+    
 payload: 
+  
     desc: 消息内容
     type: byte[]
 
