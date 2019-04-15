@@ -101,6 +101,8 @@ make push_docker_images
 
 ## 消息结构
 length | reqId | protocol | payload
+
+
 length:   
     
     desc: 消息长度
