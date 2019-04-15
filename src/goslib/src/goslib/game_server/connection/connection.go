@@ -180,7 +180,7 @@ func (self *Connection) getStream(protocolType int, data []byte) (proto.GameStre
 
 func (self *Connection) authConn(data []byte) (bool, error) {
 	// Decode data
-	params, err := decodeAuthData(data)
+	reqId, params, err := decodeAuthData(data)
 	if err != nil {
 		return false, err
 	}
@@ -200,7 +200,7 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 	self.processed++
 	// INFO("Processed: ", self.processed, " Response Data: ", response_data)
 	if self.agent != nil {
-		data, err := writer.GetSendData()
+		data, err := writer.GetSendData(reqId)
 		if err != nil {
 			return false, err
 		}
@@ -212,23 +212,29 @@ func (self *Connection) authConn(data []byte) (bool, error) {
 	return success, err
 }
 
-func decodeAuthData(data []byte) (*pt.SessionAuthParams, error) {
+func decodeAuthData(data []byte) (reqId int32, params *pt.SessionAuthParams, err error) {
 	reader := packet.Reader(data)
+	reqId, err = reader.ReadInt32()
+	if err != nil {
+		return
+	}
 	protocol, err := reader.ReadUint16()
 	if err != nil {
-		return nil, err
+		return
 	}
 	decode_method := pt.IdToName[protocol]
 
 	if decode_method != "SessionAuthParams" {
-		return nil, errors.New("Request UnAuthed connection: " + decode_method)
+		err = errors.New("Request UnAuthed connection: " + decode_method)
+		return
 	}
 
-	params, err := api.Decode(decode_method, reader)
+	paramsInterface, err := api.Decode(decode_method, reader)
+	params = paramsInterface.(*pt.SessionAuthParams)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return params.(*pt.SessionAuthParams), err
+	return
 }
 
 func (self *Connection) validateSession(params *pt.SessionAuthParams) (bool, error) {

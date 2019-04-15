@@ -109,7 +109,7 @@ func (self *TCPAgent) receiveRequest(header []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	size := binary.BigEndian.Uint16(header)
+	size := binary.BigEndian.Uint32(header)
 	data := make([]byte, size)
 	_, err = io.ReadFull(self.tcpConn, data)
 	if err != nil {
@@ -127,6 +127,7 @@ func (self *TCPAgent) OnMessage(data []byte) error {
 
 func (self *TCPAgent) SendMessage(data []byte) error {
 	logger.INFO("Begin SendMessage")
+	logger.INFO("tcp sended: ", data)
 	n, err := self.tcpConn.Write(data)
 	if err != nil {
 		logger.ERR("write: ", err)

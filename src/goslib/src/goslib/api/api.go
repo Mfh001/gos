@@ -45,32 +45,37 @@ func Decode(decode_method string, buffer *packet.Packet) (interface{}, error) {
 	}
 }
 
-func ParseRequestData(data []byte) (string, interface{}, error) {
+func ParseRequestData(data []byte) (int32, string, interface{}, error) {
 	reader := packet.Reader(data)
+	reqId, err := reader.ReadInt32()
+	if err != nil {
+		return 0, "", nil, err
+	}
 	protocol, err := reader.ReadUint16()
 	if err != nil {
-		return "", nil, err
+		return 0, "", nil, err
 	}
 	decode_method := pt.IdToName[protocol]
 	params, err := Decode(decode_method, reader)
-	return decode_method, params, err
+	return reqId, decode_method, params, err
 }
 
-func ParseRequestDataForHander(data []byte) (routes.Handler, interface{}, error) {
-	decode_method, params, err := ParseRequestData(data)
+func ParseRequestDataForHander(data []byte) (int32, routes.Handler, interface{}, error) {
+	reqId, decode_method, params, err := ParseRequestData(data)
 	if err != nil {
-		return nil, nil, err
+		return 0, nil, nil, err
 	}
 	logger.INFO("handelRequest: ", decode_method)
 	handler, err := routes.Route(decode_method)
 	if err != nil {
-		return nil, nil, err
+		return 0, nil, nil, err
 	}
-	return handler, params, err
+	return reqId, handler, params, err
 }
 
 func ParseProtolType(data []byte) (int, error) {
 	reader := packet.Reader(data)
+	_, err := reader.ReadInt32()
 	protocol, err := reader.ReadUint16()
 	if err != nil {
 		logger.ERR("parseProtocolType failed: ", err)

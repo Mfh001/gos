@@ -2,10 +2,8 @@ package packet
 
 import (
 	"errors"
-	"goslib/logger"
 	"goslib/secure"
 	"math"
-	"net"
 )
 
 const (
@@ -314,29 +312,19 @@ func Writer() *Packet {
 
 var encrypt = false
 
-func (p *Packet) Send(conn net.Conn, err error) {
-	data, err := p.GetSendData()
-	if err != nil {
-		return
-	}
-	n, err := conn.Write(data)
-	if err != nil {
-		logger.ERR("Error send reply, bytes:", n, "reason:", err)
-		return
-	}
-}
-
-func (p *Packet) GetSendData() ([]byte, error) {
+func (p *Packet) GetSendData(reqId int32) ([]byte, error) {
 	writer := Writer()
 	if encrypt {
 		data, err := secure.Encrypt(p.Data())
 		if err != nil {
 			return nil, err
 		}
-		writer.WriteUint16(uint16(len(data)))
+		writer.WriteInt32((int32)(len(data)) + 4)
+		writer.WriteInt32(reqId)
 		writer.WriteRawBytes(data)
 	} else {
-		writer.WriteUint16(uint16(p.Length()))
+		writer.WriteInt32((int32)(p.Length()) + 4)
+		writer.WriteInt32(reqId)
 		writer.WriteRawBytes(p.Data())
 	}
 

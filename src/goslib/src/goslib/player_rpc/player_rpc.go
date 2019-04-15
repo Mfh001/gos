@@ -47,7 +47,7 @@ func RequestPlayer(targetPlayerId string, encode_method string, params interface
 		logger.ERR("EncodeResponseData failed: ", err)
 		return nil, err
 	}
-	data, err := writer.GetSendData()
+	data, err := writer.GetSendData(0)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func parseData(requestData []byte) (decode_method string, params interface{}, er
 	if err != nil {
 		return
 	}
-	decode_method, params, err = api.ParseRequestData(reader.RemainData())
+	_, decode_method, params, err = api.ParseRequestData(reader.RemainData())
 	if err != nil {
 		logger.ERR("player_rpc parseData failed: ", err)
 		return

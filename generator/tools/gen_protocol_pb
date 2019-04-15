@@ -6,8 +6,8 @@ source = "./config/protocol.yml"
 defines = YAML.load_file(source)
 protocols = {}
 defines.each do |k, p_defines|
-  p_defines.each do |protocol, define|
-    protocols[protocol] = define
+  p_defines.each do |proto|
+    protocols[proto['name']] = proto['struct']
   end
 end
 defines = protocols
@@ -37,7 +37,7 @@ func decode#{protocol}(buffer *packet.Packet) (interface{}, error) {
   encode_handlers << %Q{
 func encode#{protocol}(buffer *packet.Packet, value interface{}) error {
     data, err := proto.Marshal(value.(*pt.#{protocol}))
-    buffer.WriteBytes(data)
+    buffer.WriteRawBytes(data)
     return err
 }}
 end

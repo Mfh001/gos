@@ -9,7 +9,13 @@ COMMON_TYPE = ['bool', 'byte', 'string',
                'uint16', 'uint24', 'uint32', 'uint64', 
                'int16', 'int24', 'int32', 'int64',
                'float32', 'float64']
-PROTOCOL_TYPE = defines.keys
+
+PROTOCOL_TYPE = []
+defines.each do |k, p_defines|
+  p_defines.each do |proto|
+    PROTOCOL_TYPE << proto['name']
+  end
+end
 
 header = %Q{\
 /*
@@ -30,7 +36,9 @@ File.open(target, "w") do |io|
   io.write %Q(syntax = "proto3";\n)
   io.write "package pt;\n"
   defines.each do |type_key, protocol_defines|
-    protocol_defines.each do |key, field_defines|
+    protocol_defines.each do |proto|
+      key = proto['name']
+      field_defines = proto['struct']
       fields = []
       idx = 0
       field_defines.each do |field, type|
@@ -70,18 +78,15 @@ File.open(target, "w") do |io|
   name_to_id = []
   id_to_name = []
 
-  protocolIdx = 0
-
   defines.keys.each_with_index do |type, idx|
     type_name = "PT_TYPE_#{type}"
     pt_types << %Q{#{type_name} = #{idx + 1}}
 
-    defines[type].keys.each do |name|
-      consts << %Q{PT_#{name} = "#{name}"}
-      name_to_id << %Q{"#{name}": uint16(#{protocolIdx + 1})}
-      id_to_name << %Q{uint16(#{protocolIdx + 1}): "#{name}"}
-      id_to_type << %Q{uint16(#{protocolIdx + 1}): #{type_name}}
-      protocolIdx += 1
+    defines[type].each do |proto|
+      consts << %Q{PT_#{proto['name']} = "#{proto['name']}"}
+      name_to_id << %Q{"#{proto['name']}": uint16(#{proto['id']})}
+      id_to_name << %Q{uint16(#{proto['id']}): "#{proto['name']}"}
+      id_to_type << %Q{uint16(#{proto['id']}): #{type_name}}
     end
   end
 

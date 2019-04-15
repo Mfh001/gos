@@ -265,7 +265,6 @@ func addGame(nodeInfo *NodeInfo) (*game_utils.Game, error) {
 }
 
 func heartbeat(app *game_utils.Game) {
-	// TODO for k8s health check
 	app.Ccu = agent.OnlinePlayers
 	app.ActiveAt = time.Now().Unix()
 	err := app.Save()

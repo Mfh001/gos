@@ -7,8 +7,8 @@ source = "./config/protocol.yml"
 defines = YAML.load_file(source)
 protocols = {}
 defines.each do |k, p_defines|
-  p_defines.each do |protocol, define|
-    protocols[protocol] = define
+  p_defines.each do |proto|
+    protocols[proto['name']] = proto['struct']
   end
 end
 defines = protocols

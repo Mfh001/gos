@@ -40,7 +40,7 @@ func Add(key string, runAt int64, playerId string, encode_method string, params 
 	if err != nil {
 		return err
 	}
-	data, err := writer.GetSendData()
+	data, err := writer.GetSendData(0)
 	if err != nil {
 		return err
 	}

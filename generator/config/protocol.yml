@@ -1,56 +1,94 @@
 # GS Messages
 GS:
-  # ==============Framework Required==============
-  SessionAuthParams:
-    AccountId: string
-    Token: string
+  # Framework Messages
+  - protocol:
+    id: 1001
+    name: SessionAuthParams
+    struct:
+      AccountId: string
+      Token: string
 
-  SessionAuthResponse:
-    Success: bool
+  - protocol:
+    id: 1002
+    name: SessionAuthResponse
+    struct:
+      Success: bool
 
-  Ok:
-    OK: bool
+  - protocol:
+    id: 1003
+    name: Ok
+    struct:
+      OK: bool
 
-  Fail:
-    Fail: string
-  # ==============Framework Required==============
+  - protocol:
+    id: 1004
+    name: Fail
+    struct:
+      Fail: string
 
-  EquipLoadParams:
-    PlayerID: string
-    EquipId: string
-    HeroId: string
+  # Logic Messages
+  - protocol:
+    id: 2001
+    name: EquipLoadParams
+    struct:
+      PlayerID: string
+      EquipId: string
+      HeroId: string
 
-  EquipLoadResponse:
-    PlayerID: string
-    EquipId: string
-    Level: uint32
+  - protocol:
+    id: 2002
+    name: EquipLoadResponse
+    struct:
+      PlayerID: string
+      EquipId: string
+      Level: uint32
 
-  EquipUnLoadParams:
-    PlayerID: string
-    EquipId: string
-    HeroId: string
+  - protocol:
+    id: 2003
+    name: EquipUnLoadParams
+    struct:
+      PlayerID: string
+      EquipId: string
+      HeroId: string
 
-  EquipUnLoadResponse:
-    PlayerID: string
-    EquipId: string
-    Level: uint32
+  - protocol:
+    id: 2004
+    name: EquipUnLoadResponse
+    struct:
+      PlayerID: string
+      EquipId: string
+      Level: uint32
 
-  LoginResponse:
-    Uuid: string
-    Level: uint32
-    Exp: float32
-    Equips: array-EquipLoadResponse
-    HeadEquip: EquipLoadParams
-    Friends: array-string
-    Ages: array-int32
+  - protocol:
+    id: 2005
+    name: LoginResponse
+    struct:
+      Uuid: string
+      Level: uint32
+      Exp: float32
+      Equips: array-EquipLoadResponse
+      HeadEquip: EquipLoadParams
+      Friends: array-string
+      Ages: array-int32
 
 # Room messages
 ROOM:
-  RoomJoinParams:
-    RoomId: string
-    PlayerId: string
-  RoomJoinResponse:
-    Success: bool
-  RoomJoinNotice:
-    RoomId: string
-    NewPlayerId: string
+  - protocol:
+    id: 3001
+    name: RoomJoinParams
+    struct:
+      RoomId: string
+      PlayerId: string
+
+  - protocol:
+    id: 3002
+    name: RoomJoinResponse
+    struct:
+      Success: bool
+
+  - protocol:
+    id: 3003
+    name: RoomJoinNotice
+    struct:
+      RoomId: string
+      NewPlayerId: string

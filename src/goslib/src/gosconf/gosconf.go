@@ -30,7 +30,7 @@ const (
 
 const (
 	AGENT_PROTOCOL = AGENT_PROTOCOL_TCP
-	AGENT_ENCODING = PROTOCOL_ENCODING_RAW
+	AGENT_ENCODING = PROTOCOL_ENCODING_PB
 )
 
 var MYSQL_DSN_ALL_IN_ONE = "root@/gos_server_development"
@@ -108,7 +108,7 @@ type TCP struct {
 }
 
 var TCP_SERVER_GAME = &TCP{
-	Packet:     2,
+	Packet:     4,
 	ListenPort: "4000",
 }
 

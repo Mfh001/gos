@@ -53,7 +53,7 @@ func HandleRequest(accountId, agentId string, requestData []byte) error {
 }
 
 func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
-	handler, params, err := api.ParseRequestDataForHander(requestData)
+	reqId, handler, params, err := api.ParseRequestDataForHander(requestData)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
 		return nil, err
 	}
 	reply := result.(*RPCReply)
-	return EncodeResponseData(reply.EncodeMethod, reply.Response)
+	return EncodeResponseData(reply.EncodeMethod, reqId, reply.Response)
 }
 
 func CallPlayer(accountId string, args ...interface{}) (interface{}, error) {
@@ -192,7 +192,7 @@ func (self *Player) SystemInfo() int {
 }
 
 func (self *Player) SendData(agentId, encode_method string, msg interface{}) error {
-	return self.sendDataToStream(agentId, encode_method, msg)
+	return self.sendDataToStream(agentId, 0, encode_method, msg)
 }
 
 func (self *Player) handleRequest(agentId string, data []byte) error {
@@ -205,13 +205,13 @@ func (self *Player) handleRequest(agentId string, data []byte) error {
 		}()
 	}
 
-	handler, params, err := api.ParseRequestDataForHander(data)
+	reqId, handler, params, err := api.ParseRequestDataForHander(data)
 	if err != nil {
 		logger.ERR("ParseRequestDataForHander failed: ", err)
-		return self.sendDataToStream(agentId, pt.PT_Fail, &pt.Fail{Fail: "error_route_not_found"})
+		return self.sendDataToStream(agentId, reqId, pt.PT_Fail, &pt.Fail{Fail: "error_route_not_found"})
 	} else {
 		encode_method, msg := self.processRequest(handler, params)
-		return self.sendDataToStream(agentId, encode_method, msg)
+		return self.sendDataToStream(agentId, reqId, encode_method, msg)
 	}
 }
 
@@ -221,7 +221,7 @@ func (self *Player) handleRPCCall(handler routes.Handler, params interface{}) (*
 }
 
 func (self *Player) handleRPCCast(data []byte) {
-	handler, params, err := api.ParseRequestDataForHander(data)
+	_, handler, params, err := api.ParseRequestDataForHander(data)
 	if err != nil {
 		logger.ERR("handleRPCCast failed: ", err)
 		return
@@ -229,13 +229,13 @@ func (self *Player) handleRPCCast(data []byte) {
 	self.processRequest(handler, params)
 }
 
-func EncodeResponseData(encode_method string, response interface{}) ([]byte, error) {
+func EncodeResponseData(encode_method string, reqId int32, response interface{}) ([]byte, error) {
 	writer, err := api.Encode(encode_method, response)
 	if err != nil {
 		logger.ERR("EncodeResponseData failed: ", err)
 		return nil, err
 	}
-	return writer.GetSendData()
+	return writer.GetSendData(reqId)
 }
 
 func (self *Player) processRequest(handler routes.Handler, params interface{}) (string, interface{}) {
@@ -284,7 +284,7 @@ func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
 	}
 }
 
-func (self *Player) sendDataToStream(agentId, encode_method string, msg interface{}) error {
+func (self *Player) sendDataToStream(agentId string, reqId int32, encode_method string, msg interface{}) error {
 	agent, ok := self.Agents[agentId]
 	if !ok {
 		for key := range self.Agents {
@@ -298,7 +298,7 @@ func (self *Player) sendDataToStream(agentId, encode_method string, msg interfac
 		logger.ERR("encode data failed: ", err)
 		return err
 	}
-	data, err := writer.GetSendData()
+	data, err := writer.GetSendData(reqId)
 	if err != nil {
 		logger.ERR("encrypt data failed: ", err)
 		return err
