@@ -19,11 +19,11 @@ type Broadcast struct {
 }
 
 func Join(channel, playerId string, handler MsgHandler) error {
-	return castChannel(channel, "Join", playerId, handler)
+	return castChannel(channel, &JoinParams{playerId, handler})
 }
 
 func Leave(channel, playerId string) error {
-	return castChannel(channel, "Leave", playerId)
+	return castChannel(channel, &LeaveParams{playerId})
 }
 
 func Publish(channel, playerId, category string, data interface{}) error {
@@ -33,10 +33,10 @@ func Publish(channel, playerId, category string, data interface{}) error {
 		SenderId: playerId,
 		Data:     data,
 	}
-	return castChannel(channel, "Publish", msg)
+	return castChannel(channel, &PublishParams{msg})
 }
 
-func castChannel(channel string, args ...interface{}) error {
+func castChannel(channel string, msg interface{}) error {
 	if !gen_server.Exists(channel) {
 		err := StartChannel(channel)
 		if err != nil {
@@ -44,7 +44,7 @@ func castChannel(channel string, args ...interface{}) error {
 			return err
 		}
 	}
-	gen_server.Cast(channel, args...)
+	gen_server.Cast(channel, msg)
 	return nil
 }
 
@@ -56,18 +56,21 @@ func (self *Broadcast) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *Broadcast) HandleCast(args []interface{}) {
-	method_name := args[0].(string)
-	if method_name == "Join" {
-		self.handleJoin(args[1].(string), args[1].(MsgHandler))
-	} else if method_name == "Leave" {
-		self.handleLeave(args[1].(string))
-	} else if method_name == "Publish" {
-		self.handlePublish(args[1].(*BroadcastMsg))
+func (self *Broadcast) HandleCast(msg interface{}) {
+	switch params := msg.(type) {
+	case *JoinParams:
+		self.handleJoin(params)
+		break
+	case *LeaveParams:
+		self.handleLeave(params)
+		break
+	case *PublishParams:
+		self.handlePublish(params)
+		break
 	}
 }
 
-func (self *Broadcast) HandleCall(args []interface{}) (interface{}, error) {
+func (self *Broadcast) HandleCall(msg interface{}) (interface{}, error) {
 	return nil, nil
 }
 
@@ -80,18 +83,24 @@ func (self *Broadcast) Terminate(reason string) (err error) {
    Callback Handlers
 */
 
-func (self *Broadcast) handleJoin(playerId string, handler MsgHandler) {
-	self.subscribers[playerId] = handler
+type JoinParams struct {
+	playerId string
+	handler MsgHandler
+}
+func (self *Broadcast) handleJoin(params *JoinParams) {
+	self.subscribers[params.playerId] = params.handler
 }
 
-func (self *Broadcast) handleLeave(playerId string) {
-	if _, ok := self.subscribers[playerId]; ok {
-		delete(self.subscribers, playerId)
+type LeaveParams struct { playerId string }
+func (self *Broadcast) handleLeave(params *LeaveParams) {
+	if _, ok := self.subscribers[params.playerId]; ok {
+		delete(self.subscribers, params.playerId)
 	}
 }
 
-func (self *Broadcast) handlePublish(msg *BroadcastMsg) {
+type PublishParams struct {msg *BroadcastMsg}
+func (self *Broadcast) handlePublish(params *PublishParams) {
 	for _, handler := range self.subscribers {
-		handler(msg)
+		handler(params.msg)
 	}
 }

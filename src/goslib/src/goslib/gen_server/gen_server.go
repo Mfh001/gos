@@ -34,9 +34,8 @@ type Response struct {
 
 type Request struct {
 	category byte
-	//handler string
 	resultChan chan *Response
-	args []interface{}
+	msg interface{}
 }
 
 type GenServer struct {
@@ -48,8 +47,8 @@ type GenServer struct {
 
 type GenServerBehavior interface {
 	Init(args []interface{}) (err error)
-	HandleCast(args []interface{})
-	HandleCall(args []interface{}) (interface{}, error)
+	HandleCast(msg interface{})
+	HandleCall(msg interface{}) (interface{}, error)
 	Terminate(reason string) (err error)
 }
 
@@ -129,9 +128,9 @@ func Stop(server_name, reason string) error {
 	}
 }
 
-func Call(server_name string, args ...interface{}) (interface{}, error) {
+func Call(server_name string, msg interface{}) (interface{}, error) {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		return gen_server.Call(args...)
+		return gen_server.Call(msg)
 	} else {
 		errMsg := fmt.Sprintf("GenServer call failed: %s %s", server_name, " server not found!")
 		logger.ERR(errMsg)
@@ -139,20 +138,19 @@ func Call(server_name string, args ...interface{}) (interface{}, error) {
 	}
 }
 
-func Cast(server_name string, args ...interface{}) {
+func Cast(server_name string, msg interface{}) {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		gen_server.Cast(args)
+		gen_server.Cast(msg)
 	}
 }
 
-func (self *GenServer)Call(args ...interface{}) (interface{}, error) {
+func (self *GenServer)Call(msg interface{}) (interface{}, error) {
 	request := requestPool.Get().(*Request)
 	defer func() {
 		requestPool.Put(request)
 	}()
 	request.category = CALL
-	//request.handler = handler
-	request.args = args
+	request.msg = msg
 
 	self.msgChannel <- request
 
@@ -165,13 +163,13 @@ func (self *GenServer)Call(args ...interface{}) (interface{}, error) {
 	return result, err
 }
 
-func (self *GenServer)Cast(args ...interface{}) {
+func (self *GenServer)Cast(msg interface{}) {
 	request := requestPool.Get().(*Request)
 	defer func() {
 		requestPool.Put(request)
 	}()
 	request.category = CAST
-	request.args = args
+	request.msg = msg
 	self.msgChannel <- request
 }
 
@@ -189,14 +187,14 @@ func loop(gen_server *GenServer) {
 			if ok {
 				switch req.category {
 				case CALL:
-					result, err := gen_server.callback.HandleCall(req.args)
+					result, err := gen_server.callback.HandleCall(req.msg)
 					resp := responsePool.Get().(*Response)
 					resp.result = result
 					resp.err = err
 					req.resultChan <- resp
 					break
 				case CAST:
-					gen_server.callback.HandleCast(req.args)
+					gen_server.callback.HandleCast(req.msg)
 					break
 				}
 			}

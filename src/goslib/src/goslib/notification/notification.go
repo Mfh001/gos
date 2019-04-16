@@ -39,9 +39,9 @@ func StartFCM(fcmAPIKey string) {
 func Send(channel int, deviceToken string, content string) {
 	switch channel {
 	case CHANNEL_IOS:
-		gen_server.Cast(IOS_SERVER, "SendIOS", deviceToken, content)
+		gen_server.Cast(IOS_SERVER, &SendIOSParams{deviceToken, content})
 	case CHANNEL_ANDROID:
-		gen_server.Cast(FCM_SERVER, "SendAndroid", deviceToken, content)
+		gen_server.Cast(FCM_SERVER, &SendGPParams{deviceToken, content})
 	}
 }
 
@@ -78,47 +78,59 @@ func (self *Server) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *Server) HandleCast(args []interface{}) {
-	handle := args[0].(string)
-	deviceToken := args[1].(string)
-	content := args[2].(string)
-	if handle == "SendIOS" {
-		notification := &apns2.Notification{}
-		notification.DeviceToken = deviceToken
-		notification.Topic = self.bundleId
-		notification.Payload = payload.NewPayload().Alert(content).Badge(1)
-
-		res, err := self.iosClient.Push(notification)
-
-		if err != nil {
-			logger.ERR("send ios push failed: ", err)
-		}
-		if res.Sent() {
-			log.Println("Sent:", res.ApnsID)
-		} else {
-			fmt.Printf("Not Sent: %v %v %v\n", res.StatusCode, res.ApnsID, res.Reason)
-		}
-	} else if handle == "SendAndroid" {
-		msg := &fcm.Message{
-			To: deviceToken,
-			Notification: &fcm.Notification{
-				Body:  content,
-				Badge: "1",
-				Sound: "default",
-			},
-		}
-		_, err := self.fcmClient.Send(msg)
-		if err != nil {
-			logger.ERR("send fcm push failed: ", err)
-		}
+func (self *Server) HandleCast(msg interface{}) {
+	switch params := msg.(type) {
+	case *SendIOSParams:
+		self.sendIOS(params)
+		break
+	case *SendGPParams:
+		self.sendGP(params)
+		break
 	}
 }
 
-func (self *Server) HandleCall(args []interface{}) (interface{}, error) {
-	handle := args[0].(string)
-	if handle == "Dispatch" {
-		// TODO
+type SendIOSParams struct {
+	deviceToken string
+	content string
+}
+func (self *Server) sendIOS(params *SendIOSParams) {
+	notification := &apns2.Notification{}
+	notification.DeviceToken = params.deviceToken
+	notification.Topic = self.bundleId
+	notification.Payload = payload.NewPayload().Alert(params.content).Badge(1)
+
+	res, err := self.iosClient.Push(notification)
+
+	if err != nil {
+		logger.ERR("send ios push failed: ", err)
 	}
+	if res.Sent() {
+		log.Println("Sent:", res.ApnsID)
+	} else {
+		fmt.Printf("Not Sent: %v %v %v\n", res.StatusCode, res.ApnsID, res.Reason)
+	}
+}
+
+type SendGPParams struct {
+	deviceToken string
+	content string
+}
+func (self *Server) sendGP(params *SendGPParams) {
+	msg := &fcm.Message{
+		To: params.deviceToken,
+		Notification: &fcm.Notification{
+			Body:  params.content,
+			Badge: "1",
+			Sound: "default",
+		},
+	}
+	_, err := self.fcmClient.Send(msg)
+	if err != nil {
+		logger.ERR("send fcm push failed: ", err)
+	}
+}
+
+func (self *Server) HandleCall(msg interface{}) (interface{}, error) {
 	return nil, nil
 }
 

@@ -111,17 +111,19 @@ func (self *ProxyManager) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *ProxyManager) HandleCast(args []interface{}) {
+func (self *ProxyManager) HandleCast(msg interface{}) {
 }
 
-func (self *ProxyManager) HandleCall(args []interface{}) (interface{}, error) {
-	handle := args[0].(string)
-	if handle == "ConnectGameApp" {
-		gameAppId := args[1].(string)
-		game, err := game_utils.Find(gameAppId)
+type ConnectGameAppParams struct {
+	gameAppId string
+}
+func (self *ProxyManager) HandleCall(msg interface{}) (interface{}, error) {
+	switch params := msg.(type) {
+	case *ConnectGameAppParams:
+		game, err := game_utils.Find(params.gameAppId)
 		if err == nil && game != nil {
 			addr := strings.Join([]string{game.RpcHost, game.StreamPort}, ":")
-			return self.doConnectGameApp(gameAppId, addr)
+			return self.doConnectGameApp(params.gameAppId, addr)
 		} else {
 			return nil, err
 		}
@@ -151,7 +153,7 @@ func (self *ProxyManager) doConnectGameApp(gameAppId string, addr string) (*grpc
 func GetGameServerConn(gameAppId string) (*grpc.ClientConn, error) {
 	conn, ok := gameConnMap.Load(gameAppId)
 	if !ok {
-		_, err := gen_server.Call(AGENT_SERVER, "ConnectGameApp", gameAppId)
+		_, err := gen_server.Call(AGENT_SERVER, &ConnectGameAppParams{gameAppId})
 		if err != nil {
 			logger.ERR("StartStream failed: ", err)
 			return nil, err

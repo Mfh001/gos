@@ -14,7 +14,7 @@ func StartMgr() {
 }
 
 func StartChannel(channel string) error {
-	_, err := gen_server.Call(SERVER, "StartChannel", channel)
+	_, err := gen_server.Call(SERVER, &StartChannelParams{channel})
 	return err
 }
 
@@ -22,16 +22,19 @@ func (self *BroadcastMgr) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *BroadcastMgr) HandleCast(args []interface{}) {
+func (self *BroadcastMgr) HandleCast(msg interface{}) {
 }
 
-func (self *BroadcastMgr) HandleCall(args []interface{}) (interface{}, error) {
-	handle := args[0].(string)
-	if handle == "StartChannel" {
-		channel := args[1].(string)
-		if !gen_server.Exists(channel) {
-			gen_server.Start(channel, new(Broadcast))
+type StartChannelParams struct {
+	channel string
+}
+func (self *BroadcastMgr) HandleCall(msg interface{}) (interface{}, error) {
+	switch params := msg.(type) {
+	case *StartChannelParams:
+		if !gen_server.Exists(params.channel) {
+			gen_server.Start(params.channel, new(Broadcast))
 		}
+		break
 	}
 	return nil, nil
 }

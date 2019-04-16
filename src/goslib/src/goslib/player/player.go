@@ -41,15 +41,15 @@ var BroadcastHandler func(*Player, *broadcast.BroadcastMsg) = nil
 var CurrentGameAppId string
 
 func Connected(accountId string, agentId string, agent interfaces.AgentBehavior) error {
-	return CastPlayer(accountId, "connected", agentId, agent)
+	return CastPlayer(accountId, &ConnectedParams{agentId, agent})
 }
 
 func Disconnected(accountId, agentId string) error {
-	return CastPlayer(accountId, "disconnected", agentId)
+	return CastPlayer(accountId, &DisConnectedParams{agentId})
 }
 
 func HandleRequest(accountId, agentId string, requestData []byte) error {
-	return CastPlayer(accountId, "handleRequest", agentId, requestData)
+	return CastPlayer(accountId, &RequestParams{agentId, requestData})
 }
 
 func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
@@ -57,7 +57,7 @@ func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := CallPlayer(accountId, "handleRPCCall", handler, params)
+	result, err := CallPlayer(accountId, &RpcCallParams{handler, params})
 	if err != nil {
 		logger.ERR("HandleRPCCall failed: ", err)
 		return nil, err
@@ -66,24 +66,24 @@ func HandleRPCCall(accountId string, requestData []byte) ([]byte, error) {
 	return EncodeResponseData(reply.EncodeMethod, reqId, reply.Response)
 }
 
-func CallPlayer(accountId string, args ...interface{}) (interface{}, error) {
+func CallPlayer(accountId string, msg interface{}) (interface{}, error) {
 	if !gen_server.Exists(accountId) {
 		err := StartPlayer(accountId)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return gen_server.Call(accountId, args...)
+	return gen_server.Call(accountId, msg)
 }
 
-func CastPlayer(accountId string, args ...interface{}) error {
+func CastPlayer(accountId string, msg interface{}) error {
 	if !gen_server.Exists(accountId) {
 		err := StartPlayer(accountId)
 		if err != nil {
 			return err
 		}
 	}
-	gen_server.Cast(accountId, args...)
+	gen_server.Cast(accountId, msg)
 	return nil
 }
 
@@ -117,47 +117,45 @@ func (self *Player) Init(args []interface{}) (err error) {
 
 func (self *Player) startPersistTimer() {
 	self.persistTimer = time.AfterFunc(300*time.Second, func() {
-		gen_server.Cast(self.PlayerId, "PersistData")
+		gen_server.Cast(self.PlayerId, &PersistData{})
 	})
 }
 
-func (self *Player) HandleCast(args []interface{}) {
-	method_name := args[0].(string)
-	if method_name == "handleRequest" {
-		_ = self.handleRequest(args[1].(string), args[2].([]byte))
-	} else if method_name == "handleRPCCast" {
-		self.handleRPCCast(args[1].([]byte))
-	} else if method_name == "handleWrap" {
-		self.handleWrap(args[1].(func(player *Player) interface{}))
-	} else if method_name == "handleAsyncWrap" {
-		self.handleAsyncWrap(args[0].(func()))
-	} else if method_name == "PersistData" {
-		//err := self.Store.Persist([]string{"models"})
-		err := player_data.Persist(self.PlayerId, self.Data)
-		if err != nil {
-			logger.ERR("PersistData failed: ", err)
-		}
-		self.startPersistTimer()
-	} else if method_name == "removeConn" {
-		//self.Conn = nil
-	} else if method_name == "broadcast" {
-		self.handleBroadcast(args[1].(*broadcast.BroadcastMsg))
-	} else if method_name == "connected" {
-		agentId := args[1].(string)
-		agent := args[2].(interfaces.AgentBehavior)
-		self.Agents[agentId] = agent
-	} else if method_name == "disconnected" {
-		agentId := args[1].(string)
-		delete(self.Agents, agentId)
+func (self *Player) HandleCast(msg interface{}) {
+	switch params := msg.(type) {
+	case *RequestParams:
+		_ = self.handleRequest(params)
+		break
+	case *RPCCastParams:
+		self.handleRPCCast(params)
+		break
+	case *WrapParams:
+		self.handleWrap(params)
+		break
+	case *AsyncWrapParams:
+		self.handleAsyncWrap(params)
+		break
+	case *PersistData:
+		self.handlePersistData();
+		break
+	case *BroadcastParams:
+		self.handleBroadcast(params)
+		break
+	case *ConnectedParams:
+		self.handleConnected(params)
+		break
+	case *DisConnectedParams:
+		self.handleDisconnected(params)
+		break
 	}
 }
 
-func (self *Player) HandleCall(args []interface{}) (interface{}, error) {
-	methodName := args[0].(string)
-	if methodName == "handleWrap" {
-		return self.handleWrap(args[1].(func(player *Player) interface{})), nil
-	} else if methodName == "handleRPCCall" {
-		return self.handleRPCCall(args[1].(routes.Handler), args[2])
+func (self *Player) HandleCall(msg interface{}) (interface{}, error) {
+	switch params := msg.(type) {
+	case *WrapParams:
+		return self.handleWrap(params), nil
+	case *RpcCallParams:
+		return self.handleRPCCall(params)
 	}
 	return nil, nil
 }
@@ -195,7 +193,11 @@ func (self *Player) SendData(agentId, encode_method string, msg interface{}) err
 	return self.sendDataToStream(agentId, 0, encode_method, msg)
 }
 
-func (self *Player) handleRequest(agentId string, data []byte) error {
+type RequestParams struct {
+	agentId string
+	data []byte
+}
+func (self *Player) handleRequest(params *RequestParams) error {
 	self.lastActive = time.Now().Unix()
 	if !gosconf.IS_DEBUG {
 		defer func() {
@@ -205,28 +207,33 @@ func (self *Player) handleRequest(agentId string, data []byte) error {
 		}()
 	}
 
-	reqId, handler, params, err := api.ParseRequestDataForHander(data)
+	reqId, handler, args, err := api.ParseRequestDataForHander(params.data)
 	if err != nil {
 		logger.ERR("ParseRequestDataForHander failed: ", err)
-		return self.sendDataToStream(agentId, reqId, pt.PT_Fail, &pt.Fail{Fail: "error_route_not_found"})
+		return self.sendDataToStream(params.agentId, reqId, pt.PT_Fail, &pt.Fail{Fail: "error_route_not_found"})
 	} else {
-		encode_method, msg := self.processRequest(handler, params)
-		return self.sendDataToStream(agentId, reqId, encode_method, msg)
+		encode_method, msg := self.processRequest(handler, args)
+		return self.sendDataToStream(params.agentId, reqId, encode_method, msg)
 	}
 }
 
-func (self *Player) handleRPCCall(handler routes.Handler, params interface{}) (*RPCReply, error) {
-	encode_method, response := handler(self, params)
+type RpcCallParams struct {
+	Handler routes.Handler
+	Params  interface{}
+}
+func (self *Player) handleRPCCall(params *RpcCallParams) (*RPCReply, error) {
+	encode_method, response := params.Handler(self, params.Params)
 	return &RPCReply{EncodeMethod: encode_method, Response: response}, nil
 }
 
-func (self *Player) handleRPCCast(data []byte) {
-	_, handler, params, err := api.ParseRequestDataForHander(data)
+type RPCCastParams struct { data []byte }
+func (self *Player) handleRPCCast(params *RPCCastParams) {
+	_, handler, args, err := api.ParseRequestDataForHander(params.data)
 	if err != nil {
 		logger.ERR("handleRPCCast failed: ", err)
 		return
 	}
-	self.processRequest(handler, params)
+	self.processRequest(handler, args)
 }
 
 func EncodeResponseData(encode_method string, reqId int32, response interface{}) ([]byte, error) {
@@ -245,39 +252,64 @@ func (self *Player) processRequest(handler routes.Handler, params interface{}) (
 	return encode_method, response
 }
 
-func (self *Player) handleWrap(fun func(ctx *Player) interface{}) interface{} {
+type WrapParams struct { fun func(ctx *Player) interface{} }
+func (self *Player) handleWrap(params *WrapParams) interface{} {
 	self.lastActive = time.Now().Unix()
-	return fun(self)
+	return params.fun(self)
 }
 
-func (self *Player) handleAsyncWrap(fun func()) {
+type AsyncWrapParams struct { fun func(ctx *Player) }
+func (self *Player) handleAsyncWrap(params *AsyncWrapParams) {
 	self.lastActive = time.Now().Unix()
-	fun()
+	params.fun(self)
 }
 
-func (self *Player) handleBroadcast(msg *broadcast.BroadcastMsg) {
-	if BroadcastHandler != nil {
-		BroadcastHandler(self, msg)
+type PersistData struct {}
+func (self *Player) handlePersistData() {
+	err := player_data.Persist(self.PlayerId, self.Data)
+	if err != nil {
+		logger.ERR("PersistData failed: ", err)
 	}
+	self.startPersistTimer()
+}
+
+type BroadcastParams struct { msg *broadcast.BroadcastMsg }
+func (self *Player) handleBroadcast(params *BroadcastParams) {
+	if BroadcastHandler != nil {
+		BroadcastHandler(self, params.msg)
+	}
+}
+
+type ConnectedParams struct {
+	agentId string
+	agent interfaces.AgentBehavior
+}
+func (self *Player) handleConnected(params *ConnectedParams) {
+	self.Agents[params.agentId] = params.agent
+}
+
+type DisConnectedParams struct { agentId string }
+func (self *Player) handleDisconnected(params *DisConnectedParams) {
+	delete(self.Agents, params.agentId)
 }
 
 /*
    IPC Methods
 */
 
-func (self *Player) Wrap(targetPlayerId string, fun func(ctx *Player) interface{}) (interface{}, error) {
+func (self *Player) Wrap(targetPlayerId string, params *WrapParams) (interface{}, error) {
 	if self.PlayerId == targetPlayerId {
-		return self.handleWrap(fun), nil
+		return self.handleWrap(params), nil
 	} else {
-		return CallPlayer(targetPlayerId, "handleWrap", fun)
+		return CallPlayer(targetPlayerId, params)
 	}
 }
 
-func (self *Player) AsyncWrap(targetPlayerId string, fun func()) {
+func (self *Player) AsyncWrap(targetPlayerId string, params *AsyncWrapParams) {
 	if self.PlayerId == targetPlayerId {
-		self.handleAsyncWrap(fun)
+		self.handleAsyncWrap(params)
 	} else {
-		err := CastPlayer(targetPlayerId, "HandleAsyncWrap", fun)
+		err := CastPlayer(targetPlayerId, params)
 		if err != nil {
 			logger.ERR("HandleAsyncWrap failed: ", err)
 		}

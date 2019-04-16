@@ -27,7 +27,7 @@ func Start() {
 func TryLoadScene(sceneId string) bool {
 	if sceneId != "" {
 		if loaded, ok := loadedScenes.Load(sceneId); !ok || !(loaded.(bool)) {
-			gen_server.Call(SERVER, "LoadScene", sceneId)
+			gen_server.Call(SERVER, &LoadSceneParams{sceneId})
 		}
 	}
 	return true
@@ -38,15 +38,17 @@ func (self *SceneMgr) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *SceneMgr) HandleCast(args []interface{}) {
+func (self *SceneMgr) HandleCast(msg interface{}) {
 }
 
-func (self *SceneMgr) HandleCall(args []interface{}) (interface{}, error) {
-	handle := args[0].(string)
-	if handle == "LoadScene" {
-		sceneId := args[1].(string)
-		doLoadScene(sceneId)
-		loadedScenes.Store(sceneId, true)
+type LoadSceneParams struct {
+	sceneId string
+}
+func (self *SceneMgr) HandleCall(msg interface{}) (interface{}, error) {
+	switch params := msg.(type) {
+	case *LoadSceneParams:
+		doLoadScene(params.sceneId)
+		loadedScenes.Store(params.sceneId, true)
 		return true, nil
 	}
 	return nil, nil

@@ -82,7 +82,7 @@ func internalRequestPlayer(targetPlayerId string, encode_method string, params i
 		logger.ERR("internalRequestPlayer failed: ", encode_method, " err: ", err)
 		return nil, err
 	}
-	result, err := player.CallPlayer(targetPlayerId, "handleRPCCall", handler, params)
+	result, err := player.CallPlayer(targetPlayerId, &player.RpcCallParams{handler, params})
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func getClient(gameId string) (proto.GameRpcServerClient, error) {
 	if client, ok := rpcClients.Load(gameId); ok {
 		return client.(proto.GameRpcServerClient), nil
 	}
-	client, err := gen_server.Call(PLAYER_RPC_SERVER, "connectGame", gameId)
+	client, err := gen_server.Call(PLAYER_RPC_SERVER,&ConnectGameParams{gameId})
 	if err != nil {
 		logger.ERR("connectGame failed: ", err)
 		return nil, err
@@ -135,25 +135,29 @@ func (self *PlayerRPC) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *PlayerRPC) HandleCast(args []interface{}) {
+func (self *PlayerRPC) HandleCast(msg interface{}) {
 }
 
-func (self *PlayerRPC) HandleCall(args []interface{}) (interface{}, error) {
-	handle := args[0].(string)
-	if handle == "connectGame" {
-		gameId := args[1].(string)
-		game, err := game_utils.Find(gameId)
-		if err != nil {
-			return nil, err
-		}
-		client, err := connectGame(game)
-		return client, err
+func (self *PlayerRPC) HandleCall(msg interface{}) (interface{}, error) {
+	switch params := msg.(type) {
+	case *ConnectGameParams:
+		return self.handleConnectGame(params)
 	}
 	return nil, nil
 }
 
 func (self *PlayerRPC) Terminate(reason string) (err error) {
 	return nil
+}
+
+type ConnectGameParams struct { gameId string }
+func (self *PlayerRPC) handleConnectGame(params *ConnectGameParams) (interface{}, error) {
+	game, err := game_utils.Find(params.gameId)
+	if err != nil {
+		return nil, err
+	}
+	client, err := connectGame(game)
+	return client, err
 }
 
 func connectGame(game *game_utils.Game) (proto.GameRpcServerClient, error) {

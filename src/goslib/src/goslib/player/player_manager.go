@@ -32,11 +32,11 @@ func StartManager() error {
 }
 
 func DelShutdown(playerId string) {
-	gen_server.Cast(SERVER, "delShutdown", playerId)
+	gen_server.Cast(SERVER, &DelShutDownParams{playerId})
 }
 
 func ShutdownPlayers() error {
-	_, err := gen_server.Call(SERVER, "shutdownPlayers")
+	_, err := gen_server.Call(SERVER, &ShutdownPlayersParams{})
 	return err
 }
 
@@ -46,7 +46,7 @@ func EnsureShutdown() {
 		logger.ERR("ShutdownPlayers failed: ", err)
 	}
 	for {
-		result, err := gen_server.Call(SERVER, "remainPlayers")
+		result, err := gen_server.Call(SERVER, &RemainPlayersParams{})
 		if err == nil && result.(int) == 0 {
 			return
 		}
@@ -69,7 +69,7 @@ func StartPlayer(accountId string) error {
 		logger.ERR("StartPlayer failed: ", err)
 		return err
 	}
-	_, err = gen_server.Call(SERVER, "StartPlayer", accountId)
+	_, err = gen_server.Call(SERVER, &StartPlayerParams{accountId})
 	return err
 }
 
@@ -78,48 +78,64 @@ func (self *PlayerManager) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *PlayerManager) HandleCast(args []interface{}) {
-	handle := args[0].(string)
-	switch handle {
-	case "delShutdown":
-		playerId := args[1].(string)
-		delete(self.players, playerId)
+func (self *PlayerManager) HandleCast(msg interface{}) {
+	switch params := msg.(type) {
+	case *DelShutDownParams:
+		self.handleDelShutdown(params)
 		break
 	default:
-		logger.ERR("player_manager unhandle message: ", handle)
+		logger.ERR("player_manager unhandle message: ", params)
 	}
 }
 
-func (self *PlayerManager) HandleCall(args []interface{}) (interface{}, error) {
-	handle := args[0].(string)
-	switch handle {
-	case "StartPlayer":
-		if self.status != working {
-			return nil, errors.New("player_manager is shutting down")
-		}
-		accountId := args[1].(string)
-		if !gen_server.Exists(accountId) {
-			_, err := gen_server.Start(accountId, new(Player), accountId)
-			if err != nil {
-				return nil, err
-			}
-			self.players[accountId] = true
-		}
-		break
-	case "remainPlayers":
-		return len(self.players), nil
-	case "shutdownPlayers":
-		self.status = shutdown
-		self.batchShutdownPlayers()
+func (self *PlayerManager) HandleCall(msg interface{}) (interface{}, error) {
+	switch params := msg.(type) {
+	case *StartPlayerParams:
+		return self.handleStartPlayer(params)
+	case *RemainPlayersParams:
+		return self.handleRemainPlayers(), nil
+	case *ShutdownPlayersParams:
+		self.handleShutdownPlayers()
 		break
 	default:
-		logger.ERR("player_manager unhandle message: ", handle)
+		logger.ERR("player_manager unhandle message: ", params)
 	}
 	return nil, nil
 }
 
 func (self *PlayerManager) Terminate(reason string) (err error) {
 	return nil
+}
+
+type StartPlayerParams struct { accountId string }
+func (self *PlayerManager) handleStartPlayer(params *StartPlayerParams) (interface{}, error) {
+	if self.status != working {
+		return nil, errors.New("player_manager is shutting down")
+	}
+	if !gen_server.Exists(params.accountId) {
+		_, err := gen_server.Start(params.accountId, new(Player), params.accountId)
+		if err != nil {
+			return nil, err
+		}
+		self.players[params.accountId] = true
+	}
+	return nil, nil
+}
+
+type ShutdownPlayersParams struct {}
+func (self *PlayerManager) handleShutdownPlayers() {
+	self.status = shutdown
+	self.batchShutdownPlayers()
+}
+
+type RemainPlayersParams struct {}
+func (self *PlayerManager) handleRemainPlayers() int {
+	return len(self.players)
+}
+
+type DelShutDownParams struct { playerId string }
+func (self *PlayerManager) handleDelShutdown(params *DelShutDownParams) {
+	delete(self.players, params.playerId)
 }
 
 func (self *PlayerManager) batchShutdownPlayers() {

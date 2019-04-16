@@ -22,7 +22,7 @@ func StartIOS(bundleId string) {
 }
 
 func VerifyIOS(receipt string, handler VerifyHandler) {
-	gen_server.Cast(IOS_SERVER, "Verify", receipt, handler)
+	gen_server.Cast(IOS_SERVER, &IOSVerifyParams{receipt, handler})
 }
 
 func (self *IOSServer) Init(args []interface{}) (err error) {
@@ -31,13 +31,15 @@ func (self *IOSServer) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *IOSServer) HandleCast(args []interface{}) {
-	handle := args[0].(string)
-	if handle == "Verify" {
-		receipt := args[1].(string)
-		verifyHandler := args[2].(VerifyHandler)
+type IOSVerifyParams struct {
+	receipt string
+	verifyHandler VerifyHandler
+}
+func (self *IOSServer) HandleCast(msg interface{}) {
+	switch params := msg.(type) {
+	case *IOSVerifyParams:
 		req := appstore.IAPRequest{
-			ReceiptData: receipt, // your receipt data encoded by base64
+			ReceiptData: params.receipt, // your receipt data encoded by base64
 		}
 		resp := &appstore.IAPResponse{}
 		ctx := context.Background()
@@ -49,17 +51,18 @@ func (self *IOSServer) HandleCast(args []interface{}) {
 		if resp.Receipt.BundleID == self.bundleId {
 			switch resp.Status {
 			case 0:
-				verifyHandler(resp.Receipt.InApp[0].ProductID, true)
+				params.verifyHandler(resp.Receipt.InApp[0].ProductID, true)
 			default:
 				logger.ERR("IOS IAP verify status: ", resp.Status)
 			}
 		} else {
-			verifyHandler(resp.Receipt.AppItemID, false)
+			params.verifyHandler(string(resp.Receipt.AppItemID), false)
 		}
+		break
 	}
 }
 
-func (self *IOSServer) HandleCall(args []interface{}) (interface{}, error) {
+func (self *IOSServer) HandleCall(msg interface{}) (interface{}, error) {
 	return nil, nil
 }
 

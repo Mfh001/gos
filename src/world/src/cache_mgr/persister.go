@@ -26,9 +26,10 @@ func StartPersister() {
 	gen_server.Start(SERVER, new(Persister))
 }
 
+var remainTask = &RemainTasksParams{}
 func EnsurePersistered() {
 	for {
-		count, err := gen_server.Call(SERVER, "remainTasks")
+		count, err := gen_server.Call(SERVER, remainTask)
 		if err == nil && count.(int) == 0 {
 			return
 		}
@@ -37,20 +38,21 @@ func EnsurePersistered() {
 }
 
 func persistToMySQL(playerId, content string, version int64, needExpire bool) {
-	gen_server.Cast(SERVER, "persist", playerId, &Task{
+	gen_server.Cast(SERVER, &PersistParams{playerId, &Task{
 		Content:    content,
 		Version:    version,
 		NeedExpire: needExpire,
-	})
+	}})
 }
 
+var ticker = &TickerPersistParams{}
 func (self *Persister) Init(args []interface{}) (err error) {
 	self.queue = make(map[string]*Task)
 	self.persistTicker = time.NewTicker(time.Second)
 	go func() {
 		var err error
 		for range self.persistTicker.C {
-			_, err = gen_server.Call(SERVER, "tickerPersist")
+			_, err = gen_server.Call(SERVER, ticker)
 			if err != nil {
 				logger.ERR("call tickerPersist failed: ", err)
 			}
@@ -59,22 +61,25 @@ func (self *Persister) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *Persister) HandleCast(args []interface{}) {
-	handle := args[0].(string)
-	if handle == "persist" {
-		playerId := args[1].(string)
-		task := args[2].(*Task)
-		self.queue[playerId] = task
+type PersistParams struct {
+	playerId string
+	task *Task
+}
+func (self *Persister) HandleCast(msg interface{}) {
+	switch params := msg.(type) {
+	case *PersistParams:
+		self.queue[params.playerId] = params.task
+		break
 	}
 }
 
-func (self *Persister) HandleCall(args []interface{}) (interface{}, error) {
-	handle := args[0].(string)
-	if handle == "SyncPersistAll" {
+type RemainTasksParams struct {}
+func (self *Persister) HandleCall(msg interface{}) (interface{}, error) {
+	switch msg.(type) {
+	case *TickerPersistParams:
 		self.tickerPersist()
-	} else if handle == "tickerPersist" {
-		self.tickerPersist()
-	} else if handle == "remainTasks" {
+		break
+	case *RemainTasksParams:
 		return len(self.queue), nil
 	}
 	return nil, nil
@@ -84,6 +89,7 @@ func (self *Persister) Terminate(reason string) (err error) {
 	return nil
 }
 
+type TickerPersistParams struct {}
 func (self *Persister) tickerPersist() {
 	for playerId, task := range self.queue {
 		if err := persist(playerId, task); err == nil {

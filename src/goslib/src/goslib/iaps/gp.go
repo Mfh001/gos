@@ -25,7 +25,7 @@ func StartGP(bundleId string, jsonKeyPath string) {
 }
 
 func VerifyGP(productID string, purchaseToken string, handler VerifyHandler) {
-	gen_server.Cast(GP_SERVER, "Verify", productID, purchaseToken, handler)
+	gen_server.Cast(GP_SERVER, &VerifyParams{productID, purchaseToken, handler})
 }
 
 func (self *GPServer) Init(args []interface{}) (err error) {
@@ -49,24 +49,27 @@ func (self *GPServer) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *GPServer) HandleCast(args []interface{}) {
-	handle := args[0].(string)
-	if handle == "Verify" {
-		productID := args[1].(string)
-		purchaseToken := args[2].(string)
-		verifyHandler := args[3].(VerifyHandler)
+type VerifyParams struct {
+	productID string
+	purchaseToken string
+	verifyHandler VerifyHandler
+}
+func (self *GPServer) HandleCast(msg interface{}) {
+	switch params := msg.(type) {
+	case *VerifyParams:
 		ctx := context.Background()
-		resp, err := self.client.VerifyProduct(ctx, self.bundleId, productID, purchaseToken)
+		resp, err := self.client.VerifyProduct(ctx, self.bundleId, params.productID, params.purchaseToken)
 		if err != nil {
 			logger.ERR("GP verify iap failed: ", err)
-			verifyHandler(productID, false)
+			params.verifyHandler(params.productID, false)
 			return
 		}
-		verifyHandler(productID, resp.PurchaseState == 0)
+		params.verifyHandler(params.productID, resp.PurchaseState == 0)
+		break
 	}
 }
 
-func (self *GPServer) HandleCall(args []interface{}) (interface{}, error) {
+func (self *GPServer) HandleCall(msg interface{}) (interface{}, error) {
 	return nil, nil
 }
 

@@ -45,28 +45,29 @@ func Add(key string, runAt int64, playerId string, encode_method string, params 
 		return err
 	}
 	content := fmt.Sprintf("%s:%s", playerId, string(data))
-	gen_server.Cast(SERVER, "add", key, runAt, content)
+	gen_server.Cast(SERVER,&AddParams{key, runAt, content})
 	return nil
 }
 
 func Update(key string, runAt int64) {
-	gen_server.Cast(SERVER, "update", key, runAt)
+	gen_server.Cast(SERVER, &UpdateParams{key, runAt})
 }
 
 func Finish(key string) {
-	gen_server.Cast(SERVER, "finish", key)
+	gen_server.Cast(SERVER, &FinishParams{key})
 }
 
 func Del(key string) {
-	gen_server.Cast(SERVER, "del", key)
+	gen_server.Cast(SERVER, &DelParams{key})
 }
 
+var tickerTaskParams = &TickerTaskParams{}
 func (t *TimerTask) Init(args []interface{}) (err error) {
 	t.taskTicker = time.NewTicker(gosconf.TIMERTASK_CHECK_DURATION)
 	t.retry = make(map[string]int)
 	go func() {
 		for range t.taskTicker.C {
-			_, err = gen_server.Call(SERVER, "tickerTask")
+			_, err = gen_server.Call(SERVER, tickerTaskParams)
 			if err != nil {
 				logger.ERR("timertask tickerTask failed: ", err)
 			}
@@ -75,33 +76,28 @@ func (t *TimerTask) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (t *TimerTask) HandleCall(args []interface{}) (interface{}, error) {
-	err := t.handleCallAndCast(args)
+func (t *TimerTask) HandleCall(msg interface{}) (interface{}, error) {
+	err := t.handleCallAndCast(msg)
 	return nil, err
 }
 
-func (t *TimerTask) HandleCast(args []interface{}) {
-	_ = t.handleCallAndCast(args)
+func (t *TimerTask) HandleCast(msg interface{}) {
+	_ = t.handleCallAndCast(msg)
 }
 
-func (t *TimerTask) handleCallAndCast(args []interface{}) error {
-	method := args[0].(string)
-	if method == "add" {
-		key := args[1].(string)
-		runAt := args[2].(int64)
-		content := args[3].(string)
-		return t.add(key, runAt, content)
-	} else if method == "update" {
-		key := args[1].(string)
-		runAt := args[2].(int64)
-		return t.update(key, runAt)
-	} else if method == "finish" {
-		key := args[1].(string)
-		return t.finish(key)
-	} else if method == "del" {
-		key := args[1].(string)
-		return t.del(key)
-	} else if method == "tickerTask" {
+type FinishParams struct { key string }
+type DelParams struct { key string }
+func (t *TimerTask) handleCallAndCast(msg interface{}) error {
+	switch params := msg.(type) {
+	case *AddParams:
+		return t.handleAdd(params)
+	case *UpdateParams:
+		return t.handleUpdate(params)
+	case *FinishParams:
+		return t.finish(params.key)
+	case *DelParams:
+		return t.del(params.key)
+	case *TickerTaskParams:
 		t.tickerTask()
 	}
 	return nil
@@ -110,6 +106,23 @@ func (t *TimerTask) handleCallAndCast(args []interface{}) error {
 func (t *TimerTask) Terminate(reason string) (err error) {
 	t.taskTicker.Stop()
 	return nil
+}
+
+type AddParams struct {
+	key string
+	runAt int64
+	content string
+}
+func (t *TimerTask) handleAdd(params *AddParams) error {
+	return t.add(params.key, params.runAt, params.content)
+}
+
+type UpdateParams struct {
+	key string
+	runAt int64
+}
+func (t *TimerTask) handleUpdate(params *UpdateParams) error {
+	return t.update(params.key, params.runAt)
 }
 
 func mfa_key(key string) string {
@@ -189,6 +202,7 @@ func (t *TimerTask) handleTask(key string) error {
 	return err
 }
 
+type TickerTaskParams struct {}
 func (t *TimerTask) tickerTask() {
 	opt := redis.ZRangeBy{
 		Min:    "0",
