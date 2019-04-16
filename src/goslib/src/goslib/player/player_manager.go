@@ -155,15 +155,17 @@ func (self *PlayerManager) batchShutdownPlayers() {
 
 const Backoff = 1
 const BackoffRatio = 2
-const RetryTimes = 5
+const MaxBackoff = 3
 
 func retry(handler func() error) {
 	backoff := Backoff
-	for i := 0; i < RetryTimes; i++ {
+	for i := 0; ; i++ {
 		if err := handler(); err == nil {
 			return
 		}
-		time.Sleep(time.Second)
-		backoff *= BackoffRatio
+		time.Sleep(time.Duration(backoff) * time.Second)
+		if i < MaxBackoff {
+			backoff *= BackoffRatio
+		}
 	}
 }
