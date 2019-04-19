@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"game_mgr"
 	"github.com/go-redis/redis"
+	"gosconf"
 	"goslib/logger"
 	"goslib/redisdb"
 	"goslib/secure"
@@ -101,7 +102,7 @@ func (self *Account) ChangePassword(newPassword string) {
  * request ConnectAppMgr dispatch connectApp for user connecting
  */
 func (self *Account) Dispatch() (string, string, *session_utils.Session, error) {
-	dispatchInfo, err := game_mgr.DispatchGame(self.Uuid, self.GroupId)
+	dispatchInfo, err := game_mgr.DispatchGame(gosconf.GS_ROLE_DEFAULT, self.Uuid, self.GroupId)
 	if err != nil {
 		logger.ERR("Dispatch account failed: ", err)
 		return "", "", nil, err

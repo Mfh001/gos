@@ -136,7 +136,7 @@ func (self *Player) HandleCast(msg interface{}) {
 		self.handleAsyncWrap(params)
 		break
 	case *PersistData:
-		self.handlePersistData();
+		self.handlePersistData()
 		break
 	case *BroadcastParams:
 		self.handleBroadcast(params)

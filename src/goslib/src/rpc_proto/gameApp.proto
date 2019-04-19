@@ -9,7 +9,8 @@ service GameDispatcher {
 }
 
 message DispatchGameRequest {
-    string accountId = 1;
+    string role = 1;
+    string accountId = 2;
     string sceneId   = 3;
 }
 

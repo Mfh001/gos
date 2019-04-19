@@ -42,7 +42,7 @@ func startGameAppMgrRPC() {
 
 // DispatchPlayer implements connectAppProto.DispatchPlayer
 func (s *gameAppMgr) DispatchGame(ctx context.Context, in *proto.DispatchGameRequest) (*proto.DispatchGameReply, error) {
-	info, err := DispatchGame(in.AccountId, in.SceneId)
+	info, err := DispatchGame(in.Role, in.AccountId, in.SceneId)
 	if err != nil {
 		return nil, err
 	}

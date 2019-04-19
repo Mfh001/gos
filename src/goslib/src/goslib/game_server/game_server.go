@@ -26,6 +26,7 @@ import (
 )
 
 type NodeInfo struct {
+	Role 	   string
 	Hostname   string
 	NodeHost   string
 	NodePort   string
@@ -34,7 +35,10 @@ type NodeInfo struct {
 	StreamPort string
 }
 
-func Start(customRegister func()) {
+var Role string
+
+func Start(role string, customRegister func()) {
+	Role = role
 	stopChan := make(chan os.Signal)
 	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -133,6 +137,7 @@ func getNodeInfoForAllInOne(hostname string) (*NodeInfo, error) {
 	streamPort := gosconf.RPC_FOR_GAME_APP_STREAM.ListenPort
 
 	return &NodeInfo{
+		Role:		Role,
 		Hostname:   hostname,
 		NodeHost:   "127.0.0.1",
 		NodePort:   agent.AgentPort,
@@ -158,6 +163,7 @@ func getNodeInfoForCluster(hostname string) (*NodeInfo, error) {
 	}
 
 	return &NodeInfo{
+		Role:		Role,
 		Hostname:   hostname,
 		NodeHost:   nodeHost,
 		NodePort:   agent.AgentPort,
@@ -223,6 +229,7 @@ func getNodeInfoForK8s(hostname string) (*NodeInfo, error) {
 	logger.INFO("Hostname: ", hostname, "InternalIP: ", internalIP, "ExternalIP: ", externalIP, " nodeHost: ", nodeHost, " nodePort: ", nodePort)
 
 	return &NodeInfo{
+		Role:		Role,
 		Hostname:   hostname,
 		NodeHost:   nodeHost,
 		NodePort:   nodePort,

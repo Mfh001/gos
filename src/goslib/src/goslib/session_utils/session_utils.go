@@ -13,6 +13,7 @@ type Session struct {
 
 	ServerId string
 
+	GameRole  string
 	GameAppId string // GameServer which served scenes
 	SceneId   string // Scene is logic space, the players with same sceneId stay in same GameServer
 
@@ -46,6 +47,7 @@ func (self *Session) Save() error {
 	params["AccountId"] = self.AccountId
 	params["ServerId"] = self.ServerId
 	params["SceneId"] = self.SceneId
+	params["GameRole"] = self.GameRole
 	params["GameAppId"] = self.GameAppId
 	params["RoomAppId"] = self.RoomAppId
 	params["RoomId"] = self.RoomId
@@ -68,6 +70,7 @@ func parseSession(params map[string]string) *Session {
 		AccountId: params["AccountId"],
 		ServerId:  params["ServerId"],
 		SceneId:   params["SceneId"],
+		GameRole:  params["GameRole"],
 		GameAppId: params["GameAppId"],
 		RoomAppId: params["RoomAppId"],
 		RoomId:    params["RoomId"],

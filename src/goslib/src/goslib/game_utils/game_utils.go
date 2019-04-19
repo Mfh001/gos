@@ -10,6 +10,7 @@ import (
 
 type Game struct {
 	Uuid       string
+	Role 	   string
 	Host       string
 	Port       string
 	RpcHost    string
@@ -65,6 +66,7 @@ func Create(params map[string]string) (*Game, error) {
 func (self *Game) Save() error {
 	params := make(map[string]interface{})
 	params["Uuid"] = self.Uuid
+	params["Role"] = self.Role
 	params["Host"] = self.Host
 	params["Port"] = self.Port
 	params["RpcHost"] = self.RpcHost
@@ -86,6 +88,7 @@ func parseObject(params map[string]string) *Game {
 	ActiveAt, _ := strconv.Atoi(params["ActiveAt"])
 	return &Game{
 		Uuid:       params["Uuid"],
+		Role:       params["Role"],
 		Host:       params["Host"],
 		Port:       params["Port"],
 		RpcHost:    params["RpcHost"],

@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"gosconf"
 	"goslib/api"
+	"goslib/game_server/connection"
 	"goslib/game_utils"
 	"goslib/gen_server"
 	"goslib/logger"
@@ -65,6 +66,15 @@ func RequestPlayerRaw(targetPlayerId string, data []byte) (interface{}, error) {
 	session, err := session_utils.Find(targetPlayerId)
 	if err != nil {
 		return nil, err
+	}
+	if session.GameAppId == "" {
+		if _, err := connection.ChooseGameServer(session); err != nil {
+			return nil, err
+		}
+		session, err = session_utils.Find(targetPlayerId)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if session.GameAppId == player.CurrentGameAppId {
 		encode_method, params, err := parseData(data)

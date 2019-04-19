@@ -23,22 +23,22 @@ type DispatchInfo struct {
  * players with same sceneId will be dispatched to same game server by sceneId,
  * or will be dispatched to best score game server.
  */
-func DispatchGame(accountId, sceneId string) (*DispatchInfo, error) {
+func DispatchGame(role, accountId, sceneId string) (*DispatchInfo, error) {
 	if sceneId != "" {
-		return fastDispatch(accountId, sceneId)
+		return fastDispatch(role, accountId, sceneId)
 	} else {
-		return defaultDispatch(accountId, sceneId)
+		return defaultDispatch(role, accountId, sceneId)
 	}
 }
 
-func fastDispatch(accountId, sceneId string) (*DispatchInfo, error) {
+func fastDispatch(role, accountId, sceneId string) (*DispatchInfo, error) {
 	scene, err := scene_utils.FindScene(sceneId)
 	if err != nil {
 		return nil, err
 	}
 
 	if scene == nil {
-		scene, err = dispatchScene(sceneId)
+		scene, err = dispatchScene(role, sceneId)
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +47,7 @@ func fastDispatch(accountId, sceneId string) (*DispatchInfo, error) {
 		}
 	}
 
-	err = setGameAppIdToSession(accountId, scene.GameAppId, sceneId)
+	err = setGameAppIdToSession(role, accountId, scene.GameAppId, sceneId)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +64,8 @@ func fastDispatch(accountId, sceneId string) (*DispatchInfo, error) {
 	}, nil
 }
 
-func defaultDispatch(accountId, sceneId string) (*DispatchInfo, error) {
-	game, err := chooseGameApp()
+func defaultDispatch(role, accountId, sceneId string) (*DispatchInfo, error) {
+	game, err := chooseGameApp(role)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func defaultDispatch(accountId, sceneId string) (*DispatchInfo, error) {
 		if session != nil && session.GameAppId != "" {
 			return dispatchInfo(session.GameAppId)
 		}
-		err = setGameAppIdToSession(accountId, game.Uuid, sceneId)
+		err = setGameAppIdToSession(role, accountId, game.Uuid, sceneId)
 		redisdb.Instance().Del(lockKey)
 		if err != nil {
 			return nil, err
@@ -112,8 +112,8 @@ func dispatchInfo(gameId string) (*DispatchInfo, error) {
 	}, nil
 }
 
-func dispatchScene(sceneId string) (*scene_utils.Scene, error) {
-	game, err := chooseGameApp()
+func dispatchScene(role string, sceneId string) (*scene_utils.Scene, error) {
+	game, err := chooseGameApp(role)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ type GameCompare struct {
 	Score int
 }
 
-func chooseGameApp() (*game_utils.Game, error) {
+func chooseGameApp(role string) (*game_utils.Game, error) {
 	games := make(map[string]*game_utils.Game)
 	err := game_utils.LoadGames(games)
 	if err != nil {
@@ -186,7 +186,7 @@ func gameAppScore(game *game_utils.Game) int {
 	return int(ccuScore * 100)
 }
 
-func setGameAppIdToSession(accountId, gameAppId, sceneId string) error {
+func setGameAppIdToSession(role, accountId, gameAppId, sceneId string) error {
 	session, err := session_utils.Find(accountId)
 	if err != nil {
 		return err
@@ -194,6 +194,7 @@ func setGameAppIdToSession(accountId, gameAppId, sceneId string) error {
 	if session == nil {
 		session, err = session_utils.Create(&session_utils.Session{
 			AccountId: accountId,
+			GameRole:  role,
 			GameAppId: gameAppId,
 			SceneId:   sceneId,
 		})

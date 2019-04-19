@@ -8,6 +8,10 @@ import (
 const IS_DEBUG = false
 
 const (
+	GS_ROLE_DEFAULT = "GS"
+)
+
+const (
 	START_TYPE_ALL_IN_ONE = iota
 	START_TYPE_CLUSTER
 	START_TYPE_K8S
@@ -35,7 +39,7 @@ const (
 
 var MYSQL_DSN_ALL_IN_ONE = "root@/gos_server_development"
 var MYSQL_DSN_CLUSTER = "root@/gos_server_development"
-var MYSQL_DSN_K8S = "root:euQRdwMgb1@tcp(single-mysql.default.svc.cluster.local)/gos_server_development"
+var MYSQL_DSN_K8S = "root:UiP8S9NQJx@tcp(single-mysql.default.svc.cluster.local)/gos_server_development"
 
 var REDIS_CLUSTERS_FOR_ALL_IN_ONE = []string{
 	"127.0.0.1:7000",

@@ -40,6 +40,7 @@ func ChooseGameServer(session *session_utils.Session) (*game_utils.Game, error) 
 	defer cancel()
 
 	reply, err := GameMgrRpcClient.DispatchGame(ctx, &proto.DispatchGameRequest{
+		Role:      session.GameRole,
 		AccountId: session.AccountId,
 		SceneId:   session.SceneId,
 	})

@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("Game", func() {
 
-	go game_server.Start(func() {
+	go game_server.Start("GS", func() {
 		gen_register.RegisterRoutes()
 		custom_register.RegisterCustomDataLoader()
 		callbacks.RegisterSceneLoad()
