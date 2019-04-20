@@ -108,6 +108,7 @@ func (self *Player) Init(args []interface{}) (err error) {
 	session, err := session_utils.Find(self.PlayerId)
 	if err != nil {
 		logger.ERR("Player lookup session failed: ", self.PlayerId, " err: ", err)
+		return err
 	} else {
 		scene_mgr.TryLoadScene(session.SceneId)
 	}

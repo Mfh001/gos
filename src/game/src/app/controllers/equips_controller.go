@@ -13,7 +13,7 @@ type EquipsController struct {
 }
 
 func (*EquipsController) Load(ctx *player.Player, params *pt.EquipLoadParams) (string, interface{}) {
-	_, _ = player_rpc.RequestPlayer("Fake_map_id", pt.PT_RoomJoinParams, &pt.RoomJoinParams{
+	_, _ = player_rpc.RpcService("map", "Fake_map_id", pt.PT_RoomJoinParams, &pt.RoomJoinParams{
 		RoomId: "a",
 		PlayerId: "b",
 	})

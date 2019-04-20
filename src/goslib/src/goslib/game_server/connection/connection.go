@@ -120,7 +120,7 @@ func (self *Connection) OnRoomMessage(data []byte) error {
 		}
 		if session.RoomAppId == self.roomAppId && session.RoomId == self.roomId {
 			self.authed = true
-			player.Connected(self.roomId, self.accountId, self.agent)
+			return player.Connected(self.roomId, self.accountId, self.agent)
 		} else {
 			return errors.New("AuthConn failed")
 		}

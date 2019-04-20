@@ -56,11 +56,12 @@ func Start(role string, customRegister func()) {
 
 	scene_mgr.Start()
 
-	err = player.StartManager()
-	if err != nil {
+	if err = player.StartManager(); err != nil {
 		panic(err)
 	}
-	player_rpc.Start()
+	if err := player_rpc.Start(); err != nil {
+		panic(err)
+	}
 
 	if err = timertask.Start(); err != nil {
 		logger.ERR("start timertask failed: ", err)

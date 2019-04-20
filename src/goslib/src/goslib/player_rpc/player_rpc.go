@@ -28,20 +28,30 @@ const PLAYER_RPC_SERVER = "__PLAYER_RPC__"
 
 var rpcClients = &sync.Map{}
 
-func Start() {
-	gen_server.Start(PLAYER_RPC_SERVER, new(PlayerRPC))
+func Start() error {
+	_, err := gen_server.Start(PLAYER_RPC_SERVER, new(PlayerRPC))
+	return err
 }
 
-func RequestPlayer(targetPlayerId string, encode_method string, params interface{}) (interface{}, error) {
-	if gen_server.Exists(targetPlayerId) {
-		return internalRequestPlayer(targetPlayerId, encode_method, params)
+func RpcService(role, playerId, encode_method string, params interface{}) (interface{}, error) {
+	return requestPlayer(role, playerId, encode_method, params)
+}
+
+func RpcPlayer(playerId, encode_method string, params interface{}) (interface{}, error) {
+	return requestPlayer(gosconf.GS_ROLE_DEFAULT, playerId, encode_method, params)
+}
+
+func RpcPlayerRaw(playerId string, data []byte) (interface{}, error) {
+	return requestPlayerRaw(gosconf.GS_ROLE_DEFAULT, playerId, data)
+}
+
+func requestPlayer(role, playerId string, encode_method string, params interface{}) (interface{}, error) {
+	if gen_server.Exists(playerId) {
+		return internalRequestPlayer(playerId, encode_method, params)
 	}
-	session, err := session_utils.Find(targetPlayerId)
-	if err != nil {
-		return nil, err
-	}
-	if session.GameAppId == player.CurrentGameAppId {
-		return internalRequestPlayer(targetPlayerId, encode_method, params)
+	gameAppId, err := getGameAppId(role, playerId)
+	if gameAppId == player.CurrentGameAppId {
+		return internalRequestPlayer(playerId, encode_method, params)
 	}
 	writer, err := api.Encode(encode_method, params)
 	if err != nil {
@@ -52,38 +62,29 @@ func RequestPlayer(targetPlayerId string, encode_method string, params interface
 	if err != nil {
 		return nil, err
 	}
-	return crossRequestPlayer(session, data)
+	return crossRequestPlayer(playerId, gameAppId, data)
 }
 
-func RequestPlayerRaw(targetPlayerId string, data []byte) (interface{}, error) {
-	if gen_server.Exists(targetPlayerId) {
+func requestPlayerRaw(role, playerId string, data []byte) (interface{}, error) {
+	if gen_server.Exists(playerId) {
 		encode_method, params, err := parseData(data)
 		if err != nil {
 			return nil, err
 		}
-		return internalRequestPlayer(targetPlayerId, encode_method, params)
+		return internalRequestPlayer(playerId, encode_method, params)
 	}
-	session, err := session_utils.Find(targetPlayerId)
+	gameAppId, err := getGameAppId(role, playerId)
 	if err != nil {
 		return nil, err
 	}
-	if session.GameAppId == "" {
-		if _, err := connection.ChooseGameServer(session); err != nil {
-			return nil, err
-		}
-		session, err = session_utils.Find(targetPlayerId)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if session.GameAppId == player.CurrentGameAppId {
+	if gameAppId == player.CurrentGameAppId {
 		encode_method, params, err := parseData(data)
 		if err != nil {
 			return nil, err
 		}
-		return internalRequestPlayer(targetPlayerId, encode_method, params)
+		return internalRequestPlayer(playerId, encode_method, params)
 	}
-	return crossRequestPlayer(session, data)
+	return crossRequestPlayer(playerId, gameAppId, data)
 }
 
 func internalRequestPlayer(targetPlayerId string, encode_method string, params interface{}) (interface{}, error) {
@@ -99,22 +100,22 @@ func internalRequestPlayer(targetPlayerId string, encode_method string, params i
 	return result.(*player.RPCReply).Response, nil
 }
 
-func crossRequestPlayer(session *session_utils.Session, data []byte) (interface{}, error) {
-	client, err := getClient(session.GameAppId)
+func crossRequestPlayer(accountId, gameAppId string, data []byte) (interface{}, error) {
+	client, err := getClient(gameAppId)
 	if err != nil {
-		delClient(session.GameAppId)
+		delClient(gameAppId)
 		return nil, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), gosconf.RPC_REQUEST_TIMEOUT)
 	defer cancel()
 	reply, err := client.RequestPlayer(ctx, &proto.RequestPlayerRequest{
-		AccountId: session.AccountId,
+		AccountId: accountId,
 		Data:      data,
 	})
 	if err != nil {
 		logger.ERR("RequestPlayer failed: ", err)
-		delClient(session.GameAppId)
+		delClient(gameAppId)
 		return nil, err
 	}
 
@@ -195,4 +196,22 @@ func parseData(requestData []byte) (decode_method string, params interface{}, er
 		return
 	}
 	return
+}
+
+func getGameAppId(role, accountId string) (string, error) {
+	session, err := session_utils.Find(accountId)
+	if err != nil {
+		return "", err
+	}
+	if session == nil || session.GameAppId == "" {
+		game, err := connection.ChooseGameServer(&session_utils.Session{
+			GameRole: role,
+			AccountId: accountId,
+		})
+		if err != nil {
+			return "", err
+		}
+		return game.Uuid, err
+	}
+	return session.GameAppId, err
 }

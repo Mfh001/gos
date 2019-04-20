@@ -198,7 +198,7 @@ func (t *TimerTask) handleTask(key string) error {
 		return err
 	}
 	chunks := strings.Split(content, ":")
-	_, err = player_rpc.RequestPlayerRaw(chunks[0], []byte(chunks[1]))
+	_, err = player_rpc.RpcPlayerRaw(chunks[0], []byte(chunks[1]))
 	return err
 }
 
