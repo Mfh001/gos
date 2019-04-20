@@ -12,21 +12,28 @@ import (
 	"goslib/gen_server"
 	"goslib/logger"
 	"goslib/player_rpc"
+	"goslib/pool"
 	"goslib/redisdb"
+	"goslib/utils"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 )
 
 type TimerTask struct {
+	pool 	   *pool.Pool
 	taskTicker *time.Ticker
 	retry      map[string]int
 }
 
-const SERVER = "__TIMERTASK_SERVER__"
-const KEY = "TIMERTASK_KEYS"
+var KEY string
+var SERVER string
 
-func Start() error {
+func Start(hostname string) error {
+	KEY = "TIMERTASK_KEYS:" + hostname
+	SERVER = "TIMERTASK_SERVER:" + hostname
+
 	_, err := gen_server.Start(SERVER, new(TimerTask))
 	return err
 }
@@ -63,6 +70,13 @@ func Del(key string) {
 
 var tickerTaskParams = &TickerTaskParams{}
 func (t *TimerTask) Init(args []interface{}) (err error) {
+	t.pool, err = pool.New(runtime.NumCPU(), func(args interface{}) (interface{}, error) {
+		return nil, t.handleTask(args.(string))
+	})
+	if err != nil {
+		return
+	}
+
 	t.taskTicker = time.NewTicker(gosconf.TIMERTASK_CHECK_DURATION)
 	t.retry = make(map[string]int)
 	go func() {
@@ -73,16 +87,16 @@ func (t *TimerTask) Init(args []interface{}) (err error) {
 			}
 		}
 	}()
-	return nil
+	return
 }
 
-func (t *TimerTask) HandleCall(msg interface{}) (interface{}, error) {
-	err := t.handleCallAndCast(msg)
+func (t *TimerTask) HandleCall(req *gen_server.Request) (interface{}, error) {
+	err := t.handleCallAndCast(req.Msg)
 	return nil, err
 }
 
-func (t *TimerTask) HandleCast(msg interface{}) {
-	_ = t.handleCallAndCast(msg)
+func (t *TimerTask) HandleCast(req *gen_server.Request) {
+	_ = t.handleCallAndCast(req.Msg)
 }
 
 type FinishParams struct { key string }
@@ -94,7 +108,8 @@ func (t *TimerTask) handleCallAndCast(msg interface{}) error {
 	case *UpdateParams:
 		return t.handleUpdate(params)
 	case *FinishParams:
-		return t.finish(params.key)
+		t.pool.ProcessAsync(params.key)
+		return nil
 	case *DelParams:
 		return t.del(params.key)
 	case *TickerTaskParams:
@@ -126,11 +141,13 @@ func (t *TimerTask) handleUpdate(params *UpdateParams) error {
 }
 
 func mfa_key(key string) string {
-	return fmt.Sprintf("timertask:%s", key)
+	return "timertask:" + key
 }
 
+var MFA_EXPIRE_DELAY int64 = 3600
 func (t *TimerTask) add(key string, runAt int64, content string) error {
-	if _, err := redisdb.Instance().Set(mfa_key(key), content, 0).Result(); err != nil {
+	mfa_expire := utils.MaxInt64(runAt - time.Now().Unix(), 0) + MFA_EXPIRE_DELAY
+	if _, err := redisdb.Instance().Set(mfa_key(key), content, time.Duration(mfa_expire)).Result(); err != nil {
 		return err
 	}
 	member := redis.Z{
@@ -162,43 +179,12 @@ func (t *TimerTask) update(key string, runAt int64) error {
 	return nil
 }
 
-func (t *TimerTask) finish(key string) error {
-	if err := t.handleTask(key); err != nil {
-		count, ok := t.retry[key]
-		if ok {
-			count = count + 1
-			t.retry[key] = count
-		} else {
-			t.retry[key] = 1
-		}
-		if count >= gosconf.TIMERTASK_MAX_RETRY {
-			delete(t.retry, key)
-		} else {
-			return err
-		}
-	}
-	return t.del(key)
-}
-
 func (t *TimerTask) del(key string) error {
 	_, err := redisdb.Instance().Del(mfa_key(key)).Result()
 	if err != nil {
 		return err
 	}
 	_, err = redisdb.Instance().ZRem(KEY, key).Result()
-	return err
-}
-
-func (t *TimerTask) handleTask(key string) error {
-	content, err := redisdb.Instance().Get(mfa_key(key)).Result()
-	if err == redis.Nil {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	chunks := strings.Split(content, ":")
-	_, err = player_rpc.RpcPlayerRaw(chunks[0], []byte(chunks[1]))
 	return err
 }
 
@@ -217,9 +203,22 @@ func (t *TimerTask) tickerTask() {
 	}
 	for _, member := range members {
 		key := member.Member.(string)
-		err = t.finish(key)
-		if err != nil {
-			logger.ERR("finish timertask failed: ", key, err)
-		}
+		redisdb.Instance().ZRem(KEY, key)
+		t.pool.ProcessAsync(key)
 	}
+}
+
+func (t *TimerTask) handleTask(key string) error {
+	mfa_key := mfa_key(key)
+	content, err := redisdb.Instance().Get(mfa_key).Result()
+	if err == redis.Nil {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	redisdb.Instance().Del(mfa_key)
+	chunks := strings.Split(content, ":")
+	_, err = player_rpc.RpcPlayerRaw(chunks[0], []byte(chunks[1]))
+	return err
 }
