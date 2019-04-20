@@ -56,8 +56,8 @@ func (self *Broadcast) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *Broadcast) HandleCast(msg interface{}) {
-	switch params := msg.(type) {
+func (self *Broadcast) HandleCast(req *gen_server.Request) {
+	switch params := req.Msg.(type) {
 	case *JoinParams:
 		self.handleJoin(params)
 		break
@@ -70,7 +70,7 @@ func (self *Broadcast) HandleCast(msg interface{}) {
 	}
 }
 
-func (self *Broadcast) HandleCall(msg interface{}) (interface{}, error) {
+func (self *Broadcast) HandleCall(req *gen_server.Request) (interface{}, error) {
 	return nil, nil
 }
 

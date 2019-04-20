@@ -112,14 +112,14 @@ func (self *ProxyManager) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *ProxyManager) HandleCast(msg interface{}) {
+func (self *ProxyManager) HandleCast(req *gen_server.Request) {
 }
 
 type ConnectGameAppParams struct {
 	gameAppId string
 }
-func (self *ProxyManager) HandleCall(msg interface{}) (interface{}, error) {
-	switch params := msg.(type) {
+func (self *ProxyManager) HandleCall(req *gen_server.Request) (interface{}, error) {
+	switch params := req.Msg.(type) {
 	case *ConnectGameAppParams:
 		game, err := game_utils.Find(params.gameAppId)
 		if err == nil && game != nil {

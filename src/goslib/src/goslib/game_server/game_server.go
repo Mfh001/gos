@@ -63,11 +63,6 @@ func Start(role string, customRegister func()) {
 		panic(err)
 	}
 
-	if err = timertask.Start(); err != nil {
-		logger.ERR("start timertask failed: ", err)
-		return
-	}
-
 	player_data.Start()
 
 	StartRpcStream()
@@ -76,6 +71,11 @@ func Start(role string, customRegister func()) {
 	hostname, err := utils.GetHostname()
 	if err != nil {
 		logger.ERR("game get host failed: ", err)
+		return
+	}
+
+	if err = timertask.Start(hostname); err != nil {
+		logger.ERR("start timertask failed: ", err)
 		return
 	}
 

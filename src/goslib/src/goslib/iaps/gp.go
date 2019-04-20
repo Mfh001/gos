@@ -54,8 +54,8 @@ type VerifyParams struct {
 	purchaseToken string
 	verifyHandler VerifyHandler
 }
-func (self *GPServer) HandleCast(msg interface{}) {
-	switch params := msg.(type) {
+func (self *GPServer) HandleCast(req *gen_server.Request) {
+	switch params := req.Msg.(type) {
 	case *VerifyParams:
 		ctx := context.Background()
 		resp, err := self.client.VerifyProduct(ctx, self.bundleId, params.productID, params.purchaseToken)
@@ -69,7 +69,7 @@ func (self *GPServer) HandleCast(msg interface{}) {
 	}
 }
 
-func (self *GPServer) HandleCall(msg interface{}) (interface{}, error) {
+func (self *GPServer) HandleCall(req *gen_server.Request) (interface{}, error) {
 	return nil, nil
 }
 

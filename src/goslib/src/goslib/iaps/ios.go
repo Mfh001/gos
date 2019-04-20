@@ -35,8 +35,8 @@ type IOSVerifyParams struct {
 	receipt string
 	verifyHandler VerifyHandler
 }
-func (self *IOSServer) HandleCast(msg interface{}) {
-	switch params := msg.(type) {
+func (self *IOSServer) HandleCast(req *gen_server.Request) {
+	switch params := req.Msg.(type) {
 	case *IOSVerifyParams:
 		req := appstore.IAPRequest{
 			ReceiptData: params.receipt, // your receipt data encoded by base64
@@ -62,7 +62,7 @@ func (self *IOSServer) HandleCast(msg interface{}) {
 	}
 }
 
-func (self *IOSServer) HandleCall(msg interface{}) (interface{}, error) {
+func (self *IOSServer) HandleCall(req *gen_server.Request) (interface{}, error) {
 	return nil, nil
 }
 

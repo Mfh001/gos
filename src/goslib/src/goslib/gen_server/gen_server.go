@@ -14,6 +14,7 @@ var ServerRegisterMap = sync.Map{}
 const (
 	CALL byte = 0
 	CAST byte = 1
+	MANUAL_CALL byte = 2 // need manual response
 )
 
 type Packet struct {
@@ -33,9 +34,9 @@ type Response struct {
 }
 
 type Request struct {
-	category byte
-	resultChan chan *Response
-	msg interface{}
+	Category   byte
+	ResultChan chan *Response
+	Msg        interface{}
 }
 
 type GenServer struct {
@@ -47,15 +48,15 @@ type GenServer struct {
 
 type GenServerBehavior interface {
 	Init(args []interface{}) (err error)
-	HandleCast(msg interface{})
-	HandleCall(msg interface{}) (interface{}, error)
+	HandleCast(req *Request)
+	HandleCall(req *Request) (interface{}, error)
 	Terminate(reason string) (err error)
 }
 
 var requestPool = sync.Pool{
 	New: func() interface{} {
 		return &Request{
-			resultChan: make(chan *Response),
+			ResultChan: make(chan *Response),
 		}
 	},
 }
@@ -89,27 +90,36 @@ func delGenServer(name string) {
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server *GenServer, err error) {
 	gen_server, exists := GetGenServer(server_name)
 	if !exists {
-		msgChannel := make(chan *Request, 1024)
-		signChannel := make(chan *SignPacket)
-
-		gen_server = &GenServer{
-			name:        server_name,
-			callback:    module,
-			msgChannel:  msgChannel,
-			signChannel: signChannel}
-
-		if err = gen_server.callback.Init(args); err != nil {
-			logger.ERR("gen_server start failed: ", err)
+		gen_server, err = New(module, args)
+		if err != nil {
 			return
 		}
-
-		go loop(gen_server) // Enter infinity loop
-
 		setGenServer(server_name, gen_server)
 	} else {
 		fmt.Println(server_name, " is already exists!")
 	}
 	return
+}
+
+func New(module GenServerBehavior, args ...interface{}) (*GenServer, error) {
+	msgChannel := make(chan *Request, 1024)
+	signChannel := make(chan *SignPacket)
+
+	gen_server := &GenServer{
+		callback:    module,
+		msgChannel:  msgChannel,
+		signChannel: signChannel,
+	}
+
+	err := gen_server.callback.Init(args)
+	if err != nil {
+		logger.ERR("gen_server start failed: ", err)
+		return nil, err
+	}
+
+	go loop(gen_server) // Enter infinity loop
+
+	return gen_server, err
 }
 
 func Stop(server_name, reason string) error {
@@ -129,8 +139,16 @@ func Stop(server_name, reason string) error {
 }
 
 func Call(server_name string, msg interface{}) (interface{}, error) {
+	return callByCategory(CALL, server_name, msg)
+}
+
+func ManualCall(server_name string, msg interface{}) (interface{}, error) {
+	return callByCategory(MANUAL_CALL, server_name, msg)
+}
+
+func callByCategory(category byte, server_name string, msg interface{}) (interface{}, error) {
 	if gen_server, exists := GetGenServer(server_name); exists {
-		return gen_server.Call(msg)
+		return gen_server.callByCategory(category, msg)
 	} else {
 		errMsg := fmt.Sprintf("GenServer call failed: %s %s", server_name, " server not found!")
 		logger.ERR(errMsg)
@@ -145,16 +163,24 @@ func Cast(server_name string, msg interface{}) {
 }
 
 func (self *GenServer)Call(msg interface{}) (interface{}, error) {
+	return self.callByCategory(CALL, msg)
+}
+
+func (self *GenServer)ManualCall(msg interface{}) (interface{}, error) {
+	return self.callByCategory(MANUAL_CALL, msg)
+}
+
+func (self *GenServer)callByCategory(category byte, msg interface{}) (interface{}, error) {
 	request := requestPool.Get().(*Request)
 	defer func() {
 		requestPool.Put(request)
 	}()
-	request.category = CALL
-	request.msg = msg
+	request.Category = category
+	request.Msg = msg
 
 	self.msgChannel <- request
 
-	packet := <-request.resultChan
+	packet := <-request.ResultChan
 	result := packet.result
 	err := packet.err
 
@@ -168,9 +194,16 @@ func (self *GenServer)Cast(msg interface{}) {
 	defer func() {
 		requestPool.Put(request)
 	}()
-	request.category = CAST
-	request.msg = msg
+	request.Category = CAST
+	request.Msg = msg
 	self.msgChannel <- request
+}
+
+func (self *Request)Response(result interface{}, err error) {
+	resp := responsePool.Get().(*Response)
+	resp.result = result
+	resp.err = err
+	self.ResultChan <- resp
 }
 
 func loop(gen_server *GenServer) {
@@ -185,16 +218,16 @@ func loop(gen_server *GenServer) {
 		select {
 		case req, ok = <-gen_server.msgChannel:
 			if ok {
-				switch req.category {
+				switch req.Category {
 				case CALL:
-					result, err := gen_server.callback.HandleCall(req.msg)
-					resp := responsePool.Get().(*Response)
-					resp.result = result
-					resp.err = err
-					req.resultChan <- resp
+					result, err := gen_server.callback.HandleCall(req)
+					req.Response(result, err)
 					break
 				case CAST:
-					gen_server.callback.HandleCast(req.msg)
+					gen_server.callback.HandleCast(req)
+					break
+				case MANUAL_CALL:
+					_, _ = gen_server.callback.HandleCall(req)
 					break
 				}
 			}

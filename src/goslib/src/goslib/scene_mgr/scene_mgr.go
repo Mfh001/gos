@@ -38,14 +38,14 @@ func (self *SceneMgr) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *SceneMgr) HandleCast(msg interface{}) {
+func (self *SceneMgr) HandleCast(req *gen_server.Request) {
 }
 
 type LoadSceneParams struct {
 	sceneId string
 }
-func (self *SceneMgr) HandleCall(msg interface{}) (interface{}, error) {
-	switch params := msg.(type) {
+func (self *SceneMgr) HandleCall(req *gen_server.Request) (interface{}, error) {
+	switch params := req.Msg.(type) {
 	case *LoadSceneParams:
 		doLoadScene(params.sceneId)
 		loadedScenes.Store(params.sceneId, true)

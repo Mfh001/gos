@@ -78,8 +78,8 @@ func (self *Server) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *Server) HandleCast(msg interface{}) {
-	switch params := msg.(type) {
+func (self *Server) HandleCast(req *gen_server.Request) {
+	switch params := req.Msg.(type) {
 	case *SendIOSParams:
 		self.sendIOS(params)
 		break
@@ -130,7 +130,7 @@ func (self *Server) sendGP(params *SendGPParams) {
 	}
 }
 
-func (self *Server) HandleCall(msg interface{}) (interface{}, error) {
+func (self *Server) HandleCall(req *gen_server.Request) (interface{}, error) {
 	return nil, nil
 }
 

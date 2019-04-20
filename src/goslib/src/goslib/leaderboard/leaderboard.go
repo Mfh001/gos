@@ -171,17 +171,17 @@ func (self *Server) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *Server) HandleCast(msg interface{}) {
-	_, err := self.handleCallAndCast(msg)
+func (self *Server) HandleCast(req *gen_server.Request) {
+	_, err := self.handleCallAndCast(req.Msg)
 	if err != nil {
-		logger.ERR("leaderboard ", reflect.TypeOf(msg).String(), " err: ", err)
+		logger.ERR("leaderboard ", reflect.TypeOf(req.Msg).String(), " err: ", err)
 	}
 }
 
-func (self *Server) HandleCall(msg interface{}) (interface{}, error) {
-	result, err := self.handleCallAndCast(msg)
+func (self *Server) HandleCall(req *gen_server.Request) (interface{}, error) {
+	result, err := self.handleCallAndCast(req.Msg)
 	if err != nil {
-		logger.ERR("leaderboard ", reflect.TypeOf(msg).String(), " err: ", err)
+		logger.ERR("leaderboard ", reflect.TypeOf(req.Msg).String(), " err: ", err)
 	}
 	return result, err
 }

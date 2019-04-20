@@ -65,8 +65,8 @@ type PersistParams struct {
 	playerId string
 	task *Task
 }
-func (self *Persister) HandleCast(msg interface{}) {
-	switch params := msg.(type) {
+func (self *Persister) HandleCast(req *gen_server.Request) {
+	switch params := req.Msg.(type) {
 	case *PersistParams:
 		self.queue[params.playerId] = params.task
 		break
@@ -74,8 +74,8 @@ func (self *Persister) HandleCast(msg interface{}) {
 }
 
 type RemainTasksParams struct {}
-func (self *Persister) HandleCall(msg interface{}) (interface{}, error) {
-	switch msg.(type) {
+func (self *Persister) HandleCall(req *gen_server.Request) (interface{}, error) {
+	switch req.Msg.(type) {
 	case *TickerPersistParams:
 		self.tickerPersist()
 		break

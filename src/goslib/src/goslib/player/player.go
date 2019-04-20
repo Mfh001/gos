@@ -122,8 +122,8 @@ func (self *Player) startPersistTimer() {
 	})
 }
 
-func (self *Player) HandleCast(msg interface{}) {
-	switch params := msg.(type) {
+func (self *Player) HandleCast(req *gen_server.Request) {
+	switch params := req.Msg.(type) {
 	case *RequestParams:
 		_ = self.handleRequest(params)
 		break
@@ -151,8 +151,8 @@ func (self *Player) HandleCast(msg interface{}) {
 	}
 }
 
-func (self *Player) HandleCall(msg interface{}) (interface{}, error) {
-	switch params := msg.(type) {
+func (self *Player) HandleCall(req *gen_server.Request) (interface{}, error) {
+	switch params := req.Msg.(type) {
 	case *WrapParams:
 		return self.handleWrap(params), nil
 	case *RpcCallParams:

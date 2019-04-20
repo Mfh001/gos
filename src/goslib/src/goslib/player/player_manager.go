@@ -78,8 +78,8 @@ func (self *PlayerManager) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *PlayerManager) HandleCast(msg interface{}) {
-	switch params := msg.(type) {
+func (self *PlayerManager) HandleCast(req *gen_server.Request) {
+	switch params := req.Msg.(type) {
 	case *DelShutDownParams:
 		self.handleDelShutdown(params)
 		break
@@ -88,8 +88,8 @@ func (self *PlayerManager) HandleCast(msg interface{}) {
 	}
 }
 
-func (self *PlayerManager) HandleCall(msg interface{}) (interface{}, error) {
-	switch params := msg.(type) {
+func (self *PlayerManager) HandleCall(req *gen_server.Request) (interface{}, error) {
+	switch params := req.Msg.(type) {
 	case *StartPlayerParams:
 		return self.handleStartPlayer(params)
 	case *RemainPlayersParams:

@@ -22,14 +22,14 @@ func (self *BroadcastMgr) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *BroadcastMgr) HandleCast(msg interface{}) {
+func (self *BroadcastMgr) HandleCast(req *gen_server.Request) {
 }
 
 type StartChannelParams struct {
 	channel string
 }
-func (self *BroadcastMgr) HandleCall(msg interface{}) (interface{}, error) {
-	switch params := msg.(type) {
+func (self *BroadcastMgr) HandleCall(req *gen_server.Request) (interface{}, error) {
+	switch params := req.Msg.(type) {
 	case *StartChannelParams:
 		if !gen_server.Exists(params.channel) {
 			gen_server.Start(params.channel, new(Broadcast))

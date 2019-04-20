@@ -32,7 +32,7 @@ var _ = Describe("Game", func() {
 			AccountId: "fakeAccountId",
 			Token:     "fakeeid",
 		})
-		data, _ := writer.GetSendData()
+		data, _ := writer.GetSendData(0)
 		conn.Write(data)
 
 		writer, err = api.Encode(pt.PT_EquipLoadParams, &pt.EquipLoadParams{
@@ -40,7 +40,7 @@ var _ = Describe("Game", func() {
 			EquipId:  "fakeeid",
 			HeroId:   "fakehero",
 		})
-		data, _ = writer.GetSendData()
+		data, _ = writer.GetSendData(0)
 		conn.Write(data)
 
 		time.Sleep(1000 * time.Second)

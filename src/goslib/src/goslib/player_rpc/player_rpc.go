@@ -146,11 +146,11 @@ func (self *PlayerRPC) Init(args []interface{}) (err error) {
 	return nil
 }
 
-func (self *PlayerRPC) HandleCast(msg interface{}) {
+func (self *PlayerRPC) HandleCast(req *gen_server.Request) {
 }
 
-func (self *PlayerRPC) HandleCall(msg interface{}) (interface{}, error) {
-	switch params := msg.(type) {
+func (self *PlayerRPC) HandleCall(req *gen_server.Request) (interface{}, error) {
+	switch params := req.Msg.(type) {
 	case *ConnectGameParams:
 		return self.handleConnectGame(params)
 	}
