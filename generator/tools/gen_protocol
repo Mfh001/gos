@@ -84,9 +84,11 @@ File.open(target, "w") do |io|
 
     defines[type].each do |proto|
       consts << %Q{PT_#{proto['name']} = "#{proto['name']}"}
-      name_to_id << %Q{"#{proto['name']}": uint16(#{proto['id']})}
-      id_to_name << %Q{uint16(#{proto['id']}): "#{proto['name']}"}
-      id_to_type << %Q{uint16(#{proto['id']}): #{type_name}}
+      if proto['id']
+        name_to_id << %Q{"#{proto['name']}": uint16(#{proto['id']})}
+        id_to_name << %Q{uint16(#{proto['id']}): "#{proto['name']}"}
+        id_to_type << %Q{uint16(#{proto['id']}): #{type_name}}
+      end
     end
   end
 

@@ -92,3 +92,15 @@ ROOM:
     struct:
       RoomId: string
       NewPlayerId: string
+
+  - protocol:
+    id: 3010
+    name: RoomMapMatrixInfos
+    struct:
+      Points: array-Point
+
+  - sub_message:
+    name: Point
+    struct:
+      X: int32
+      Y: int32
