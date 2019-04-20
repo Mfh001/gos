@@ -331,6 +331,6 @@ func (p *Packet) GetSendData(reqId int32) ([]byte, error) {
 	return writer.Data(), nil
 }
 
-func (p *Packet) ReadDataLength() (uint16, error) {
-	return p.ReadUint16()
+func (p *Packet) ReadDataLength() (int32, error) {
+	return p.ReadInt32()
 }

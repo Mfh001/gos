@@ -3,6 +3,7 @@ package pool
 import (
 	"container/list"
 	"goslib/gen_server"
+	"goslib/logger"
 )
 
 type Pool struct {
@@ -26,10 +27,12 @@ type Manager struct {
 func New(size int, handler TaskHandler) (pool *Pool, err error) {
 	pool = &Pool{}
 	manager := &Manager{
-		workers: make([]*Worker, size),
+		tasks:       list.New(),
+		idleWorkers: list.New(),
+		workers:     make([]*Worker, size),
 	}
 	// init manager
-	pool.server, err = gen_server.New(&Manager{}, size, handler)
+	pool.server, err = gen_server.New(manager, size, handler)
 	if err != nil {
 		return
 	}
@@ -40,6 +43,7 @@ func New(size int, handler TaskHandler) (pool *Pool, err error) {
 			return nil, err
 		}
 		manager.workers[i] = worker
+		manager.idleWorkers.PushBack(worker)
 	}
 
 	return
@@ -110,6 +114,8 @@ func (self *Manager) HandleCast(req *gen_server.Request) {
 			self.idleWorkers.PushBack(self.workers[params.idx])
 		}
 		break
+	default:
+		logger.ERR("unhandle pool cast: ", params)
 	}
 }
 

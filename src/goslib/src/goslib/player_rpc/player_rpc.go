@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gen/proto"
+	"github.com/go-redis/redis"
 	"google.golang.org/grpc"
 	"gosconf"
 	"goslib/api"
@@ -201,7 +202,7 @@ func parseData(requestData []byte) (decode_method string, params interface{}, er
 
 func getGameAppId(role, accountId string) (string, error) {
 	session, err := session_utils.Find(accountId)
-	if err != nil {
+	if err != redis.Nil && err != nil {
 		return "", err
 	}
 	if session == nil || session.GameAppId == "" {

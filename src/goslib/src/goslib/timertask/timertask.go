@@ -152,7 +152,7 @@ var MFA_EXPIRE_DELAY int64 = 3600
 
 func (t *TimerTask) add(key string, runAt int64, content string) error {
 	mfa_expire := utils.MaxInt64(runAt-time.Now().Unix(), 0) + MFA_EXPIRE_DELAY
-	if _, err := redisdb.Instance().Set(mfa_key(key), content, time.Duration(mfa_expire)).Result(); err != nil {
+	if _, err := redisdb.Instance().Set(mfa_key(key), content, time.Duration(mfa_expire)*time.Second).Result(); err != nil {
 		return err
 	}
 	member := redis.Z{

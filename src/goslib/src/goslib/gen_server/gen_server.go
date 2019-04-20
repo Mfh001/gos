@@ -90,7 +90,7 @@ func delGenServer(name string) {
 func Start(server_name string, module GenServerBehavior, args ...interface{}) (gen_server *GenServer, err error) {
 	gen_server, exists := GetGenServer(server_name)
 	if !exists {
-		gen_server, err = New(module, args)
+		gen_server, err = New(module, args...)
 		if err != nil {
 			return
 		}

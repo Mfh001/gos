@@ -2,6 +2,7 @@ package game_mgr
 
 import (
 	"errors"
+	"github.com/go-redis/redis"
 	"gosconf"
 	"goslib/game_utils"
 	"goslib/redisdb"
@@ -188,7 +189,7 @@ func gameAppScore(game *game_utils.Game) int {
 
 func setGameAppIdToSession(role, accountId, gameAppId, sceneId string) error {
 	session, err := session_utils.Find(accountId)
-	if err != nil {
+	if err != redis.Nil && err != nil {
 		return err
 	}
 	if session == nil {

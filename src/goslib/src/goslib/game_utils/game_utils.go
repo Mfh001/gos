@@ -23,8 +23,8 @@ type Game struct {
 
 func Find(uuid string) (*Game, error) {
 	valueMap, err := redisdb.Instance().HGetAll(uuid).Result()
-	if err == redis.Nil || len(valueMap) == 0 {
-		return nil, nil
+	if err == nil && len(valueMap) == 0 {
+		return nil, redis.Nil
 	}
 	if err != nil {
 		logger.ERR("Find game failed: ", err)

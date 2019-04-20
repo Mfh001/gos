@@ -41,6 +41,8 @@ var MYSQL_DSN_ALL_IN_ONE = "root@/gos_server_development"
 var MYSQL_DSN_CLUSTER = "root@/gos_server_development"
 var MYSQL_DSN_K8S = "root:UiP8S9NQJx@tcp(single-mysql.default.svc.cluster.local)/gos_server_development"
 
+var REDIS_FOR_TEST = "127.0.0.1:6379"
+
 var REDIS_CLUSTERS_FOR_ALL_IN_ONE = []string{
 	"127.0.0.1:7000",
 	"127.0.0.1:7001",

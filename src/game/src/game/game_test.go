@@ -9,34 +9,45 @@ import (
 	"goslib/api"
 	"goslib/game_server"
 	"goslib/logger"
+	"goslib/player"
+	"goslib/redisdb"
+	"goslib/session_utils"
 	"net"
 	"time"
 )
 
 var _ = Describe("Game", func() {
 
+	redisdb.StartClient()
 	go game_server.Start("GS", func() {
 		gen_register.RegisterRoutes()
 		custom_register.RegisterCustomDataLoader()
 		callbacks.RegisterSceneLoad()
 	})
 
+	accountId := "fakeAccountId"
+	token := "fake_token"
 	for {
 		conn, err := net.Dial("tcp", "127.0.0.1:4000")
 		if err != nil {
 			logger.ERR("connect socket failed: ", err)
-			time.Sleep(1 * time.Second)
+			time.Sleep(2 * time.Second)
 			continue
 		}
+		session_utils.Create(&session_utils.Session{
+			AccountId: accountId,
+			GameAppId: player.CurrentGameAppId,
+			Token:     token,
+		})
 		writer, err := api.Encode(pt.PT_SessionAuthParams, &pt.SessionAuthParams{
-			AccountId: "fakeAccountId",
-			Token:     "fakeeid",
+			AccountId: accountId,
+			Token:     token,
 		})
 		data, _ := writer.GetSendData(0)
 		conn.Write(data)
 
 		writer, err = api.Encode(pt.PT_EquipLoadParams, &pt.EquipLoadParams{
-			PlayerID: "fakeAccountId",
+			PlayerID: accountId,
 			EquipId:  "fakeeid",
 			HeroId:   "fakehero",
 		})
