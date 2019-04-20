@@ -85,20 +85,23 @@ func (self *Broadcast) Terminate(reason string) (err error) {
 
 type JoinParams struct {
 	playerId string
-	handler MsgHandler
+	handler  MsgHandler
 }
+
 func (self *Broadcast) handleJoin(params *JoinParams) {
 	self.subscribers[params.playerId] = params.handler
 }
 
-type LeaveParams struct { playerId string }
+type LeaveParams struct{ playerId string }
+
 func (self *Broadcast) handleLeave(params *LeaveParams) {
 	if _, ok := self.subscribers[params.playerId]; ok {
 		delete(self.subscribers, params.playerId)
 	}
 }
 
-type PublishParams struct {msg *BroadcastMsg}
+type PublishParams struct{ msg *BroadcastMsg }
+
 func (self *Broadcast) handlePublish(params *PublishParams) {
 	for _, handler := range self.subscribers {
 		handler(params.msg)

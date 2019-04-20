@@ -32,9 +32,10 @@ func (self *IOSServer) Init(args []interface{}) (err error) {
 }
 
 type IOSVerifyParams struct {
-	receipt string
+	receipt       string
 	verifyHandler VerifyHandler
 }
+
 func (self *IOSServer) HandleCast(req *gen_server.Request) {
 	switch params := req.Msg.(type) {
 	case *IOSVerifyParams:

@@ -10,7 +10,7 @@ import (
 
 type Game struct {
 	Uuid       string
-	Role 	   string
+	Role       string
 	Host       string
 	Port       string
 	RpcHost    string

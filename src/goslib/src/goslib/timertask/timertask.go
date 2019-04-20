@@ -22,7 +22,7 @@ import (
 )
 
 type TimerTask struct {
-	pool 	   *pool.Pool
+	pool       *pool.Pool
 	taskTicker *time.Ticker
 	retry      map[string]int
 }
@@ -52,7 +52,7 @@ func Add(key string, runAt int64, playerId string, encode_method string, params 
 		return err
 	}
 	content := fmt.Sprintf("%s:%s", playerId, string(data))
-	gen_server.Cast(SERVER,&AddParams{key, runAt, content})
+	gen_server.Cast(SERVER, &AddParams{key, runAt, content})
 	return nil
 }
 
@@ -69,6 +69,7 @@ func Del(key string) {
 }
 
 var tickerTaskParams = &TickerTaskParams{}
+
 func (t *TimerTask) Init(args []interface{}) (err error) {
 	t.pool, err = pool.New(runtime.NumCPU(), func(args interface{}) (interface{}, error) {
 		return nil, t.handleTask(args.(string))
@@ -99,8 +100,9 @@ func (t *TimerTask) HandleCast(req *gen_server.Request) {
 	_ = t.handleCallAndCast(req.Msg)
 }
 
-type FinishParams struct { key string }
-type DelParams struct { key string }
+type FinishParams struct{ key string }
+type DelParams struct{ key string }
+
 func (t *TimerTask) handleCallAndCast(msg interface{}) error {
 	switch params := msg.(type) {
 	case *AddParams:
@@ -124,18 +126,20 @@ func (t *TimerTask) Terminate(reason string) (err error) {
 }
 
 type AddParams struct {
-	key string
-	runAt int64
+	key     string
+	runAt   int64
 	content string
 }
+
 func (t *TimerTask) handleAdd(params *AddParams) error {
 	return t.add(params.key, params.runAt, params.content)
 }
 
 type UpdateParams struct {
-	key string
+	key   string
 	runAt int64
 }
+
 func (t *TimerTask) handleUpdate(params *UpdateParams) error {
 	return t.update(params.key, params.runAt)
 }
@@ -145,8 +149,9 @@ func mfa_key(key string) string {
 }
 
 var MFA_EXPIRE_DELAY int64 = 3600
+
 func (t *TimerTask) add(key string, runAt int64, content string) error {
-	mfa_expire := utils.MaxInt64(runAt - time.Now().Unix(), 0) + MFA_EXPIRE_DELAY
+	mfa_expire := utils.MaxInt64(runAt-time.Now().Unix(), 0) + MFA_EXPIRE_DELAY
 	if _, err := redisdb.Instance().Set(mfa_key(key), content, time.Duration(mfa_expire)).Result(); err != nil {
 		return err
 	}
@@ -188,7 +193,8 @@ func (t *TimerTask) del(key string) error {
 	return err
 }
 
-type TickerTaskParams struct {}
+type TickerTaskParams struct{}
+
 func (t *TimerTask) tickerTask() {
 	opt := redis.ZRangeBy{
 		Min:    "0",

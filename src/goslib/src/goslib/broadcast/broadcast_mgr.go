@@ -28,6 +28,7 @@ func (self *BroadcastMgr) HandleCast(req *gen_server.Request) {
 type StartChannelParams struct {
 	channel string
 }
+
 func (self *BroadcastMgr) HandleCall(req *gen_server.Request) (interface{}, error) {
 	switch params := req.Msg.(type) {
 	case *StartChannelParams:

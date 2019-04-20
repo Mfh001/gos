@@ -196,8 +196,9 @@ func (self *Player) SendData(agentId, encode_method string, msg interface{}) err
 
 type RequestParams struct {
 	agentId string
-	data []byte
+	data    []byte
 }
+
 func (self *Player) handleRequest(params *RequestParams) error {
 	self.lastActive = time.Now().Unix()
 	if !gosconf.IS_DEBUG {
@@ -222,12 +223,14 @@ type RpcCallParams struct {
 	Handler routes.Handler
 	Params  interface{}
 }
+
 func (self *Player) handleRPCCall(params *RpcCallParams) (*RPCReply, error) {
 	encode_method, response := params.Handler(self, params.Params)
 	return &RPCReply{EncodeMethod: encode_method, Response: response}, nil
 }
 
-type RPCCastParams struct { data []byte }
+type RPCCastParams struct{ data []byte }
+
 func (self *Player) handleRPCCast(params *RPCCastParams) {
 	_, handler, args, err := api.ParseRequestDataForHander(params.data)
 	if err != nil {
@@ -253,19 +256,22 @@ func (self *Player) processRequest(handler routes.Handler, params interface{}) (
 	return encode_method, response
 }
 
-type WrapParams struct { fun func(ctx *Player) interface{} }
+type WrapParams struct{ fun func(ctx *Player) interface{} }
+
 func (self *Player) handleWrap(params *WrapParams) interface{} {
 	self.lastActive = time.Now().Unix()
 	return params.fun(self)
 }
 
-type AsyncWrapParams struct { fun func(ctx *Player) }
+type AsyncWrapParams struct{ fun func(ctx *Player) }
+
 func (self *Player) handleAsyncWrap(params *AsyncWrapParams) {
 	self.lastActive = time.Now().Unix()
 	params.fun(self)
 }
 
-type PersistData struct {}
+type PersistData struct{}
+
 func (self *Player) handlePersistData() {
 	err := player_data.Persist(self.PlayerId, self.Data)
 	if err != nil {
@@ -274,7 +280,8 @@ func (self *Player) handlePersistData() {
 	self.startPersistTimer()
 }
 
-type BroadcastParams struct { msg *broadcast.BroadcastMsg }
+type BroadcastParams struct{ msg *broadcast.BroadcastMsg }
+
 func (self *Player) handleBroadcast(params *BroadcastParams) {
 	if BroadcastHandler != nil {
 		BroadcastHandler(self, params.msg)
@@ -283,13 +290,15 @@ func (self *Player) handleBroadcast(params *BroadcastParams) {
 
 type ConnectedParams struct {
 	agentId string
-	agent interfaces.AgentBehavior
+	agent   interfaces.AgentBehavior
 }
+
 func (self *Player) handleConnected(params *ConnectedParams) {
 	self.Agents[params.agentId] = params.agent
 }
 
-type DisConnectedParams struct { agentId string }
+type DisConnectedParams struct{ agentId string }
+
 func (self *Player) handleDisconnected(params *DisConnectedParams) {
 	delete(self.Agents, params.agentId)
 }

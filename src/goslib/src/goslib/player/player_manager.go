@@ -107,7 +107,8 @@ func (self *PlayerManager) Terminate(reason string) (err error) {
 	return nil
 }
 
-type StartPlayerParams struct { accountId string }
+type StartPlayerParams struct{ accountId string }
+
 func (self *PlayerManager) handleStartPlayer(params *StartPlayerParams) (interface{}, error) {
 	if self.status != working {
 		return nil, errors.New("player_manager is shutting down")
@@ -122,18 +123,21 @@ func (self *PlayerManager) handleStartPlayer(params *StartPlayerParams) (interfa
 	return nil, nil
 }
 
-type ShutdownPlayersParams struct {}
+type ShutdownPlayersParams struct{}
+
 func (self *PlayerManager) handleShutdownPlayers() {
 	self.status = shutdown
 	self.batchShutdownPlayers()
 }
 
-type RemainPlayersParams struct {}
+type RemainPlayersParams struct{}
+
 func (self *PlayerManager) handleRemainPlayers() int {
 	return len(self.players)
 }
 
-type DelShutDownParams struct { playerId string }
+type DelShutDownParams struct{ playerId string }
+
 func (self *PlayerManager) handleDelShutdown(params *DelShutDownParams) {
 	delete(self.players, params.playerId)
 }

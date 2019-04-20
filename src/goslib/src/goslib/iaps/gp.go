@@ -50,10 +50,11 @@ func (self *GPServer) Init(args []interface{}) (err error) {
 }
 
 type VerifyParams struct {
-	productID string
+	productID     string
 	purchaseToken string
 	verifyHandler VerifyHandler
 }
+
 func (self *GPServer) HandleCast(req *gen_server.Request) {
 	switch params := req.Msg.(type) {
 	case *VerifyParams:

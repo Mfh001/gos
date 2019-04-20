@@ -6,7 +6,7 @@ import (
 
 func NewWorker(manager *Pool, idx int, handler TaskHandler) (*Worker, error) {
 	worker := &Worker{
-		idx: 	 idx,
+		idx:     idx,
 		manager: manager,
 		handler: handler,
 	}
@@ -16,10 +16,10 @@ func NewWorker(manager *Pool, idx int, handler TaskHandler) (*Worker, error) {
 }
 
 type Worker struct {
-	idx int
+	idx     int
 	manager *Pool
 	handler TaskHandler
-	server *gen_server.GenServer
+	server  *gen_server.GenServer
 }
 
 func (self *Worker) Process(args interface{}) {

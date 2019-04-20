@@ -91,8 +91,9 @@ func (self *Server) HandleCast(req *gen_server.Request) {
 
 type SendIOSParams struct {
 	deviceToken string
-	content string
+	content     string
 }
+
 func (self *Server) sendIOS(params *SendIOSParams) {
 	notification := &apns2.Notification{}
 	notification.DeviceToken = params.deviceToken
@@ -113,8 +114,9 @@ func (self *Server) sendIOS(params *SendIOSParams) {
 
 type SendGPParams struct {
 	deviceToken string
-	content string
+	content     string
 }
+
 func (self *Server) sendGP(params *SendGPParams) {
 	msg := &fcm.Message{
 		To: params.deviceToken,

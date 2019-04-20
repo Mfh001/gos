@@ -18,9 +18,9 @@ type Task struct {
 }
 
 type Manager struct {
-	tasks *list.List
+	tasks       *list.List
 	idleWorkers *list.List
-	workers []*Worker
+	workers     []*Worker
 }
 
 func New(size int, handler TaskHandler) (pool *Pool, err error) {
@@ -53,7 +53,8 @@ func (self *Pool) ProcessAsync(args interface{}) {
 	self.server.Cast(&TaskParams{args})
 }
 
-type ReturnWorkerParams struct {idx int}
+type ReturnWorkerParams struct{ idx int }
+
 func (self *Pool) ReturnWorker(idx int) {
 	self.server.Cast(&ReturnWorkerParams{idx})
 }
@@ -81,7 +82,7 @@ func (self *Manager) HandleCall(req *gen_server.Request) (interface{}, error) {
 	return nil, nil
 }
 
-type TaskParams struct {Msg interface{}}
+type TaskParams struct{ Msg interface{} }
 
 func (self *Manager) HandleCast(req *gen_server.Request) {
 	switch params := req.Msg.(type) {

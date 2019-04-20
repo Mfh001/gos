@@ -12,8 +12,8 @@ const SIGN_STOP = 1
 var ServerRegisterMap = sync.Map{}
 
 const (
-	CALL byte = 0
-	CAST byte = 1
+	CALL        byte = 0
+	CAST        byte = 1
 	MANUAL_CALL byte = 2 // need manual response
 )
 
@@ -162,15 +162,15 @@ func Cast(server_name string, msg interface{}) {
 	}
 }
 
-func (self *GenServer)Call(msg interface{}) (interface{}, error) {
+func (self *GenServer) Call(msg interface{}) (interface{}, error) {
 	return self.callByCategory(CALL, msg)
 }
 
-func (self *GenServer)ManualCall(msg interface{}) (interface{}, error) {
+func (self *GenServer) ManualCall(msg interface{}) (interface{}, error) {
 	return self.callByCategory(MANUAL_CALL, msg)
 }
 
-func (self *GenServer)callByCategory(category byte, msg interface{}) (interface{}, error) {
+func (self *GenServer) callByCategory(category byte, msg interface{}) (interface{}, error) {
 	request := requestPool.Get().(*Request)
 	defer func() {
 		requestPool.Put(request)
@@ -189,7 +189,7 @@ func (self *GenServer)callByCategory(category byte, msg interface{}) (interface{
 	return result, err
 }
 
-func (self *GenServer)Cast(msg interface{}) {
+func (self *GenServer) Cast(msg interface{}) {
 	request := requestPool.Get().(*Request)
 	defer func() {
 		requestPool.Put(request)
@@ -199,7 +199,7 @@ func (self *GenServer)Cast(msg interface{}) {
 	self.msgChannel <- request
 }
 
-func (self *Request)Response(result interface{}, err error) {
+func (self *Request) Response(result interface{}, err error) {
 	resp := responsePool.Get().(*Response)
 	resp.result = result
 	resp.err = err

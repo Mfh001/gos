@@ -130,7 +130,7 @@ func getClient(gameId string) (proto.GameRpcServerClient, error) {
 	if client, ok := rpcClients.Load(gameId); ok {
 		return client.(proto.GameRpcServerClient), nil
 	}
-	client, err := gen_server.Call(PLAYER_RPC_SERVER,&ConnectGameParams{gameId})
+	client, err := gen_server.Call(PLAYER_RPC_SERVER, &ConnectGameParams{gameId})
 	if err != nil {
 		logger.ERR("connectGame failed: ", err)
 		return nil, err
@@ -161,7 +161,8 @@ func (self *PlayerRPC) Terminate(reason string) (err error) {
 	return nil
 }
 
-type ConnectGameParams struct { gameId string }
+type ConnectGameParams struct{ gameId string }
+
 func (self *PlayerRPC) handleConnectGame(params *ConnectGameParams) (interface{}, error) {
 	game, err := game_utils.Find(params.gameId)
 	if err != nil {
@@ -205,7 +206,7 @@ func getGameAppId(role, accountId string) (string, error) {
 	}
 	if session == nil || session.GameAppId == "" {
 		game, err := connection.ChooseGameServer(&session_utils.Session{
-			GameRole: role,
+			GameRole:  role,
 			AccountId: accountId,
 		})
 		if err != nil {

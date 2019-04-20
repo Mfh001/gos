@@ -44,6 +44,7 @@ func (self *SceneMgr) HandleCast(req *gen_server.Request) {
 type LoadSceneParams struct {
 	sceneId string
 }
+
 func (self *SceneMgr) HandleCall(req *gen_server.Request) (interface{}, error) {
 	switch params := req.Msg.(type) {
 	case *LoadSceneParams:

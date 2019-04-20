@@ -34,12 +34,14 @@ func Start(leaderboard string) {
 
 // Delete leaderboard
 var deleteParams = &DeleteParams{}
+
 func Delete(leaderboard string) {
 	gen_server.Cast(leaderboard, deleteParams)
 }
 
 // Total members in leaderboard
 var totalMembersParams = &TotalMembersParams{}
+
 func TotalMembers(leaderboard string) (int, error) {
 	result, err := gen_server.Call(leaderboard, totalMembersParams)
 	if err != nil {
@@ -158,7 +160,7 @@ func MembersAroundMe(leaderboard string, memberId string, pageSize int) ([]*Memb
 func MembersInPage(leaderboard string, page int, pageSize int) ([]*Member, error) {
 	result, err := gen_server.Call(leaderboard, &MembersInPageParams{
 		page,
-		pageSize,})
+		pageSize})
 	if err != nil {
 		return nil, err
 	}
@@ -186,28 +188,28 @@ func (self *Server) HandleCall(req *gen_server.Request) (interface{}, error) {
 	return result, err
 }
 
-type DeleteParams struct {}
-type TotalMembersParams struct {}
-type RankMembersParams struct { members []*Member }
+type DeleteParams struct{}
+type TotalMembersParams struct{}
+type RankMembersParams struct{ members []*Member }
 type ChangeScoreForParams struct {
 	memberId string
-	score int64
+	score    int64
 }
-type MemberDataForParams struct {memberId string}
+type MemberDataForParams struct{ memberId string }
 type UpdateMemberDataParams struct {
-	memberId string
+	memberId   string
 	memberData MemberData
 }
-type RankForParams struct { memberId string }
-type ScoreForParams struct { memberId string }
-type RankAndScoreForParams struct { memberId string }
-type MemberForParams struct { memberId string }
+type RankForParams struct{ memberId string }
+type ScoreForParams struct{ memberId string }
+type RankAndScoreForParams struct{ memberId string }
+type MemberForParams struct{ memberId string }
 type MembersAroundMeParams struct {
 	memberId string
 	pageSize int
 }
 type MembersInPageParams struct {
-	page int
+	page     int
 	pageSize int
 }
 
@@ -314,7 +316,8 @@ func (self *Server) Terminate(reason string) (err error) {
 	return nil
 }
 
-type RankMemberParams struct { member *Member }
+type RankMemberParams struct{ member *Member }
+
 func (self *Server) rankMember(member *Member) (int64, error) {
 	count, err := redisdb.Instance().ZAdd(self.name, redis.Z{
 		Member: member.Id,
@@ -332,7 +335,8 @@ func (self *Server) rankMember(member *Member) (int64, error) {
 	return count, nil
 }
 
-type RemoveMembersParams struct { memberIds []string }
+type RemoveMembersParams struct{ memberIds []string }
+
 func (self *Server) removeMembers(memberIds []string) (int64, error) {
 	if len(memberIds) == 0 {
 		return 0, nil
@@ -400,7 +404,8 @@ func (self *Server) getMembers(memberIds []string) ([]*Member, error) {
 	return members, nil
 }
 
-type TotalPagesParams struct { pageSize int }
+type TotalPagesParams struct{ pageSize int }
+
 func (self *Server) totalPage(pageSize int) (int, error) {
 	count, err := redisdb.Instance().ZCard(self.name).Result()
 	if err != nil {

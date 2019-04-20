@@ -118,6 +118,7 @@ func (self *ProxyManager) HandleCast(req *gen_server.Request) {
 type ConnectGameAppParams struct {
 	gameAppId string
 }
+
 func (self *ProxyManager) HandleCall(req *gen_server.Request) (interface{}, error) {
 	switch params := req.Msg.(type) {
 	case *ConnectGameAppParams:

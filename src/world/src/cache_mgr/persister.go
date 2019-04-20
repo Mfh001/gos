@@ -27,6 +27,7 @@ func StartPersister() {
 }
 
 var remainTask = &RemainTasksParams{}
+
 func EnsurePersistered() {
 	for {
 		count, err := gen_server.Call(SERVER, remainTask)
@@ -46,6 +47,7 @@ func persistToMySQL(playerId, content string, version int64, needExpire bool) {
 }
 
 var ticker = &TickerPersistParams{}
+
 func (self *Persister) Init(args []interface{}) (err error) {
 	self.queue = make(map[string]*Task)
 	self.persistTicker = time.NewTicker(time.Second)
@@ -63,8 +65,9 @@ func (self *Persister) Init(args []interface{}) (err error) {
 
 type PersistParams struct {
 	playerId string
-	task *Task
+	task     *Task
 }
+
 func (self *Persister) HandleCast(req *gen_server.Request) {
 	switch params := req.Msg.(type) {
 	case *PersistParams:
@@ -73,7 +76,8 @@ func (self *Persister) HandleCast(req *gen_server.Request) {
 	}
 }
 
-type RemainTasksParams struct {}
+type RemainTasksParams struct{}
+
 func (self *Persister) HandleCall(req *gen_server.Request) (interface{}, error) {
 	switch req.Msg.(type) {
 	case *TickerPersistParams:
@@ -89,7 +93,8 @@ func (self *Persister) Terminate(reason string) (err error) {
 	return nil
 }
 
-type TickerPersistParams struct {}
+type TickerPersistParams struct{}
+
 func (self *Persister) tickerPersist() {
 	for playerId, task := range self.queue {
 		if err := persist(playerId, task); err == nil {
