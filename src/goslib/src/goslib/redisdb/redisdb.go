@@ -40,12 +40,11 @@ func Instance() *redis.ClusterClient {
 }
 
 // testing code
-/*
-var clusterClient *redis.Client
-func StartClient() {
-	clusterClient = redis.NewClient(&redis.Options{})
-}
-func Instance() *redis.Client {
-	return clusterClient
-}
-*/
+//var clusterClient *redis.Client
+//
+//func StartClient() {
+//	clusterClient = redis.NewClient(&redis.Options{})
+//}
+//func Instance() *redis.Client {
+//	return clusterClient
+//}
