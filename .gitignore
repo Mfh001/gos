@@ -34,3 +34,4 @@ src/vendor
 .ruby-version
 ~$*.xlsx
 dockers/images/*
+/generator/json_files

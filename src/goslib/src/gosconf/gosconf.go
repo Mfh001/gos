@@ -37,6 +37,11 @@ const (
 	AGENT_ENCODING = PROTOCOL_ENCODING_PB
 )
 
+var RETRY_BACKOFF = 2 * time.Second
+
+var CONFIG_RELOAD_CHANNEL = "__channel_reload_config__"
+var CONFIG_GET_KEY = "__gs_configs__"
+
 var MYSQL_DSN_ALL_IN_ONE = "root@/gos_server_development"
 var MYSQL_DSN_CLUSTER = "root@/gos_server_development"
 var MYSQL_DSN_K8S = "root:UiP8S9NQJx@tcp(single-mysql.default.svc.cluster.local)/gos_server_development"
