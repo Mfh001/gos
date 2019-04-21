@@ -67,7 +67,7 @@ func LoadConfigs(data map[string]string) {
 
 fs.readdir(folder, (err, files) => {
     let loads = "";
-    let package = {}
+    let configData = {};
     files.forEach(file => {
         if (file.split('.').pop() === "json") {
             let name = file.split(".").shift();
@@ -83,6 +83,12 @@ fs.readdir(folder, (err, files) => {
                     func (self *Global) load(content string) {
                         _ = json.UnmarshalFromString(content, &GlobalIns)
                     }
+                    
+                    func GetGlobal() *Global {
+                        rwlock.Lock()
+                        defer rwlock.Unlock()
+                        return GlobalIns
+                    }
                 `;
                 fs.writeFileSync(gen_dir + "/" + name + ".go", go_code, { encoding: 'utf8' });
                 loads += `${name}Ins.load(data["${name}"])\n`
@@ -96,10 +102,10 @@ fs.readdir(folder, (err, files) => {
                 fs.writeFileSync(gen_dir + "/" + name + ".go", go_code, { encoding: 'utf8' });
                 loads += `${relName}Ins.load(data["config${relName}"])\n`
             }
-            package[name] = content
+            configData[name] = content
         }
     });
     gd_content = loadTpl.format(loads);
     fs.writeFileSync(gen_path, gd_content, { encoding: 'utf8' });
-    fs.writeFileSync("./configData.json", JSON.stringify(package), { encoding: 'utf8' })
+    fs.writeFileSync("./configData.json", JSON.stringify(configData), { encoding: 'utf8' })
 });

@@ -1,5 +1,0 @@
-require 'active_record_migrations'
-require './tasks/extension.rb'
-
-ActiveRecordMigrations.load_tasks
-Dir.glob('./tasks/*.rake').each { |r| load r}
