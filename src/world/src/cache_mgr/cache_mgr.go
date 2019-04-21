@@ -107,7 +107,7 @@ func cacheKey(playerId string) string {
 func getFromMySQL(playerId string) (string, error) {
 	var content string
 	query := "SELECT content FROM player_datas WHERE uuid=?"
-	err := mysqldb.Instance().Db.QueryRow(query, playerId).Scan(&content)
+	err := mysqldb.Instance().QueryRow(query, playerId).Scan(&content)
 	return content, err
 }
 

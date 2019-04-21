@@ -1,7 +1,6 @@
 package main
 
 import (
-	"app/custom_register"
 	"app/custom_register/callbacks"
 	"app/gen_register"
 	"gosconf"
@@ -21,7 +20,6 @@ func main() {
 	println("game server start with role: ", role)
 	game_server.Start(role, func() {
 		gen_register.RegisterRoutes()
-		custom_register.RegisterCustomDataLoader()
 		callbacks.RegisterSceneLoad()
 	})
 }

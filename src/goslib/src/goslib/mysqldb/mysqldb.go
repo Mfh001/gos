@@ -3,12 +3,11 @@ package mysqldb
 import (
 	"database/sql"
 	"flag"
-	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	"gosconf"
 )
 
-var sharedDBInstance *gorp.DbMap
+var sharedDBInstance *sql.DB
 
 func StartClient() error {
 	var db *sql.DB
@@ -31,10 +30,10 @@ func StartClient() error {
 	if err != nil {
 		return err
 	}
-	sharedDBInstance = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8"}}
+	sharedDBInstance = db
 	return nil
 }
 
-func Instance() *gorp.DbMap {
+func Instance() *sql.DB {
 	return sharedDBInstance
 }

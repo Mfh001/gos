@@ -1,7 +1,6 @@
 package main
 
 import (
-	"app/custom_register"
 	"app/custom_register/callbacks"
 	"app/gen_register"
 	"gen/api/pt"
@@ -21,7 +20,6 @@ var _ = Describe("Game", func() {
 	redisdb.StartClient()
 	go game_server.Start("GS", func() {
 		gen_register.RegisterRoutes()
-		custom_register.RegisterCustomDataLoader()
 		callbacks.RegisterSceneLoad()
 	})
 

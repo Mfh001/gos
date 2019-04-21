@@ -111,10 +111,10 @@ func (self *Persister) tickerPersist() {
 
 func persist(playerId string, task *Task) (err error) {
 	var lastVersion int
-	err = mysqldb.Instance().Db.QueryRow("SELECT updated_at FROM player_datas WHERE uuid=?", playerId).Scan(&lastVersion)
+	err = mysqldb.Instance().QueryRow("SELECT updated_at FROM player_datas WHERE uuid=?", playerId).Scan(&lastVersion)
 	if err == sql.ErrNoRows {
 		query := "INSERT INTO player_datas (uuid, content, updated_at) VALUES (?, ?, ?)"
-		_, err = mysqldb.Instance().Db.Exec(query, playerId, task.Content, task.Version)
+		_, err = mysqldb.Instance().Exec(query, playerId, task.Content, task.Version)
 		return
 	}
 	if err != nil {
@@ -123,7 +123,7 @@ func persist(playerId string, task *Task) (err error) {
 	}
 	if int64(lastVersion) < task.Version {
 		query := "UPDATE player_datas SET content=?, updated_at=? WHERE uuid=? and updated_at < ?"
-		_, err = mysqldb.Instance().Db.Exec(query, task.Content, task.Version, playerId, task.Version)
+		_, err = mysqldb.Instance().Exec(query, task.Content, task.Version, playerId, task.Version)
 		return
 	}
 	return

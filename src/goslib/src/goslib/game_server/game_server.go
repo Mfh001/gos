@@ -1,9 +1,9 @@
 package game_server
 
 import (
-	"gen/register"
 	"gosconf"
 	"goslib/broadcast"
+	"goslib/config_data"
 	"goslib/game_server/agent"
 	"goslib/game_utils"
 	"goslib/logger"
@@ -46,11 +46,12 @@ func Start(role string, customRegister func()) {
 
 	customRegister()
 
+	config_data.Load()
+
 	err := mysqldb.StartClient()
 	if err != nil {
 		panic(err)
 	}
-	register.RegisterTables(mysqldb.Instance())
 
 	broadcast.StartMgr()
 
