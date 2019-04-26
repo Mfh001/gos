@@ -1,11 +1,9 @@
 package redisdb
 
-import (
-	"flag"
-	"github.com/go-redis/redis"
-	"gosconf"
-)
+import "github.com/go-redis/redis"
 
+// cluster mode
+/*
 var clusterClient *redis.ClusterClient
 
 func StartClient() {
@@ -38,13 +36,14 @@ func StartClient() {
 func Instance() *redis.ClusterClient {
 	return clusterClient
 }
+*/
 
-// testing code
-//var clusterClient *redis.Client
-//
-//func StartClient() {
-//	clusterClient = redis.NewClient(&redis.Options{})
-//}
-//func Instance() *redis.Client {
-//	return clusterClient
-//}
+// standalone mode
+var clusterClient *redis.Client
+
+func StartClient() {
+	clusterClient = redis.NewClient(&redis.Options{})
+}
+func Instance() *redis.Client {
+	return clusterClient
+}

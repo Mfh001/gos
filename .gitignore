@@ -35,3 +35,4 @@ src/vendor
 ~$*.xlsx
 dockers/images/*
 /generator/json_files
+/src/game/src/app/gen_register/register_routes.go

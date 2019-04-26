@@ -4,15 +4,16 @@ package db;
 message User {
     string Uuid = 1;
     int32 Level = 2;
-    int32 Exp = 3;
+    int32 Exp   = 3;
     string Name = 4;
     bool Online = 5;
+    int32 Gem   = 6;
 }
 
 message Equip {
-    string Uuid = 1;
+    int32 Id     = 1;
     int32 ConfId = 2;
-    int32 level = 3;
+    int32 level  = 3;
 }
 
 message Item {
@@ -21,13 +22,53 @@ message Item {
 }
 
 message Building {
-    int32 ConfId = 1;
-    int32 Pos = 2;
-    int32 Level = 3;
+    int32 Id     = 1;
+    int32 ConfId = 2;
+    int32 Pos    = 3;
+    int32 Level  = 4;
+}
+
+message Resource {
+    int32 Category  = 1;
+    int64 Amount    = 2;
+    int32 Produce   = 3;
+    int32 UpdatedAt = 4;
+}
+
+message UpgradeEvent {
+    string Uuid     = 1;
+    string UserId   = 2;
+    int32 Category  = 3;
+    int32 TargetId  = 4;
+    int32 UpgradeTo = 5;
+    int64 CreatedAt = 6;
+    int64 FinishAt  = 7;
+    int32 Duration  = 8;
+}
+
+message MissionEvent {
+    string Uuid     = 1;
+    string UserId   = 2;
+    int32 Category  = 3;
+    int64 CreatedAt = 4;
+    int64 FinishAt  = 5;
+    int32 Duration  = 6;
+}
+
+message Builder {
+    bool IsWorking = 1;
+    int32 EventId  = 2;
+    int32 ExpireAt = 3;
 }
 
 message PlayerData {
     User User = 1;
-    repeated Equip Equips = 2;
-    repeated Item Items = 3;
+    map<int32, Equip> Equips = 2;
+    map<int32, Item> Items = 3;
+    map<int32, Building> Buildings = 4;
+    map<int32, Resource> Resources = 5;
+    repeated Builder Builders = 6;
+
+    map<string, UpgradeEvent> UpgradeEvents = 100;
+    map<string, MissionEvent> MissionEvents = 101;
 }
