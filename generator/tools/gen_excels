@@ -2,7 +2,8 @@
 
 $stdout.puts `rm -rf ./json_files`
 $stdout.puts `mkdir -p ./json_files`
+$stdout.puts `rm -rf ../src/goslib/src/gen/gd`
 $stdout.puts `mkdir -p ../src/goslib/src/gen/gd`
 $stdout.puts `python3 tools/proton.py -p ./config/excels -f ./json_files -e json`
 $stdout.puts `node tools/parse_json.js`
-$stdout.puts `gofmt -w ../src/goslib/src/gen/gd/gd.go`
+$stdout.puts `gofmt -w ../src/goslib/src/gen/gd`

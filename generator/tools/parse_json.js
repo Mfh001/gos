@@ -18,20 +18,20 @@ if (!String.prototype.format) {
 }
 
 let tpl = `type {0} struct {
-	index map[int]int
+	index map[int32]int32
 	list  []*Config{0}
 }
 
-var {0}Ins = &{0}{index: map[int]int{}}
+var {0}Ins = &{0}{index: map[int32]int32{}}
 
 func (self *{0}) load(content string) {
 	_ = json.UnmarshalFromString(content, &self.list)
 	for i := 0; i < len(self.list); i++ {
-		self.index[self.list[i].ID] = i
+		self.index[self.list[int32(i)].ID] = int32(i)
 	}
 }
 
-func (self *{0}) GetItem(key int) *Config{0} {
+func (self *{0}) GetItem(key int32) *Config{0} {
 	rwlock.RLock()
 	defer rwlock.RUnlock()
 	idx, ok := self.index[key]

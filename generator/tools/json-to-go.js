@@ -287,7 +287,7 @@ function jsonToGo(json, typename, flatten = true)
 				if (val % 1 === 0)
 				{
 					if (val > -2147483648 && val < 2147483647)
-						return "int";
+						return "int32";
 					else
 						return "int64";
 				}
@@ -307,11 +307,11 @@ function jsonToGo(json, typename, flatten = true)
 	// Given two types, returns the more specific of the two
 	function mostSpecificPossibleGoType(typ1, typ2)
 	{
-		if (typ1.substr(0, 5) == "float"
-				&& typ2.substr(0, 3) == "int")
+		if (typ1.substr(0, 5) == "float32"
+				&& typ2.substr(0, 3) == "int32")
 			return typ1;
-		else if (typ1.substr(0, 3) == "int"
-				&& typ2.substr(0, 5) == "float")
+		else if (typ1.substr(0, 3) == "int32"
+				&& typ2.substr(0, 5) == "float32")
 			return typ2;
 		else
 			return "interface{}";

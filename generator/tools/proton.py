@@ -339,8 +339,13 @@ class Exporter:
                 exportobj = self.exportconfigsheet(sheet, configtitleinfo)
             else:
               print(exportfile + ' is not change, so skip!')
-            self.addrecord(self.path, sheet, exportfile, root, item, exportobj, exportmark)    
-            
+
+            if exportobj != None and sheet.name.endswith('<<'):
+                exportobj = (exportobj[0], [])
+                self.addrecord(self.path, sheet, exportfile, root, item, exportobj, exportmark)    
+            else:
+                self.addrecord(self.path, sheet, exportfile, root, item, exportobj, exportmark)    
+
             if not item and sheet.name.endswith('<<'):
               if exportobj:
                 cout = exportobj
@@ -349,7 +354,7 @@ class Exporter:
           else:
             if item:
               exportobj = self.exportitemsheet(sheet)
-              cout[1][item + 's'] = exportobj[1]
+              cout[1].extend(exportobj[1])
             else:
               exportobj = self.exportconfigsheet(sheet, configtitleinfo)
               cout[1].update(exportobj[1])

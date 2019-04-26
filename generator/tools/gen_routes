@@ -27,6 +27,7 @@ defines.each do |key, value|
     routes.Add("#{value}", func(ctx interface{}, params interface{}) (string, interface{}) {
         return #{instance}.#{handler}(ctx.(*player.Player), params.(*pt.#{value}))
     })
+
   }
 end
 
