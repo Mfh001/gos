@@ -1,8 +1,0 @@
-EquipsController#Load: EquipLoadParams
-EquipsController#UnLoad: EquipUnLoadParams
-
-BuildingsController#Create: BuildingCreateParams
-BuildingsController#Upgrade: BuildingUpgradeParams
-BuildingsController#Finish: BuildingFinishParams
-
-RoomsController#Join: RoomJoinParams

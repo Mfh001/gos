@@ -26,8 +26,9 @@ src/goslib/src/gen
 src/vendor
 
 # idea files
-.idea
-*.iml
+# .idea
+# *.iml
+.idea/workspace.xml
 
 .DS_Store
 *.log
@@ -36,3 +37,9 @@ src/vendor
 dockers/images/*
 /generator/json_files
 /src/game/src/app/gen_register/register_routes.go
+.svn
+/bin
+/src/world/bin
+/src/game/bin
+/src/goslib/gen
+/.idea/workspace.xml

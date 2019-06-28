@@ -9,6 +9,9 @@
 部署Mysql
   helm install stable/mysql --name single-mysql
 
+部署MongoDB
+  helm install stable/mongodb
+
 部署Ingress-nginx
   helm install stable/nginx-ingress --name nginx-ingress
 

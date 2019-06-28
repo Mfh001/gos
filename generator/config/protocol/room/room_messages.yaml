@@ -1,0 +1,24 @@
+- protocol:
+  id: 20100
+  desc: 请求-加入房间
+  name: RoomJoinParams
+  handle: RoomsController#Join
+  struct:
+    RoomId: string
+    PlayerId: string
+
+- protocol:
+  id: 20101
+  desc: 回复-加入房间
+  name: RoomJoinResponse
+  struct:
+    Success: bool
+
+- protocol:
+  id: 20102
+  desc: 通知-加入房间
+  name: RoomJoinNotice
+  struct:
+    RoomId: string
+    NewPlayerId: string
+

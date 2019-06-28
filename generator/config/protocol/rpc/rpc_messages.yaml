@@ -1,0 +1,7 @@
+- protocol:
+  id: 30100
+  desc: 请求-获取地图信息
+  name: MapRpcInfosParams
+  handle: MapRpcHandler#RpcInfo
+  struct:
+    ServerId: string

@@ -39,31 +39,34 @@
 
 ## Setup gos
 ```bash
+# 克隆项目
 git checkout https://github.com/mafei198/gos.git
 
-# 安装依赖(go packages)
-sh dep_install.sh
+# 安装gRPC
+brew install protobuf
+go get -u google.golang.org/grpc
+go get -u github.com/golang/protobuf/protoc-gen-go
 
-# 生成RPC通讯协议
-cd goslib && protoc -I src/gos_rpc_proto --go_out=plugins=grpc:src/gos_rpc_proto src/gos_rpc_proto/*.proto
+# 设置执行路径
+export PATH=$PATH:$GOPATH/bin
 
-# 生成路由信息
-cd generator && ./tools/gen_routes
+# 安装nodejs
+brew install node
 
-# 生成通讯协议
-cd generator && ./tools/gen_protocol
+# 安装python
+brew install python
 
-# 导出配置文件
-cd generator && bundle exec rake generate_config
+# 安装mongo
+brew install mongo
 
-# 根据数据库表导出Model
-cd generator && bundle exec rake generate_tables
+# 安装redis
+brew install redis
 
-# 编译游戏模块并打包成docker的image
-make build_docker_images
+# 安装Excel解析
+pip3 install xlrd
 
-# 将打包好的image上传到dockerhub(需要配置自己的docker账户进行推送)
-make push_docker_images
+# 初始化项目
+make setup
 ```
 
 ## Setup k8s

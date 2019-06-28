@@ -1,0 +1,39 @@
+syntax = "proto3";
+package db;
+
+message User {
+    string Uuid = 1;
+    int32 Level = 2;
+    int32 Exp   = 3;
+    string Name = 4;
+    bool Online = 5;
+    int32 MaxMonsterLevel = 12;
+    int32 MilitarySupplyTimes = 13;
+}
+
+message DailyCount {
+    int32 DateNum = 1;
+    int32 Times   = 2;
+}
+
+message Equip {
+    int32 Id     = 1;
+    int32 ConfId = 2;
+    int32 level  = 3;
+}
+
+
+message AutoIncr {
+    int32 BuildingIdx = 1;
+    int32 BuffItemIdx = 2;
+}
+
+message PlayerData {
+    bool Inited = 1;
+
+    AutoIncr AutoIncr = 3;
+
+    User User = 102;
+    map<int32, Equip> Equips = 103;
+    map<int32, DailyCount> DailyCounts = 114;
+}

@@ -292,7 +292,7 @@ function jsonToGo(json, typename, flatten = true)
 						return "int64";
 				}
 				else
-					return "float64";
+					return "float32";
 			case "boolean":
 				return "bool";
 			case "object":

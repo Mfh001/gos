@@ -1,34 +1,79 @@
 #!/usr/bin/env ruby
 
+## The MIT License (MIT)
+##
+## Copyright (c) 2018 SavinMax. All rights reserved.
+##
+## Permission is hereby granted, free of charge, to any person obtaining a copy
+## of this software and associated documentation files (the "Software"), to deal
+## in the Software without restriction, including without limitation the rights
+## to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+## copies of the Software, and to permit persons to whom the Software is
+## furnished to do so, subject to the following conditions:
+##
+## The above copyright notice and this permission notice shall be included in
+## all copies or substantial portions of the Software.
+##
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+## THE SOFTWARE.
+
 require "yaml"
+require "./tools/utils"
 
-source = "./config/routes.yml"
-`mkdir -p ../src/game/src/app/gen_register`
+`mkdir -p ../src/game/app/gen_register`
 
-target = "../src/game/src/app/gen_register/register_routes.go"
+target = "../src/game/app/gen_register/register_routes.go"
+doc_target = "./config/protocol/readme.txt"
+`mkdir -p ../src/game/app/gen_register`
 
-defines = YAML.load_file(source)
+protos = Utils.load_protos
+defines = protos[:defines]
 
 contents = ""
+doc_contents = ""
+
+def parseStruct(struct)
+  content = []
+  struct.each do |field, type|
+    content << "#{field}: #{type}"
+  end
+  return %Q{{#{content.join(", ")}}}
+end
 
 instance_map = {}
-defines.each do |key, value|
-  chunks = key.split("#")
-  controller = chunks[0]
-  handler = chunks[1]
-  instance = controller.downcase
-
-  if !instance_map[instance]
-    contents << "    #{instance} := &controllers.#{controller}{}"
-    instance_map[instance] = true
+defines.each do |proto|
+  if proto["desc"] and proto["id"] < 30000
+    doc_contents << %Q{
+    #{proto["desc"]}
+path=#{proto["name"]}
+params=#{parseStruct(proto["struct"])}
+    }
   end
 
-  contents << %Q{\ 
-    routes.Add("#{value}", func(ctx interface{}, params interface{}) (string, interface{}) {
-        return #{instance}.#{handler}(ctx.(*player.Player), params.(*pt.#{value}))
-    })
+  if proto["handle"]
+    value = proto["name"]
+    chunks = proto["handle"].split("#")
+    controller = chunks[0]
+    handler = chunks[1]
+    instance = controller.downcase
 
-  }
+    if !instance_map[instance]
+      contents << "    #{instance} := &controllers.#{controller}{}"
+      instance_map[instance] = true
+    end
+
+    contents << %Q{\ 
+      routes.Add("#{value}", func(ctx interface{}, params interface{}) interface{} {
+          return #{instance}.#{handler}(ctx.(*player.Player), params.(*pt.#{value}))
+      })
+
+    }
+  end
 end
 
 File.open(target, "w") do |io|
@@ -38,10 +83,10 @@ File.open(target, "w") do |io|
     package gen_register
 
     import (
-            "gen/api/pt"
-            "app/controllers"
-            "goslib/player"
-            "goslib/routes"
+            "github.com/mafei198/gos/goslib/gen/api/pt"
+            "github.com/mafei198/gos/game/app/controllers"
+            "github.com/mafei198/gos/goslib/player"
+            "github.com/mafei198/gos/goslib/routes"
     )
 
     func RegisterRoutes() {
@@ -50,3 +95,7 @@ File.open(target, "w") do |io|
   }
 end
 `gofmt -w #{target}`
+
+File.open(doc_target, "w") do |io|
+  io.write doc_contents
+end

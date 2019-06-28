@@ -1,0 +1,113 @@
+# Framework Messages
+- protocol:
+  id: 10100
+  desc: 请求-验证
+  name: SessionAuthParams
+  struct:
+    AccountId: string
+    Token: string
+
+- protocol:
+  id: 10101
+  desc: 回复-验证
+  name: SessionAuthResponse
+  struct:
+    Success: bool
+
+- protocol:
+  id: 10102
+  name: Ok
+  struct:
+    OK: bool
+
+- protocol:
+  id: 10103
+  name: Fail
+  struct:
+    Fail: string
+
+- protocol:
+  id: 10104
+  desc: 请求-心跳
+  name: HeartbeatParams
+  handle: LoginsController#Heartbeat
+  struct:
+    Alive: bool
+
+- protocol:
+  id: 10105
+  name: Delete
+  struct:
+    Name: string
+    Uuid: string
+
+- protocol:
+  id: 10106
+  name: DeleteById
+  struct:
+    Name: string
+    Id: int32
+
+- protocol:
+  id: 10107
+  name: LoginParams
+  Handle: LoginsController#Login
+  struct:
+    UserId: string
+
+- protocol:
+  id: 10108
+  name: LoginRsp
+  Handle: LoginsController#Login
+  struct:
+    User: User
+    Equips: array-Equip
+
+# Logic Messages
+- protocol:
+  id: 10200
+  desc: 请求-穿装备
+  name: EquipLoadParams
+  handle: EquipsController#Load
+  struct:
+    PlayerID: string
+    EquipId: string
+    HeroId: string
+
+- protocol:
+  id: 10201
+  desc: 回复-穿装备
+  name: EquipLoadResponse
+  struct:
+    PlayerID: string
+    EquipId: string
+    Level: uint32
+
+- protocol:
+  id: 10202
+  desc: 请求-卸装备
+  name: EquipUnLoadParams
+  handle: EquipsController#UnLoad
+  struct:
+    PlayerID: string
+    EquipId: string
+    HeroId: string
+
+- protocol:
+  id: 10203
+  desc: 回复-卸装备
+  name: EquipUnLoadResponse
+  struct:
+    PlayerID: string
+    EquipId: string
+    Level: uint32
+
+#################通知类消息#################
+- protocol:
+  id: 50100
+  desc: 通知-装备
+  name: Equip
+  struct:
+    Id: int32
+    ConfId: int32
+
