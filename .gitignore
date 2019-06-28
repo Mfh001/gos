@@ -43,3 +43,4 @@ dockers/images/*
 /src/game/bin
 /src/goslib/gen
 /.idea/workspace.xml
+/src/game/game
