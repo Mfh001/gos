@@ -22,9 +22,9 @@
 
 # Bootstrap
 setup:
-	cd src/game && go mod dity
-	cd src/goslib && go mod dity
-	cd src/world && go mod dity
+	cd src/game && go mod tidy
+	cd src/goslib && go mod tidy
+	cd src/world && go mod tidy
 	mkdir -p src/goslib/gen/db
 	protoc -I src/game/protos --go_out=src/goslib/gen/db src/game/protos/schema.proto
 	mkdir -p src/goslib/gen/proto
